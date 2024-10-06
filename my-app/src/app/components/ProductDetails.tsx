@@ -1,18 +1,36 @@
 import React from 'react'
 
-const ProductDetails = () => {
+interface Product {
+  _id:string,
+  id:number,
+  title:string,
+  price:number,
+  description:string,
+  category:string,
+  image:string,
+  rating:{
+      rate:number,
+      count:number
+  }
+};
+
+interface ProductDetailsProps{
+  product:Product
+}
+
+const ProductDetails: React.FC<ProductDetailsProps> = ({product}) => {
   return (
     <div>
       <div className='flex flex-col'>
         <p className='text-xl font-bold'>Product Name</p>
-        <p>Slim-fitting style, contrast raglan long sleeve, three-button henley placket, light weight & soft fabric for breathable and comfortable wearing. And Solid stitched shirts with round neck made for durability and a great fit for casual fashion wear and diehard baseball fans. The Henley style round neckline includes a three-button placket.</p>
+        <p>{product.description}</p>
         <hr className='m-3'/>
 
 <div className='w-full grid grid-cols-4'>
     <div className='col-span-2 flex flex-col justify-center items-center'>
         <div className='flex gap-3 m-3'>
             <p className='text-lg font-bold'>Price</p>
-            <p className='text-lg'>$100</p>
+            <p className='text-lg'>{product.price}</p>
         </div>
 
         <button 
