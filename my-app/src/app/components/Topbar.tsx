@@ -26,12 +26,20 @@ interface CartItem{
 
 const Topbar = () => {
   const[cartDetails,setCartDetails] = useState<Cart>({cartData:[],totalCartCost:0});
+  const[isCartActive,setIsCartActive] = useState(false);
   
   const fetchCartData=async()=>{
     const res = await fetch('/api/cart/user/1');
     if(res){
       const data:Cart = await res.json();
       setCartDetails(data);
+    }
+  }
+
+  const toggleCartVisibility=()=>{
+    setIsCartActive((prevValue)=>!prevValue);
+    if(isCartActive){
+      fetchCartData();
     }
   }
 
@@ -62,21 +70,28 @@ const Topbar = () => {
       
      
 <div className='relative'>
-   <Link href='/' className='text-md font-semibold hover:text-pink-300 group flex items-center'
-   onClick={()=>fetchCartData()}>
+   <Link href='' className='text-md font-semibold hover:text-pink-300 group flex items-center'
+   onClick={()=>toggleCartVisibility()}>
       <div>
         <img src='/basket_icon.png' alt='' width={30} height={30}/>
       </div>
       <span className='flex flex-col items-center'>
         Cart
-        <hr className='h-1 bg-slate-500 w-10 rounded-sm group-hover:bg-pink-300'/>
+        <hr 
+        className={`h-1 w-10 rounded-sm transition-colors duration-300 ${
+          isCartActive ? 'bg-pink-300' : 'bg-gray-500'
+        }`}
+      />
       </span>
       </Link>
 
-      <div className='absolute w-[300px] h-max bg-gray-100 top-[50px] z-10 rounded-md border border-pink-300'>
+{isCartActive &&(
+  <div className='absolute w-[300px] h-[500px] bg-gray-100 top-[50px] z-10 rounded-md border border-pink-300 overflow-auto'>
       <p className='text-lg font-bold m-1 flex justify-center'>My Cart</p>
       <hr className='h-[2px] bg-pink-300'/>
-      {cartDetails.cartData.map(product=>(
+
+
+{cartDetails.cartData.map(product=>(
         <div key={product.id} className='flex items-center gap-2 p-2'>
           <div className='flex flex-col justify-center items-center'>
             <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold'>+</button>
@@ -98,6 +113,8 @@ const Topbar = () => {
         </div>
       ))}
 
+     
+
 <hr className='h-[2px] bg-pink-300'/>
 
 <div className='flex justify-between items-center px-4 py-2'>
@@ -110,10 +127,11 @@ const Topbar = () => {
 
 
   </div>
-</div>
-     
+)}
+      
+     </div>
 
-      <Link href='/' className='text-xl font-semibold hover:text-green-500 group flex border border-gray-500 rounded-lg hover:border-green-500 p-1'>
+      <Link href='/login' className='text-xl font-semibold hover:text-green-500 group flex border border-gray-500 rounded-lg hover:border-green-500 p-1'>
       <div>
         <img src='/user_icon.png' alt='' width={30} height={30}/>
       </div>

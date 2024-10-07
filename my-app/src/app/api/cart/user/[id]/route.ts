@@ -9,6 +9,11 @@ interface Params{
     }
 }
 
+interface ProductItem{
+    productId:number,
+    quantity:number
+}
+
 export async function GET(_request:Request,{params}:Params){
     await dbConnect();
 
@@ -47,6 +52,42 @@ export async function GET(_request:Request,{params}:Params){
     return NextResponse.json(resData);
 }
 
-export async function POST(request:Request,response:Response){
-    
+export async function POST(request:Request,{params}:Params){
+    await dbConnect();
+    const {id} = params;
+    const {productId,orderedQty} = await request.json();
+
+    const cart = await Cart.findOne({userId:id});
+
+    if(cart){
+        const productIndex = cart.products.findIndex((product: ProductItem) => product.productId === productId);
+        
+        if(productIndex!==-1){
+            return NextResponse.json({"success":false,"message":"Product already in cart"})
+        }
+        
+
+        cart.products.push({ productId:productId, quantity: orderedQty });
+        console.log(cart)
+
+        await cart.save();
+        return NextResponse.json({"success":true,"message":"Cart updated successfully"})
+        
+    }else{
+         const newCart = new Cart({
+            userId: id,
+            products: [{ productId, quantity: orderedQty }],
+            date: new Date()
+        });
+
+        try {
+            await newCart.save();
+            return NextResponse.json({ success: true, message: "Cart created successfully" });
+        } catch (error) {
+            console.error("Error creating cart:", error);
+            return NextResponse.json({ success: false, message: "Error creating cart" }, { status: 500 });
+        }
+    }
+
+   
 }

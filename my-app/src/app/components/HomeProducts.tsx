@@ -36,20 +36,29 @@ const HomeProducts = () => {
       router.push(`/viewProduct/${product._id}`);
     };
   return (
-    <div className='grid grid-cols-4 gap-5 w-full justify-center px-3'>
-      {products.map(product=>(
-        <div key={product.id} className='rounded-xl bg-slate-100 border border-pink-300' onClick={()=>productClicked(product)}>
-            <Image 
+    <div className='grid grid-cols-5 gap-5 w-full justify-center px-3'>
+    {products.map(product => (
+      <div 
+        key={product.id} 
+        className='flex flex-col justify-between items-center rounded-xl bg-slate-100 border border-pink-300 p-1 cursor-pointer'
+        onClick={() => productClicked(product)}
+      >
+        <div className='h-48 w-full flex justify-center items-center'> {/* Set a fixed height */}
+          <img 
+            className='rounded w-full h-full object-contain' // Use object-contain to fit the image
             src={product.image}
-            alt=''
-            width={100}
-            height={100}
-            className='rounded'/>
-            <p className='text-bold'>{product.title}</p>
-            <p>{product.price}</p>
+            alt={product.title} // Add meaningful alt text
+            sizes='(max-width: 640px) 100px, (max-width: 768px) 150px, (max-width: 1024px) 200px, 300px'
+          />
         </div>
-      ))}
-    </div>
+        
+        <p className='text-md font-semibold text-center'>{product.title}</p>
+        <p className='text-center text-md font-medium text-gray-700'>${product.price}</p> {/* Added formatting */}
+      </div>
+    ))}
+  </div>
+  
+
   )
 }
 
