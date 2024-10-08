@@ -10,7 +10,6 @@ export default function Home() {
       </div>
       <div className="w-full p-3 h-1/3 mb-3">
         <HomeTopBar/>
-        <hr className="bg-gray-500 h-1 my-2"/>
       </div>
       
       

@@ -52,7 +52,7 @@ const SignupContainer = () => {
   <input type='password' placeholder='Enter password' className='rounded h-10 px-2'
   onChange={e=>setPassword(e.target.value)}/>
   <button className='bg-gray-400 w-full h-10 text-xl text-white font-bold flex justify-center items-center rounded-md my-3' type='submit'>PROCEED</button>
-  <p><span className='text-black font-md'>Don't have an account? </span><Link href='/login' className='text-blue-500 font-semibold text-md'>Login</Link></p>
+  <p><span className='text-black font-md'>Have an account? </span><Link href='/login' className='text-blue-500 font-semibold text-md'>Login</Link></p>
 </form>
 
 <ToastContainer/>
