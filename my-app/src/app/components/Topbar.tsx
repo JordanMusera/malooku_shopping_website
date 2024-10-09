@@ -29,19 +29,27 @@ const Topbar = () => {
   const[isCartActive,setIsCartActive] = useState(false);
   
   const fetchCartData=async()=>{
-    const res = await fetch('/api/cart/user/1');
+    const res = await fetch('/api/cart/user/cart');
     if(res){
-      const data:Cart = await res.json();
+      try {
+        const data:Cart = await res.json();
       setCartDetails(data);
+      } catch (error) {
+        console.log('Login first!')
+      }
+      
     }
   }
 
-  const toggleCartVisibility=()=>{
-    setIsCartActive((prevValue)=>!prevValue);
-    if(isCartActive){
-      fetchCartData();
-    }
-  }
+  const toggleCartVisibility = () => {
+    setIsCartActive((prevValue) => {
+        const newValue = !prevValue;
+        if (newValue) {
+            fetchCartData();
+        }
+        return newValue;
+    });
+};
 
 
   return (
@@ -69,9 +77,8 @@ const Topbar = () => {
      </div>
       
      
-<div className='relative'>
-   <Link href='' className='text-md font-semibold hover:text-pink-300 group flex items-center'
-   onClick={()=>toggleCartVisibility()}>
+<div className='relative' onClick={()=>toggleCartVisibility()}>
+   <Link href='' className='text-md font-semibold hover:text-pink-300 group flex items-center'>
       <div>
         <img src='/basket_icon.png' alt='' width={30} height={30}/>
       </div>
@@ -86,7 +93,7 @@ const Topbar = () => {
       </Link>
 
 {isCartActive &&(
-  <div className='absolute w-[300px] h-[500px] bg-gray-100 top-[50px] z-10 rounded-md border border-pink-300 overflow-auto'>
+  <div className='absolute w-max h-max max-h-[500px] bg-gray-100 top-[50px] z-10 right-0 rounded-md border border-pink-300 overflow-auto'>
       <p className='text-lg font-bold m-1 flex justify-center'>My Cart</p>
       <hr className='h-[2px] bg-pink-300'/>
 
@@ -109,6 +116,11 @@ const Topbar = () => {
             </div>
             
           </div>
+
+          <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer'>
+            <img src='/delete_icon.png' alt='' sizes='full'/>
+          </div>
+          
 
         </div>
       ))}

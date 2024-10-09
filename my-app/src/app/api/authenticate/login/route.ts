@@ -24,7 +24,8 @@ export async function POST(request:Request,response:Response){
 
     const token = sign(
         {
-            userEmail
+            userEmail:userEmail,
+            userId:user._id
         },secret,
         {
             expiresIn:maxAge

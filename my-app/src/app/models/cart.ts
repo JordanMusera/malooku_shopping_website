@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const cartSchema = new Schema({
     id:Number,
-    userId:Number,
+    userId:String,
     date:Date,
     products:[
         {

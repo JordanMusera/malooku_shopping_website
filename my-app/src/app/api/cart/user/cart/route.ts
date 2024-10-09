@@ -1,7 +1,8 @@
 import dbConnect from "@/app/config/database";
 import Cart from "@/app/models/cart";
 import Product from "@/app/models/product";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyToken } from "@/app/api/authenticate/functions/auth";
 
 interface Params{
     params:{
@@ -14,12 +15,20 @@ interface ProductItem{
     quantity:number
 }
 
-export async function GET(_request:Request,{params}:Params){
+export async function GET(request:NextRequest,{params}:Params){
     await dbConnect();
 
-    const {id} = params;
+    //const {id} = params;
+    const userToken = request.cookies.get('authToken')?.value||'';
+    if(!userToken){
+        return NextResponse.json({success:false,message:'Sign in to continue'})
+    }
+    const tokenObject = await verifyToken(userToken);
+    const userId = tokenObject.userId;
 
-    const cart = await Cart.findOne({userId:id});
+    console.log('TOKEN_VALIDITY:'+ userId);
+
+    const cart = await Cart.findOne({userId:userId});
     const cartProductIds = cart.products;
 
     const productsData = [];
@@ -52,12 +61,21 @@ export async function GET(_request:Request,{params}:Params){
     return NextResponse.json(resData);
 }
 
-export async function POST(request:Request,{params}:Params){
+export async function POST(request:NextRequest,{params}:Params){
     await dbConnect();
-    const {id} = params;
+    //const {id} = params;
     const {productId,orderedQty} = await request.json();
 
-    const cart = await Cart.findOne({userId:id});
+    const userToken = request.cookies.get('authToken')?.value||'';
+
+    if(!userToken){
+        return NextResponse.json({success:false,message:'Sign in to continue'})
+    }
+    const decodedToken = await verifyToken(userToken);
+    const userId = decodedToken.userId;
+    console.log("IDD: "+userId);
+
+    const cart = await Cart.findOne({userId:userId});
 
     if(cart){
         const productIndex = cart.products.findIndex((product: ProductItem) => product.productId === productId);
@@ -75,7 +93,7 @@ export async function POST(request:Request,{params}:Params){
         
     }else{
          const newCart = new Cart({
-            userId: id,
+            userId: userId,
             products: [{ productId, quantity: orderedQty }],
             date: new Date()
         });

@@ -22,7 +22,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({product}) => {
 
   const addToCartFunction=async()=>{
     console.log("Helllooo")
-    const res = await fetch('/api/cart/user/1',{
+    const res = await fetch('/api/cart/user/cart',{
       method:'POST',
       headers:{
         'Content-Type':'application/json'
