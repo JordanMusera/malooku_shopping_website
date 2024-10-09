@@ -2,20 +2,16 @@ import mongoose, { Schema } from "mongoose";
 
 const userSchema = new Schema({
     address:{
+        county:String,
         city:String,
         street:String,
-        number:Number,
-        zipcode:String
     },
     id:String,
-    email:String,
     username:String,
+    fullname:String,
+    email:String,
+    phone:String,
     password:String,
-    name:{
-        firstname:String,
-        lastname:String
-    },
-    phone:String
 })
 
 const User = mongoose.models.User || mongoose.model('User',userSchema);

@@ -45,12 +45,12 @@ const page = () => {
             <Topbar/>
         </div>
         
-        <div className='grid grid-cols-2'>
-            <div className='col-span-1 bg-slate-200'>
+        <div className='xl:grid xl:grid-cols-2 flex flex-col'>
+            <div className='xl:col-span-1 bg-white'>
                 <ProductImageView product={product}/>
             </div>
 
-            <div className='col-span-1 bg-pink-50 pt-14'>
+            <div className='xl:col-span-1 bg-pink-50 pt-14'>
                 <ProductDetails product={product}/>
             </div>
             

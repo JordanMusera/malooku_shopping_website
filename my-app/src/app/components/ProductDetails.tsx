@@ -42,8 +42,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({product}) => {
         <p>{product.description}</p>
         <hr className='m-3'/>
 
-<div className='w-full grid grid-cols-4'>
-    <div className='col-span-2 flex flex-col justify-center items-center'>
+<div className='w-full flex flex-col gap-6 xl:gap-0 xl:grid xl:grid-cols-4'>
+    <div className='xl:col-span-2 flex flex-col justify-center items-center'>
         <div className='flex gap-3 m-3'>
             <p className='text-lg font-bold'>Price</p>
             <p className='text-lg'>{product.price}</p>
@@ -53,7 +53,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({product}) => {
         className='text-xl font-bold px-6 py-2 rounded-xl bg-pink-300 text-white
         hover:bg-pink-500'>Add to Cart</button>
     </div>
-    <div className='rounded-xl h-60 bg-slate-200 m-3 flex flex-col p-2 col-span-2'>
+    <div className='rounded-xl h-60 bg-slate-200 m-3 flex flex-col p-2 xl:col-span-2'>
         <p className='text-sm font-bold'>Specifications</p>
         <hr className='h-1 bg-pink-300'/>
         </div>
