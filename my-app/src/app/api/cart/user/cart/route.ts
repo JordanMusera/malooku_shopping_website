@@ -89,7 +89,7 @@ export async function POST(request:NextRequest,{params}:Params){
         console.log(cart)
 
         await cart.save();
-        return NextResponse.json({"success":true,"message":"Cart updated successfully"})
+        return NextResponse.json({"success":true,"message":"Product added to cart"})
         
     }else{
          const newCart = new Cart({

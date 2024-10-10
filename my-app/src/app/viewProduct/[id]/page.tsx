@@ -50,7 +50,7 @@ const page = () => {
                 <ProductImageView product={product}/>
             </div>
 
-            <div className='xl:col-span-1 bg-pink-50 pt-14'>
+            <div className='xl:col-span-1 bg-white pt-14'>
                 <ProductDetails product={product}/>
             </div>
             

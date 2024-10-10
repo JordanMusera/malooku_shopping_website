@@ -14,7 +14,7 @@ const page = () => {
 
   return (
     <div className='grid grid-cols-6 h-screen w-screen'>
-        <div className='h-full  col-span-1 flex flex-col justify-center items-center bg-gray-200'>
+        <div className='h-full  col-span-1 flex flex-col justify-center items-center bg-white'>
             <AccountMenu clikedTab={handleTabClick}/>
         </div>
 
