@@ -8,7 +8,7 @@ const AccountMenu = ({clikedTab}) => {
     }
   return (
     <div className='flex flex-col gap-5'>
-        <div className='flex justify-center items-center gap-1 w-max p-1 rounded-lg hover:bg-pink-300'>
+        <div onClick={()=>handleTabClick('favouriteTab')} className='flex justify-center items-center gap-1 w-max p-1 rounded-lg hover:bg-pink-300'>
             <img src="/user_icon.png" alt="" width={30} height={30}/>
             <label className='font-semibold'>Favourite</label>
         </div>

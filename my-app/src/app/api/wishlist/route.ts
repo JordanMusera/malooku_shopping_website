@@ -61,3 +61,30 @@ export async function POST(request: NextRequest) {
 
 
 }
+
+
+export async function GET(request:NextRequest){
+    await dbConnect();
+
+    const authToken = request.cookies.get('authToken')?.value||'';
+    const tokenObject = await verifyToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJqb2RvQGdtYWlsLmNvbSIsInVzZXJJZCI6IjY3MDQwZDMwNDFkNGNmOGZjNDQ2YWI4YyIsImlhdCI6MTcyODQ5OTA0MSwiZXhwIjoxNzI5Nzk1MDQxfQ.wkU_CnBvONur4KOGCpfz8Yu4WHbnGDOWCHfspJHMtKY');
+    const userId = tokenObject.userId;
+
+    const wishlist = await Wishlist.findOne({userId:userId});
+
+    if(wishlist){
+        let wishlistObject = [];
+        for(let i=0;i<wishlist.wishlist.length;i++){
+            const product = await Product.findById(wishlist.wishlist[i].productId);
+            const finalProduct = product;
+
+            if(product){
+              wishlistObject.push(finalProduct)  
+            }
+        }
+
+        return NextResponse.json({success:true,message:"wishlist retrived",wishlist:wishlistObject});
+    }else{
+        return NextResponse.json({success:false,message:'Wishlist is empty'})
+    }
+}

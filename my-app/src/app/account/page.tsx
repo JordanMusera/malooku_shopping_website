@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import AccountMenu from '../components/AccountMenu'
 import AccountProfileContainer from '../components/EditProfileContainer'
 import AccountSecurityContainer from '../components/AccountSecurityContainer'
+import FavouriteContainer from '../components/favouriteContainer'
 
 const page = () => {
     const[tab,setTab] = useState("edit_profile")
@@ -18,19 +19,19 @@ const page = () => {
             <AccountMenu clikedTab={handleTabClick}/>
         </div>
 
-        <div className='col-span-4 h-full'>
+        <div className='col-span-4 h-full p-10 overflow-auto bg-gray-100'>
             {tab==="edit_profile" &&(
                  <AccountProfileContainer/>
             )}
 
-            {tab=="security" &&(
+            {tab==="security" &&(
                 <AccountSecurityContainer/>
             )}
 
-        </div>
+            {tab==="favouriteTab" &&(
+                <FavouriteContainer/>
+            )}
 
-        <div className='col-span-1 bg-gray-200 h-full'>
-        
         </div>
       
     </div>

@@ -59,7 +59,7 @@ const AccountProfileContainer = () => {
 
 
   return (
-    <form className='w-full h-full flex flex-col items-center p-5 bg-gray-100' onSubmit={updateDetails}>
+    <form className='w-full h-full flex flex-col items-center p-5' onSubmit={updateDetails}>
       <div className='w-32 h-32'>
         <img src='user_icon.png' alt='' sizes='full' className='rounded-full bg-gray-200 p-2 border border-pink-300' />
       </div>
@@ -96,7 +96,7 @@ const AccountProfileContainer = () => {
           <input type='text' value={county} placeholder='County' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setCounty(e.target.value)}/>
         </div>
 
-        <div className='flex gap-5 justify-end'>
+        <div className='flex gap-5 justify-end mb-5'>
           <Link href='/' className='w-max p-2 border border-pink-300 rounded-md bg-white'>Back To Home</Link>
           <button className='w-max p-2 border border-pink-300 rounded-md bg-pink-200 hover:bg-pink-300' type='submit'>Save Changes</button>
         </div>

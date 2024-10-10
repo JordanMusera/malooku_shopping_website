@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { ToastContainer,toast } from 'react-toastify'
 import 'react-toastify/ReactToastify.css'
 
@@ -10,6 +10,7 @@ interface Product {
   description: string,
   category: string,
   image: string,
+  wish:boolean,
   rating: {
     rate: number,
     count: number
@@ -21,6 +22,13 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
+  const[isWish,setIsWish] = useState(false);
+
+  useEffect(()=>{
+    if(product.wish){
+       setIsWish(product.wish)
+    }
+  },[product])
 
   const addToCartFunction = async () => {
     const res = await fetch('/api/cart/user/cart', {
@@ -57,6 +65,24 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     const response = await res.json();
     if(response.success){
       toast.success(response.message);
+      setIsWish(true);
+    }else{
+      toast.error(response.message);
+    }
+  }
+
+  const removeFromWishlistFunction=async()=>{
+    const res = await fetch(`/api/wishlist/${product._id}`,({
+      method:'DELETE',
+      headers:{
+        'Content-Type':'application/json'
+      }
+    }))
+
+    const response = await res.json();
+    if(response.success){
+      toast.success(response.message);
+      setIsWish(false);
     }else{
       toast.error(response.message);
     }
@@ -80,8 +106,21 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             <p className='text-xl font-bold'>10</p>
             <button className='w-10 h-10 text-2xl font-bold hover:text-green-500'>+</button>
           </div>
+
+          {isWish==true &&(
           <button className='text-white p-1 bg-pink-200 hover:bg-pink-300 rounded-md font-bold border border-pink-300'
-          onClick={()=>addToWishlistFunction()}>Add to wishlist</button>
+          onClick={()=>removeFromWishlistFunction()}>
+              <p>Remove from wishlist</p>
+            </button>
+             )}
+
+        {isWish==false &&(
+          <button className='text-white p-1 bg-pink-200 hover:bg-pink-300 rounded-md font-bold border border-pink-300'
+          onClick={()=>addToWishlistFunction()}>
+              <p>Add to wishlist</p>
+            </button>
+             )}
+            
           </div>
          
 

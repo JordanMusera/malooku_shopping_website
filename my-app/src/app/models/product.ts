@@ -7,6 +7,7 @@ const productSchema = new Schema({
     description:String,
     category:String,
     image:String,
+    wish:Boolean,
     rating:{
         rate:Number,
         count:Number
