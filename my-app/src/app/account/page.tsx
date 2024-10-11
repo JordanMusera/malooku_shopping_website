@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import AccountMenu from '../components/AccountMenu'
 import AccountProfileContainer from '../components/EditProfileContainer'
 import AccountSecurityContainer from '../components/AccountSecurityContainer'
-import FavouriteContainer from '../components/favouriteContainer'
+import FavouriteContainer from '../components/FavouriteContainer'
 
 const page = () => {
     const[tab,setTab] = useState("edit_profile")

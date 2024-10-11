@@ -1,7 +1,12 @@
 'use client'
 import Image from 'next/image';
 import Link from 'next/link'
-import { ReactNode, useEffect, useState } from 'react';
+import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setCart,addItem,minusItem,deleteItem } from '@/store/cartSlice';
+import { RootState } from '@/store/store';
+import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+
 
 interface Cart {
   cartData: CartItem[],
@@ -32,6 +37,9 @@ const Topbar = () => {
   const [cartDetails, setCartDetails] = useState<Cart>({ cartData: [], totalCartCost: 0 });
   const [isCartActive, setIsCartActive] = useState(false);
   const [userItem, setUserItem] = useState<UserItem>({});
+ 
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,7 +60,11 @@ const Topbar = () => {
     if (res) {
       try {
         const data: Cart = await res.json();
-        setCartDetails(data);
+        //setCartDetails(data);
+
+        dispatch(setCart(data))
+        
+
       } catch (error) {
         console.log('Login first!')
       }
@@ -69,6 +81,23 @@ const Topbar = () => {
       return newValue;
     });
   };
+
+  const { cartItems, loading, totalAmount } = useSelector(
+    (state: RootState) => state.cart
+  );
+
+  const handleAddToCart = (cartItem:CartItem) => {
+    dispatch(addItem(cartItem));
+  };
+
+  const handleMinusFromCart = (cartItem:CartItem) => {
+    dispatch(minusItem(cartItem));
+  };
+
+  const handleDeleteFromCart = (cartItem:CartItem) => {
+    dispatch(deleteItem(cartItem));
+  };
+
 
 
   return (
@@ -122,12 +151,12 @@ const Topbar = () => {
             <hr className='h-[2px] bg-pink-300' />
 
 
-            {cartDetails.cartData.map(product => (
+            {cartItems.map((product: { id: Key | null | undefined; orderedQty: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; image: string | StaticImport; title: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; price: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; productQtyPrice: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }) => (
               <div key={product.id} className='flex items-center gap-2 p-2'>
                 <div className='flex flex-col justify-center items-center'>
-                  <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold'>+</button>
+                  <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={()=>handleAddToCart(product)}>+</button>
                   <p className='font-bold'>{product.orderedQty}</p>
-                  <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold'>-</button>
+                  <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold'  onClick={()=>handleMinusFromCart(product)}>-</button>
                 </div>
                 <div className='w-full border border-gray-100 flex items-center'>
                   <Image src={product.image} alt="" width={80} height={80} className='rounded-md' />
@@ -141,7 +170,7 @@ const Topbar = () => {
 
                 </div>
 
-                <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer'>
+                <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer' onClick={()=>handleDeleteFromCart(product)}>
                   <img src='/delete_icon.png' alt='' sizes='full' />
                 </div>
 
@@ -156,7 +185,7 @@ const Topbar = () => {
             <div className='flex justify-between items-center px-4 py-2'>
               <div className='flex flex-col items-center justify-center'>
                 <p className='text-sm font-bold m-1 text-gray-600'>Total Cost</p>
-                <p className='text-lg font-bold m-1 text-black'>${cartDetails.totalCartCost}</p>
+                <p className='text-lg font-bold m-1 text-black'>${totalAmount}</p>
               </div>
               <button className='border-[2px] border-pink-300 rounded-xl bg-gray-300 h-8 w-20 flex items-center justify-center hover:bg-pink-300'>Checkout</button>
             </div>
