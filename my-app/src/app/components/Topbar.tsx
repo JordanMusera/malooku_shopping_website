@@ -56,7 +56,7 @@ const Topbar = () => {
   }, [])
 
   const fetchCartData = async () => {
-    const res = await fetch('/api/cart/user/cart');
+    const res = await fetch('/api/cart/user');
     if (res) {
       try {
         const data: Cart = await res.json();

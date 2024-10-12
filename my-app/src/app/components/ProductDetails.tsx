@@ -31,13 +31,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   },[product])
 
   const addToCartFunction = async () => {
-    const res = await fetch('/api/cart/user/cart', {
+    const res = await fetch('/api/cart/user', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        productId: product.id,
+        productId: product._id,
         orderedQty: 2
       })
     })

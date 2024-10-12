@@ -11,7 +11,7 @@ interface Params{
 }
 
 interface ProductItem{
-    productId:number,
+    productId:string,
     quantity:number
 }
 
@@ -38,7 +38,7 @@ export async function GET(request:NextRequest,{params}:Params){
         const productId = cartProductIds[i].productId;
         const productQty = cartProductIds[i].quantity;
 
-        const product = await Product.findOne({id:productId});
+        const product = await Product.findOne({_id:productId});
         const totalProductsPrice = product.price*productQty;
         totalCost += totalProductsPrice;
 
@@ -61,7 +61,7 @@ export async function GET(request:NextRequest,{params}:Params){
     return NextResponse.json(resData);
 }
 
-export async function POST(request:NextRequest,{params}:Params){
+export async function POST(request:NextRequest){
     await dbConnect();
     //const {id} = params;
     const {productId,orderedQty} = await request.json();

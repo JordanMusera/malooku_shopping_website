@@ -47,8 +47,8 @@ const cartSlice = createSlice({
                 existingItem.productQtyPrice += newItem.price;
 
             }
-            calculateTotalPrice(state)
-
+            calculateTotalPrice(state);
+            updateCartData(state);
         },
 
         minusItem(state, action: PayloadAction<CartItem>) {
@@ -64,7 +64,8 @@ const cartSlice = createSlice({
                     state.cartItems = state.cartItems.filter(item => item._id !== minusedItem._id);
                 }
             }
-            calculateTotalPrice(state)
+            calculateTotalPrice(state);
+            updateCartData(state);
         },
 
         deleteItem(state,action:PayloadAction<CartItem>){
@@ -75,7 +76,8 @@ const cartSlice = createSlice({
             if(existingItem){
                 state.cartItems = state.cartItems.filter(item=>item._id !== deletedItem._id);
             }
-            calculateTotalPrice(state)
+            calculateTotalPrice(state);
+            updateCartData(state);
         },
 
         setCart(state, action) {
@@ -88,11 +90,37 @@ const cartSlice = createSlice({
 })
 
 const calculateTotalPrice=(state: WritableDraft<CartState>)=>{
+    console.log('function reached')
     let totalPrice = 0;
     for(let i=0;i<state.cartItems.length;i++){
         totalPrice += state.cartItems[i].productQtyPrice;
     }
     state.totalAmount=parseFloat(totalPrice.toFixed(2));
+}
+
+const updateCartData=async(state: WritableDraft<CartState>)=>{
+    const cart=[];
+    for(let i=0;i<state.cartItems.length;i++){
+        const productId = state.cartItems[i]._id;
+        const quantity = state.cartItems[i].orderedQty;
+
+        cart.push({
+            productId:productId,
+            quantity:quantity
+        })
+    }
+
+    const res = await fetch('/api/cart/updateCart',{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+            cart:cart
+        })
+    });
+
+    console.log('Updated cart: '+res);
 }
 
 export const { addItem,setCart,minusItem,deleteItem } = cartSlice.actions;

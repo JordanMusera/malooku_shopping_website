@@ -1,12 +1,12 @@
 import mongoose, { Schema } from "mongoose";
 
 const cartSchema = new Schema({
-    id:Number,
+    id:String,
     userId:String,
     date:Date,
     products:[
         {
-            productId:Number,
+            productId:String,
             quantity:Number
         }
     ]
