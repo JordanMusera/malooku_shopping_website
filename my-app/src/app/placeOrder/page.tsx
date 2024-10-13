@@ -19,7 +19,7 @@ const page = () => {
        
         </div>
         <div className='fixed top-16 right-4 bottom-4 w-1/5 z-10 items-center justify-center'>
-             <div className='rounded-2xl shadow-xl bg-white w-full h-full'>
+             <div className='rounded-2xl shadow-xl bg-white w-full h-full overflow-auto overflow-x-hidden'>
             <CheckoutCartContainer/>
         </div>
         </div>

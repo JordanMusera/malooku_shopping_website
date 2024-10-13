@@ -9,21 +9,22 @@ const CheckoutCartContainer = () => {
         (state: RootState) => state.cart
     );
     return (
-        <div className='p-5 overflow-auto'>
+        <div className='p-5 h-full'>
             <p className='text-md text-black font-bold'>Order Summary</p>
             <div className='relative h-20 w-64'>
-                {cartItems.map((product, index) => (
-                    <div key={index} className='absolute' style={{ left: `${index * 10}px`, zIndex: `${index}` }}>
-                        <Image
-                            src={product.image}
-                            alt='Product Image'
-                            width={50}
-                            height={50}
-                            className='rounded-md shadow-lg'
-                        />
-                    </div>
-                ))}
-            </div>
+    {cartItems.map((product, index) => (
+        <div key={index} className={`absolute h-20 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
+            <Image
+                src={product.image}
+                alt='Product Image'
+                width={50}
+                height={50}
+                className='rounded-md shadow-lg w-12 h-20 object-cover'
+            />
+        </div>
+    ))}
+</div>
+
 
             <div>
                 {cartItems.map((product, index) => (

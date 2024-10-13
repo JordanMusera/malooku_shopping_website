@@ -26,7 +26,7 @@ export async function POST(request:NextRequest){
     })
 
         await user.save();
-        return NextResponse.json({success:true,message:'Payment method added'});
+        return NextResponse.json({success:true,message:'Payment method added',content:user});
     } catch (error) {
        return NextResponse.json({success:false,message:'Some server error occurred!'});
    }
@@ -46,7 +46,7 @@ export async function DELETE(request:NextRequest){
     if(user.paymentMethods){
         user.paymentMethods = user.paymentMethods.filter((method: { _id: { toString: () => any; }; })=>method._id.toString()!==paymentMethodId);
         await user.save();
-        return NextResponse.json({success:true,message:"Payment method deleted"});
+        return NextResponse.json({success:true,message:"Payment method deleted",content:user});
     }else{
         return NextResponse.json({success:false,message:"Payment method not found"});
     }
