@@ -82,7 +82,7 @@ const cartSlice = createSlice({
 
         setCart(state, action) {
             state.cartItems = action.payload.cartData;
-            console.log(state.cartItems)
+            console.log("CART DATA SET: "+state.cartItems)
             calculateTotalPrice(state)
         },
 
