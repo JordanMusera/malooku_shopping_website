@@ -3,27 +3,60 @@ import { RootState } from '@/store/store';
 import Image from 'next/image';
 import React from 'react'
 import { useSelector } from 'react-redux';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/ReactToastify.css'
 
 const CheckoutCartContainer = () => {
     const { cartItems, loading, totalAmount } = useSelector(
         (state: RootState) => state.cart
     );
+
+
+    const makePayment = async () => {
+        if (shippingAddress2.city === '' || shippingAddress2.county === '') {
+            toast.error('Please select shipping address')
+        } else if (paymentMethod.accType === '' || paymentMethod.accNumber === 0) {
+            toast.error('Please select a payment method')
+        } else {
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    shippingAddress: shippingAddress2,
+                    paymentMethod: paymentMethod
+                })
+            })
+
+            const response = await res.json();
+            if(response.success){
+                toast.success('Order placed successfully');
+            }
+        }
+
+    }
+
+    const { shippingAddress2, paymentMethod } = useSelector(
+        (state: RootState) => state.order
+    );
+
     return (
         <div className='p-5 h-full'>
             <p className='text-md text-black font-bold'>Order Summary</p>
             <div className='relative h-20 w-64'>
-    {cartItems.map((product, index) => (
-        <div key={index} className={`absolute h-20 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
-            <Image
-                src={product.image}
-                alt='Product Image'
-                width={50}
-                height={50}
-                className='rounded-md shadow-lg w-12 h-20 object-cover'
-            />
-        </div>
-    ))}
-</div>
+                {cartItems.map((product, index) => (
+                    <div key={index} className={`absolute h-20 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
+                        <Image
+                            src={product.image}
+                            alt='Product Image'
+                            width={50}
+                            height={50}
+                            className='rounded-md shadow-lg w-12 h-20 object-cover'
+                        />
+                    </div>
+                ))}
+            </div>
 
 
             <div>
@@ -41,7 +74,7 @@ const CheckoutCartContainer = () => {
                 <span className='text-md text-green-500 font-bold'>${totalAmount}</span>
             </p>
 
-            <button className='bg-pink-300 rounded-2xl p-1 w-full mt-3 text-md font-bold text-white hover:shadow-xl'>Purchase</button>
+            <button onClick={() => makePayment()} className='bg-pink-300 rounded-2xl p-1 w-full mt-3 text-md font-bold text-white hover:shadow-xl'>Purchase</button>
 
             <div className='my-3'>
                 <p className='text-[12px] text-gray-400 font-normal w-full justify-center flex'>Accepted secure payment methods</p>
@@ -50,6 +83,7 @@ const CheckoutCartContainer = () => {
                     <img src="/visa_icon.svg" alt="" width={35} height={35} />
                 </div>
             </div>
+            <ToastContainer />
         </div>
     )
 }

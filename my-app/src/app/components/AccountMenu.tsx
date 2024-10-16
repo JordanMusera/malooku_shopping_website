@@ -8,6 +8,11 @@ const AccountMenu = ({clikedTab}) => {
     }
   return (
     <div className='flex flex-col gap-5'>
+         <div onClick={()=>handleTabClick('ordersTab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
+            <img src="/orders_icon.svg" alt="" width={30} height={30}/>
+            <label className='font-semibold'>Orders</label>
+        </div>
+
         <div onClick={()=>handleTabClick('favouriteTab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
             <img src="/favourite_icon.svg" alt="" width={30} height={30}/>
             <label className='font-semibold'>Favourite</label>

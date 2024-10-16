@@ -49,7 +49,7 @@ export async function DELETE(request:NextRequest){
         if(addressAvailable){
             user.shippingAddress = user.shippingAddress.filter((address: { _id: any; }) => address._id.toString() !== shippingAddressId);
             await user.save();
-            return NextResponse.json({success:true,message:'Address deleted'})
+            return NextResponse.json({success:true,message:'Address deleted',content:user})
         }else{
             return NextResponse.json({success:false,message:'Address not found'})
         }

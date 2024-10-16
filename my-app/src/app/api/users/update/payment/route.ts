@@ -2,7 +2,6 @@ import { verifyToken } from "@/app/api/authenticate/functions/auth";
 import dbConnect from "@/app/config/database";
 import User from "@/app/models/user";
 import { NextRequest, NextResponse } from "next/server";
-import { json } from "stream/consumers";
 
 export async function POST(request:NextRequest){
    try {
@@ -27,7 +26,7 @@ export async function POST(request:NextRequest){
 
         await user.save();
         return NextResponse.json({success:true,message:'Payment method added',content:user});
-    } catch (error) {
+   } catch (error) {
        return NextResponse.json({success:false,message:'Some server error occurred!'});
    }
 }

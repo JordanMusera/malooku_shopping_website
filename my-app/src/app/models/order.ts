@@ -1,14 +1,8 @@
-import { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const orderSchema = new Schema({
     userId:String,
-    products:[
-        {
-            productId:String,
-            quantity:Number,
-            productPrice:Number
-        }
-    ],
+    products:Array,
     totalCost:Number,
     orderDate:{type:Date,default:Date.now},
     status:{type:String,enum:['pending','shipped','delivered','cancelled'],default:'pending'},
@@ -18,5 +12,16 @@ const orderSchema = new Schema({
         city:{type:String,required:true},
         county:{type:String,required:true},
     },
-    paymentMethod:{type:String,enum:['mpesa,credit_card'],require:true}
+    paymentMethod:{
+        accType:{type:String,enum:['mpesa','credit_card'],require:true},
+        accNumber:Number,
+        accName:String
+    },
+    deliveryInfo:{
+        deliveryType:{type:String,enum:['pickup-station']},
+        pickupStation:String
+    }
 });
+
+const Order = mongoose.models.Order || mongoose.model('Order',orderSchema);
+export default Order;

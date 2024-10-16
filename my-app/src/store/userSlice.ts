@@ -1,17 +1,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { WritableDraft } from "immer"
 
 interface ShippingAddress{
-    county: String,
-    city: String,
-    street: String,
-    postalCode: String
+    county: string,
+    city: string,
+    street: string,
+    postalCode: string,
+    _id:string
 }
 
 interface PaymentMethods{
-    accName: String,
-    accNumber: Number,
-    accType: String
+    accName: string,
+    accNumber: number,
+    accType: string,
+    _id:string
 }
 
 interface UserObj{
@@ -90,16 +91,7 @@ const userSlice = createSlice({
 });
 
 const addSA=async(newItem: ShippingAddress)=>{
-    const res = await fetch('/api/users/update/shippingAddress',{
-        method:'POST',
-        headers:{
-            'Content-Type':'application/json'
-        },
-        body:JSON.stringify({
-            newShippingAddress:newItem
-        })
-    });
-    const response = await res.json();
+   
     
 }
 
