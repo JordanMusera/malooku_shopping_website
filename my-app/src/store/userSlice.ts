@@ -60,10 +60,11 @@ const userSlice = createSlice({
         addShippingAddress(state,action:PayloadAction<ShippingAddress>){
            const newItem = action.payload;
            state.shippingAddress.push({
-            county:newItem.county,
-            city:newItem.city,
-            street:newItem.street,
-            postalCode:newItem.postalCode
+               county: newItem.county,
+               city: newItem.city,
+               street: newItem.street,
+               postalCode: newItem.postalCode,
+               _id: ""
            })
 
            addSA(newItem);
@@ -76,9 +77,10 @@ const userSlice = createSlice({
         addPaymentMethod(state,action:PayloadAction<PaymentMethods>){
             const newItem = action.payload;
             state.paymentMethods.push({
-                accName:newItem.accName,
-                accNumber:newItem.accNumber,
-                accType:newItem.accType
+                accName: newItem.accName,
+                accNumber: newItem.accNumber,
+                accType: newItem.accType,
+                _id: ""
             })
 
             addPM(newItem);

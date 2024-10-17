@@ -3,9 +3,10 @@ import Image from 'next/image';
 import Link from 'next/link'
 import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCart,addItem,minusItem,deleteItem } from '@/store/cartSlice';
+import { setCart, addItem, minusItem, deleteItem } from '@/store/cartSlice';
 import { RootState } from '@/store/store';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+import { useRouter } from 'next/navigation';
 
 
 interface Cart {
@@ -37,7 +38,10 @@ const Topbar = () => {
   const [cartDetails, setCartDetails] = useState<Cart>({ cartData: [], totalCartCost: 0 });
   const [isCartActive, setIsCartActive] = useState(false);
   const [userItem, setUserItem] = useState<UserItem>({});
- 
+  const [minmenu, setMinmenu] = useState(false);
+
+  const router = useRouter();
+
 
   const dispatch = useDispatch();
 
@@ -63,7 +67,7 @@ const Topbar = () => {
         //setCartDetails(data);
 
         dispatch(setCart(data))
-        
+
 
       } catch (error) {
         console.log('Login first!')
@@ -82,30 +86,37 @@ const Topbar = () => {
     });
   };
 
+  const navigatePlaceOrdersPage = () => {
+    router.push('/placeOrder');
+  }
+
   const { cartItems, loading, totalAmount } = useSelector(
     (state: RootState) => state.cart
   );
 
-  const handleAddToCart = (cartItem:CartItem) => {
+  const handleAddToCart = (cartItem: CartItem) => {
     dispatch(addItem(cartItem));
   };
 
-  const handleMinusFromCart = (cartItem:CartItem) => {
+  const handleMinusFromCart = (cartItem: CartItem) => {
     dispatch(minusItem(cartItem));
   };
 
-  const handleDeleteFromCart = (cartItem:CartItem) => {
+  const handleDeleteFromCart = (cartItem: CartItem) => {
     dispatch(deleteItem(cartItem));
   };
 
+  const handleMenuClick = () => {
+    setMinmenu((prev) => !prev)
+  }
 
 
   return (
     <div className='bg-slate-100 py-2 md:px-3 flex justify-between'>
-    
-          <div className='md:hidden flex ps-2'>
-            <img src='/menu_icon.png' alt='' width={40} height={40} />
-          </div>
+
+      <div className='md:hidden flex ps-2' onClick={() => handleMenuClick()}>
+        <img src='/menu_icon.png' alt='' width={40} height={40} />
+      </div>
 
       <Link href='/' className='text-md font-semibold hover:text-pink-300 group hidden md:flex'>
         <span className='flex flex-col items-center'>
@@ -143,56 +154,57 @@ const Topbar = () => {
             />
           </span>
         </Link>
-        </div>
+      </div>
 
-        {isCartActive && (
-          <div className='absolute w-screen p-5 sm:bottom-0 h-[calc(100vh-37px)] md:w-max md:h-max md:max-h-[500px] bg-gray-100 top-[40px] md:top-[50px] z-10 right-0 md:rounded-md md:border border-pink-300 overflow-auto'>
-            <p className='text-lg font-bold m-1 flex justify-center'>My Cart</p>
-            <hr className='h-[2px] bg-pink-300' />
+      {isCartActive && (
+        <div className='absolute w-screen p-5 sm:bottom-0 h-[calc(100vh-37px)] md:w-max md:h-max md:max-h-[500px] bg-gray-100 top-[40px] md:top-[50px] z-10 right-0 md:rounded-md md:border border-pink-300 overflow-auto'>
+          <p className='text-lg font-bold m-1 flex justify-center'>My Cart</p>
+          <hr className='h-[2px] bg-pink-300' />
 
 
-            {cartItems.map((product: { id: Key | null | undefined; orderedQty: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; image: string | StaticImport; title: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; price: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; productQtyPrice: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }) => (
-              <div key={product.id} className='flex items-center gap-2 p-2'>
-                <div className='flex flex-col justify-center items-center'>
-                  <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={()=>handleAddToCart(product)}>+</button>
-                  <p className='font-bold'>{product.orderedQty}</p>
-                  <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold'  onClick={()=>handleMinusFromCart(product)}>-</button>
-                </div>
-                <div className='w-full border border-gray-100 flex items-center'>
-                  <Image src={product.image} alt="" width={80} height={80} className='rounded-md' />
-                  <div>
-                    <p className='text-sm font-semibold text-black'>{product.title}</p>
-                    <div className='flex flex-col'>
-                      <p className='text-sm font-bold text-gray-600'>Price: ${product.price}</p>
-                      <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> ${product.productQtyPrice}</p>
-                    </div>
+          {cartItems.map((product: { id: Key | null | undefined; orderedQty: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; image: string | StaticImport; title: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; price: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; productQtyPrice: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }) => (
+            <div key={product.id} className='flex items-center gap-2 p-2'>
+              <div className='flex flex-col justify-center items-center'>
+                <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleAddToCart(product)}>+</button>
+                <p className='font-bold'>{product.orderedQty}</p>
+                <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleMinusFromCart(product)}>-</button>
+              </div>
+              <div className='w-full border border-gray-100 flex items-center'>
+                <Image src={product.image} alt="" width={80} height={80} className='rounded-md' />
+                <div>
+                  <p className='text-sm font-semibold text-black'>{product.title}</p>
+                  <div className='flex flex-col'>
+                    <p className='text-sm font-bold text-gray-600'>Price: ${product.price}</p>
+                    <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> ${product.productQtyPrice}</p>
                   </div>
-
                 </div>
 
-                <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer' onClick={()=>handleDeleteFromCart(product)}>
-                  <img src='/delete_icon.png' alt='' sizes='full' />
-                </div>
-
-
               </div>
-            ))}
 
-
-
-            <hr className='h-[2px] bg-pink-300' />
-
-            <div className='flex justify-between items-center px-4 py-2'>
-              <div className='flex flex-col items-center justify-center'>
-                <p className='text-sm font-bold m-1 text-gray-600'>Total Cost</p>
-                <p className='text-lg font-bold m-1 text-black'>${totalAmount}</p>
+              <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer' onClick={() => handleDeleteFromCart(product)}>
+                <img src='/delete_icon.png' alt='' sizes='full' />
               </div>
-              <button className='border-[2px] border-pink-300 rounded-xl bg-gray-300 h-8 w-20 flex items-center justify-center hover:bg-pink-300'>Checkout</button>
+
+
             </div>
+          ))}
 
 
+
+          <hr className='h-[2px] bg-pink-300' />
+
+          <div className='flex justify-between items-center px-4 py-2'>
+            <div className='flex flex-col items-center justify-center'>
+              <p className='text-sm font-bold m-1 text-gray-600'>Total Cost</p>
+              <p className='text-lg font-bold m-1 text-black'>${totalAmount}</p>
+            </div>
+            <button className='border-[2px] border-pink-300 rounded-xl bg-gray-300 h-8 w-20 flex items-center justify-center hover:bg-pink-300'
+              onClick={() => navigatePlaceOrdersPage()}>Checkout</button>
           </div>
-        )}
+
+
+        </div>
+      )}
 
 
       <Link href='/account' className='text-xl font-semibold hover:text-green-500 group flex border border-gray-500 rounded-lg hover:border-green-500 p-1 gap-1
@@ -204,6 +216,15 @@ const Topbar = () => {
           {userItem.username}
         </span>
       </Link>
+
+      {minmenu && (
+        <div className='absolute bg-gray-300 h-screen md:hidden top-[55px] w-full flex flex-col items-center justify-center gap-20'>
+          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>Home</button>
+          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>Cart</button>
+          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>Account</button>
+          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>About us</button>
+        </div>
+      )}
     </div>
   )
 }

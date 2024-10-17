@@ -59,7 +59,7 @@ const AccountProfileContainer = () => {
 
 
   return (
-    <form className='w-full h-full flex flex-col items-center p-5' onSubmit={updateDetails}>
+    <form className='w-full h-max flex flex-col items-center p-5' onSubmit={updateDetails}>
       <div className='w-32 h-32'>
         <img src='user_icon.png' alt='' sizes='full' className='rounded-full bg-gray-200 p-2 border border-pink-300' />
       </div>

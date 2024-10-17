@@ -47,7 +47,7 @@ interface Order {
 }
 
 
-const OrdersContainer = () => {
+const OrdersContainer = ({clickedOrder}) => {
     const [userOrders, setUserOrders] = useState<Order[]>([]);
     useEffect(() => {
         const fetchOrders = async () => {
@@ -67,11 +67,15 @@ const OrdersContainer = () => {
         fetchOrders();
     }, []);
 
+    const handleClickedViewTab=(order:Order)=>{
+        clickedOrder(order)
+    }
+
     return (
         <div className='gap-2 flex flex-col'>
             {userOrders.length > 0 ? (
                 userOrders.map((item, index) => (
-                    <div key={index} className='w-full h-max bg-white rounded-lg p-5 relative flex justify-between items-center gap-2 shadow-lg'>
+                    <div key={index} className='w-full h-max bg-white rounded-lg p-5 relative flex flex-col md:flex-row justify-between items-center gap-2 shadow-lg'>
                         <div className='justify-between'>
                             <p className='text-white px-[5px] bg-pink-200 rounded-md w-max h-max'>{item.status}</p>
                             <p className='text-sm'>{item.orderDate}</p>
@@ -98,9 +102,10 @@ const OrdersContainer = () => {
                             <p className="text-green-500 text-xl font-bold">${item.totalCost}</p>
                         </div>
 
-                        <div className='flex flex-col gap-2'>
-                            <button className='w-max h-max rounded-sm p-1 bg-green-400 font-serif text-white'>Track Order</button>
-                            <button className='w-max h-max rounded-sm p-1 bg-white border border-green-300 font-serif text-black'>View Order</button>
+                        <div className='flex flex-col w-full gap-2'>
+                            <button className='md:w-max w-full h-max rounded-sm p-1 bg-green-400 font-serif text-white'>Track Order</button>
+                            <button className='md:w-max w-full h-max rounded-sm p-1 bg-white border border-green-300 font-serif text-black'
+                            onClick={()=>handleClickedViewTab(item)}>View Order</button>
                         </div>
 
                     </div>
