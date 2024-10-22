@@ -7,6 +7,8 @@ import { setCart, addItem, minusItem, deleteItem } from '@/store/cartSlice';
 import { RootState } from '@/store/store';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/ReactToastify.css';
 
 
 interface Cart {
@@ -87,7 +89,33 @@ const Topbar = () => {
   };
 
   const navigatePlaceOrdersPage = () => {
-    router.push('/placeOrder');
+    if (cartItems.length != 0) {
+      router.push('/placeOrder');
+    } else {
+      toast.error('Cart is empty!')
+    }
+
+  }
+
+  const navigateHomePage = () => {
+    router.push('/');
+    setMinmenu(false);
+  }
+
+  const navigateAccountPage = () => {
+    router.push('/account');
+    setMinmenu(false);
+  }
+
+  const navigateAboutUs = () => {
+    router.push('/aboutus');
+    setMinmenu(false);
+  }
+
+  const showCart = () => {
+    setIsCartActive(true);
+    setMinmenu(false);
+    fetchCartData();
   }
 
   const { cartItems, loading, totalAmount } = useSelector(
@@ -107,12 +135,13 @@ const Topbar = () => {
   };
 
   const handleMenuClick = () => {
-    setMinmenu((prev) => !prev)
+    setMinmenu((prev) => !prev);
+    setIsCartActive(false)
   }
 
 
   return (
-    <div className='bg-slate-100 py-2 md:px-3 flex justify-between'>
+    <div className='bg-slate-100 py-2 md:px-3 flex justify-between z-100'>
 
       <div className='md:hidden flex ps-2' onClick={() => handleMenuClick()}>
         <img src='/menu_icon.png' alt='' width={40} height={40} />
@@ -157,37 +186,47 @@ const Topbar = () => {
       </div>
 
       {isCartActive && (
-        <div className='absolute w-screen p-5 sm:bottom-0 h-[calc(100vh-37px)] md:w-max md:h-max md:max-h-[500px] bg-gray-100 top-[40px] md:top-[50px] z-10 right-0 md:rounded-md md:border border-pink-300 overflow-auto'>
+        <div className='absolute w-screen p-5 sm:bottom-0 h-[calc(100vh-37px)] mt-3 md:w-max md:h-max md:max-h-[500px] bg-gray-100 top-[40px] md:top-[50px] z-10 right-0 md:rounded-md md:border border-pink-300 overflow-auto'>
           <p className='text-lg font-bold m-1 flex justify-center'>My Cart</p>
           <hr className='h-[2px] bg-pink-300' />
 
-
-          {cartItems.map((product: { id: Key | null | undefined; orderedQty: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; image: string | StaticImport; title: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; price: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; productQtyPrice: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }) => (
-            <div key={product.id} className='flex items-center gap-2 p-2'>
-              <div className='flex flex-col justify-center items-center'>
-                <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleAddToCart(product)}>+</button>
-                <p className='font-bold'>{product.orderedQty}</p>
-                <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleMinusFromCart(product)}>-</button>
-              </div>
-              <div className='w-full border border-gray-100 flex items-center'>
-                <Image src={product.image} alt="" width={80} height={80} className='rounded-md' />
-                <div>
-                  <p className='text-sm font-semibold text-black'>{product.title}</p>
-                  <div className='flex flex-col'>
-                    <p className='text-sm font-bold text-gray-600'>Price: ${product.price}</p>
-                    <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> ${product.productQtyPrice}</p>
+          {cartItems.length === 0 ? (
+            <div className='w-full h-1/2 xl:h-20 flex justify-center items-center'>
+              <p className='text-xl font-semi-bold text-red-500'>Cart is empty</p>
+            </div>
+          ) : (
+            <div>
+              {cartItems.map((product: { id: Key | null | undefined; orderedQty: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; image: string | StaticImport; title: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; price: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; productQtyPrice: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }) => (
+                <div key={product.id} className='flex items-center gap-2 p-2'>
+                  <div className='flex flex-col justify-center items-center'>
+                    <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleAddToCart(product)}>+</button>
+                    <p className='font-bold'>{product.orderedQty}</p>
+                    <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleMinusFromCart(product)}>-</button>
                   </div>
+                  <div className='w-full border border-gray-100 flex items-center'>
+                    <Image src={product.image} alt="" width={80} height={80} className='rounded-md' />
+                    <div>
+                      <p className='text-sm font-semibold text-black'>{product.title}</p>
+                      <div className='flex flex-col'>
+                        <p className='text-sm font-bold text-gray-600'>Price: ${product.price}</p>
+                        <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> ${product.productQtyPrice}</p>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer' onClick={() => handleDeleteFromCart(product)}>
+                    <img src='/delete_icon.png' alt='' sizes='full' />
+                  </div>
+
+
                 </div>
-
-              </div>
-
-              <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer' onClick={() => handleDeleteFromCart(product)}>
-                <img src='/delete_icon.png' alt='' sizes='full' />
-              </div>
-
+              ))}
 
             </div>
-          ))}
+          )
+
+          }
 
 
 
@@ -200,6 +239,7 @@ const Topbar = () => {
             </div>
             <button className='border-[2px] border-pink-300 rounded-xl bg-gray-300 h-8 w-20 flex items-center justify-center hover:bg-pink-300'
               onClick={() => navigatePlaceOrdersPage()}>Checkout</button>
+              <ToastContainer/>
           </div>
 
 
@@ -218,11 +258,11 @@ const Topbar = () => {
       </Link>
 
       {minmenu && (
-        <div className='absolute bg-gray-300 h-screen md:hidden top-[55px] w-full flex flex-col items-center justify-center gap-20'>
-          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>Home</button>
-          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>Cart</button>
-          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>Account</button>
-          <button className='w-max text-pink-400 text-2xl font-serif font-bold'>About us</button>
+        <div className='absolute bg-gray-300 h-screen md:hidden top-[55px] w-full flex flex-col items-center justify-center gap-20 z-20'>
+          <button onClick={() => navigateHomePage()} className='w-max text-pink-400 text-2xl font-serif font-bold'>Home</button>
+          <button onClick={() => showCart()} className='w-max text-pink-400 text-2xl font-serif font-bold'>Cart</button>
+          <button onClick={() => navigateAccountPage()} className='w-max text-pink-400 text-2xl font-serif font-bold'>Account</button>
+          <button onClick={() => navigateAboutUs()} className='w-max text-pink-400 text-2xl font-serif font-bold'>About us</button>
         </div>
       )}
     </div>

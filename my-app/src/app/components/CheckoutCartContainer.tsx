@@ -31,7 +31,9 @@ const CheckoutCartContainer = () => {
 
             const response = await res.json();
             if(response.success){
-                toast.success('Order placed successfully');
+                toast.success(response.message);
+            }else{
+                toast.info(response.message);
             }
         }
 

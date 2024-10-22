@@ -90,7 +90,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
   return (
     <div className='h-full flex items-center justify-center'>
-      <div className='flex flex-col p-5'>
+      {product ?(
+        <div className='flex flex-col p-5'>
         <p className='text-2xl font-bold'>{product.title}</p>
 
         <div className='flex my-3 text-pink-300'>
@@ -142,6 +143,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
       </div>
 
+      ):(
+        <div className='flex justify-center items-center'>
+          <p>Loading...</p>
+        </div>
+      )}
+      
       <ToastContainer/>
     </div>
   )

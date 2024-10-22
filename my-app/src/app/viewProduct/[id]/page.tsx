@@ -20,7 +20,7 @@ interface Product {
 }
 
 const page = () => {
-    const [product,setProduct] = useState({});
+    const [product,setProduct] = useState();
     const { id } = useParams();
 
     useEffect(()=>{
@@ -40,12 +40,15 @@ const page = () => {
     },[id])
 
   return (
-    <div className='flex flex-col'>
-        <div className='fixed z-10 top-0 w-full shadow-xl'>
+    <div className='flex flex-col w-screen h-screen'>
+         <div className='fixed z-10 top-0 w-full shadow-xl'>
             <Topbar/>
         </div>
+        {product ?(
+            <div className='flex flex-col'>
+            
         
-        <div className='xl:grid xl:grid-cols-2 flex flex-col'>
+        <div className='xl:grid xl:grid-cols-2 flex flex-col overflow-auto'>
             <div className='xl:col-span-1 bg-white'>
                 <ProductImageView product={product}/>
             </div>
@@ -56,6 +59,13 @@ const page = () => {
             
       
         </div>
+        </div>
+        ):(
+            <div className='flex justify-center items-center w-full h-full'>
+                <p className='text-xl font-semibold text-pink-400'>Loading...</p>
+            </div>
+        )}
+       
       
     </div>
   )

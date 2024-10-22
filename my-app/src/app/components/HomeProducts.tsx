@@ -40,10 +40,10 @@ const HomeProducts = () => {
     {products.map(product => (
       <div 
         key={product.id} 
-        className='flex flex-col justify-between items-center rounded-xl bg-slate-100 border border-pink-300 p-1 cursor-pointer'
+        className='flex flex-col justify-between items-center rounded-xl bg-white border hover:border-pink-300 p-1 cursor-pointer'
         onClick={() => productClicked(product)}
       >
-        <div className='h-48 w-full flex justify-center items-center'> {/* Set a fixed height */}
+        <div className='h-48 w-full flex'> {/* Set a fixed height */}
           <img 
             className='rounded w-full h-full object-contain' // Use object-contain to fit the image
             src={product.image}
@@ -52,8 +52,8 @@ const HomeProducts = () => {
           />
         </div>
         
-        <p className='text-md font-semibold text-center'>{product.title}</p>
-        <p className='text-center text-md font-medium text-gray-700'>${product.price}</p> {/* Added formatting */}
+        <p className='text-sm font-semibold px-2'>{product.title.length > 20 ? product.title.slice(0, 40) + "..." : product.title}</p>
+        <p className='text-xl w-full px-2 font-medium text-pink-400'>${product.price}</p> {/* Added formatting */}
       </div>
     ))}
   </div>
