@@ -7,7 +7,7 @@ const AccountMenu = ({clikedTab}) => {
         clikedTab(data);
     }
   return (
-    <div className='flex flex-col gap-5'>
+    <div className='flex flex-col gap-10 md:gap-5'>
          <div onClick={()=>handleTabClick('ordersTab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
             <img src="/orders_icon.svg" alt="" width={30} height={30}/>
             <label className='font-semibold'>Orders</label>
@@ -28,12 +28,12 @@ const AccountMenu = ({clikedTab}) => {
             <label className='font-semibold'>Notifications</label>
         </div>
 
-        <div className='flex items-center gap-1 w-full p-1 rounded-lg justify-start'>
+        <div className='md:flex items-center gap-1 w-full p-1 rounded-lg justify-start hidden'>
             <img src="/profile_icon.svg" alt="" width={30} height={30}/>
             <label className='font-semibold'>Profile</label>
         </div>
 
-        <div className='flex flex-col ms-5 gap-3'>
+        <div className='flex flex-col md:ms-5 gap-10 md:gap-3'>
            <div onClick={()=>handleTabClick("edit_profile")} className='flex justify-start items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300'>
             <img src="/edit_icon.svg" alt="" width={30} height={30}/>
             <label className='font-semibold'>Edit</label>

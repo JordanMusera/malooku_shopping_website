@@ -67,7 +67,6 @@ const userSlice = createSlice({
                _id: ""
            })
 
-           addSA(newItem);
         },
         deleteShippingAddress(state, action: PayloadAction<number>) {
             state.shippingAddress.splice(action.payload, 1);
@@ -83,7 +82,6 @@ const userSlice = createSlice({
                 _id: ""
             })
 
-            addPM(newItem);
         },
 
         removePaymentMethod(state,action:PayloadAction<number>){
@@ -91,24 +89,6 @@ const userSlice = createSlice({
         }
     }
 });
-
-const addSA=async(newItem: ShippingAddress)=>{
-   
-    
-}
-
-const addPM=async(newItem: PaymentMethods)=>{
-    console.log('ADDPM')
-    const res = await fetch('/api/users/update/payment',{
-        method:'POST',
-        headers:{
-            'Content-Type':'application/json'
-        },
-        body:JSON.stringify({
-            paymentDetails:newItem
-        })
-    })
-}
 
 export const {setShippingAddress,setPayments,addShippingAddress,addPaymentMethod,removePaymentMethod,deleteShippingAddress} = userSlice.actions;
 export default userSlice.reducer;

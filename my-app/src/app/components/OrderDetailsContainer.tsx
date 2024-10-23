@@ -315,7 +315,7 @@ const OrderDetailsContainer = () => {
 
         {/*Adding address Container */}
         {addAddressContainerVisibility && (
-          <div className='absolute self-center w-max h-max bg-gray-100 shadow-2xl p-5 flex-col rounded-xl gap-2 flex'>
+          <div className='absolute self-center w-3/4 md:w-1/3 h-max bg-gray-100 shadow-2xl p-5 flex-col rounded-xl gap-2 flex'>
             <label htmlFor="countyInput" className='text-black text-sm font-semibold'>County</label>
             <input onChange={e => setCounty(e.target.value)} type="text" id='countyInput' placeholder='County' className='w-full rounded-md h-8 bg-white border border-pink-300 px-5 text-black' />
 
@@ -339,7 +339,7 @@ const OrderDetailsContainer = () => {
 
 
         {addPaymentContainerVisibility && (
-          <div className='absolute self-center w-1/3 h-1/2 bg-gray-100 shadow-2xl p-5 flex-col rounded-xl gap-2 flex'>
+          <div className='absolute self-center w-3/4 md:w-1/3 h-max bg-gray-100 shadow-2xl p-5 flex-col rounded-xl gap-2 flex'>
             <label htmlFor="payment_type" className='text-black text-sm font-semibold'>Payment Type</label>
             <select value={accType} onChange={e => setAccType(e.target.value)} id='payment_type' className='h-8 rounded-md w-full'>
               <option value="mpesa">M-pesa</option>

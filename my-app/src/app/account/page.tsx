@@ -6,11 +6,13 @@ import AccountSecurityContainer from '../components/AccountSecurityContainer'
 import FavouriteContainer from '../components/FavouriteContainer'
 import OrdersContainer from '../components/OrdersContainer'
 import ViewOrderContainer from '../components/ViewOrderContainer'
+import TrackOrderContainer from '../components/TrackOrderContainer'
 
 const page = () => {
     const [tab, setTab] = useState("edit_profile")
     const [orderObj,setOrderObj] = useState({});
     const [minMenuVisibility,setMinMenuVisibility] = useState(false);
+    const [orderId,setOrderId] = useState('');
 
     const handleTabClick = (data: string) => {
         setTab(data);
@@ -26,6 +28,10 @@ const page = () => {
 
     const minMenuClick=()=>{
         setMinMenuVisibility(priv=>(!priv))
+    }
+
+    const handleClickedOrder=(id:string)=>{
+        setOrderId(id);
     }
 
     return (
@@ -49,7 +55,7 @@ const page = () => {
 
                 <div className='pt-10 flex items-center justify-center h-full'>
                      {tab === "ordersTab" && (
-                    <OrdersContainer clickedOrder={handleOrderClick}/>
+                    <OrdersContainer clickedOrder={handleOrderClick} clickedTab={handleTabClick} orderId={handleClickedOrder}/>
                 )}
 
                 {tab === "edit_profile" && (
@@ -66,6 +72,10 @@ const page = () => {
 
                 {tab === "viewOrderTab" && (
                     <ViewOrderContainer orderObj={orderObj} />
+                )}
+
+                {tab === "trackorder" &&(
+                    <TrackOrderContainer orderId={orderId}/>
                 )}
 
                 </div>
