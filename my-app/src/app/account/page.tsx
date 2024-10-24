@@ -7,6 +7,8 @@ import FavouriteContainer from '../components/FavouriteContainer'
 import OrdersContainer from '../components/OrdersContainer'
 import ViewOrderContainer from '../components/ViewOrderContainer'
 import TrackOrderContainer from '../components/TrackOrderContainer'
+import CancelledOrdersContainer from '../components/CancelledOrdersContainer'
+import OrderRefundsContainer from '../components/OrderRefundsContainer'
 
 const page = () => {
     const [tab, setTab] = useState("edit_profile")
@@ -53,7 +55,7 @@ const page = () => {
                     )}
                 </div>
 
-                <div className='pt-10 flex items-center justify-center h-full'>
+                <div className='flex items-center justify-center h-full'>
                      {tab === "ordersTab" && (
                     <OrdersContainer clickedOrder={handleOrderClick} clickedTab={handleTabClick} orderId={handleClickedOrder}/>
                 )}
@@ -76,6 +78,14 @@ const page = () => {
 
                 {tab === "trackorder" &&(
                     <TrackOrderContainer orderId={orderId}/>
+                )}
+
+                {tab ==='cancelled_orders_tab' &&(
+                    <CancelledOrdersContainer clickedTab={handleTabClick}/>
+                )}
+
+                {tab ==='refunds_tab' &&(
+                    <OrderRefundsContainer clickedTab={handleTabClick}/>
                 )}
 
                 </div>

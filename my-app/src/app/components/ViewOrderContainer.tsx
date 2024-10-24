@@ -56,6 +56,10 @@ const ViewOrderContainer = (props) => {
     router.push(`/viewProduct/${id}`)
    }
 
+   const cancelAndRefund=()=>{
+
+   }
+
   return (
     <div>
 
@@ -78,7 +82,7 @@ const ViewOrderContainer = (props) => {
                             <button className='w-full h-max rounded-sm p-1 bg-green-400 font-serif text-white'
                             onClick={()=>viewProduct(item.product._id)}>View Product</button>
                             <button className='w-full h-max rounded-sm p-1 bg-white border border-green-300 font-serif text-black hover:bg-red-400'
-                            onClick={()=>handleClickedViewTab(item)}>Cancel and refund</button>
+                            onClick={()=>cancelAndRefund(item)}>Cancel and refund</button>
                         </div>
                 </div>
             </div>

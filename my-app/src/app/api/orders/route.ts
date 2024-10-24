@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
 
                 cartProducts.push({
                     product,
+                    status:'pending',
                     quantity: cart.products[i].quantity,
                     productQtyPrice: productQtyPrice
                 })
