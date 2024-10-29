@@ -67,7 +67,7 @@ export async function GET(request:NextRequest){
     await dbConnect();
 
     const authToken = request.cookies.get('authToken')?.value||'';
-    const tokenObject = await verifyToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJqb2RvQGdtYWlsLmNvbSIsInVzZXJJZCI6IjY3MDQwZDMwNDFkNGNmOGZjNDQ2YWI4YyIsImlhdCI6MTcyODQ5OTA0MSwiZXhwIjoxNzI5Nzk1MDQxfQ.wkU_CnBvONur4KOGCpfz8Yu4WHbnGDOWCHfspJHMtKY');
+    const tokenObject = await verifyToken(authToken);
     const userId = tokenObject.userId;
 
     const wishlist = await Wishlist.findOne({userId:userId});

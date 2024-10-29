@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        //const mpesaObj = await initiateMpesa(paymentMethod.accNumber, Math.round(totalPrice));
+        const mpesaObj = await initiateMpesa(paymentMethod.accNumber, Math.round(totalPrice));
 
-        //if (mpesaObj.processed) {
-            //if (mpesaObj.ResultCode === '0') {
+        if (mpesaObj.processed) {
+            if (mpesaObj.ResultCode === '0') {
                 const order = new Order(orderObj);
                 const savedOrder = await order.save();
 
@@ -74,13 +74,13 @@ export async function POST(request: NextRequest) {
                 console.log(orderprogress1)
 
                 return NextResponse.json({ success: true, message: 'Oder placed successfully' });
-            //}else{
-                //return NextResponse.json({ success: false, message: mpesaObj.ResultDesc });
-            //}
+            }else{
+                return NextResponse.json({ success: false, message: mpesaObj.ResultDesc });
+            }
 
-        //}
+        }
 
-       // return NextResponse.json({ success: false, message: mpesaObj.ResultDesc });
+       return NextResponse.json({ success: false, message: mpesaObj.ResultDesc });
 
 
     }

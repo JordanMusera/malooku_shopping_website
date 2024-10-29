@@ -54,8 +54,7 @@ const CancelledOrdersContainer = ({clickedTab}) => {
                 <button className='text-md text-black font-semibold border border-pink-300 bg-white rounded-md px-2'
                 onClick={()=>handleClickedTab('refunds_tab')}>Refunds</button>
             </div>
-      <p>Cancelled Orders</p>
-
+     
       <div className='flex flex-col gap-2 overflow-auto'>
         {cancelledOrders && cancelledOrders.map((item,index)=>(
           <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex items-center justify-between'>

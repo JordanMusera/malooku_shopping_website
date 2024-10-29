@@ -9,6 +9,7 @@ import ViewOrderContainer from '../components/ViewOrderContainer'
 import TrackOrderContainer from '../components/TrackOrderContainer'
 import CancelledOrdersContainer from '../components/CancelledOrdersContainer'
 import OrderRefundsContainer from '../components/OrderRefundsContainer'
+import RefundFormContainer from '../components/RefundFormContainer'
 
 const page = () => {
     const [tab, setTab] = useState("edit_profile")
@@ -73,7 +74,7 @@ const page = () => {
                 )}
 
                 {tab === "viewOrderTab" && (
-                    <ViewOrderContainer orderObj={orderObj} />
+                    <ViewOrderContainer orderObj={orderObj} clickedTab={handleTabClick} />
                 )}
 
                 {tab === "trackorder" &&(
@@ -86,6 +87,10 @@ const page = () => {
 
                 {tab ==='refunds_tab' &&(
                     <OrderRefundsContainer clickedTab={handleTabClick}/>
+                )}
+
+                {tab ==='refund_form_tab' &&(
+                    <RefundFormContainer/>
                 )}
 
                 </div>

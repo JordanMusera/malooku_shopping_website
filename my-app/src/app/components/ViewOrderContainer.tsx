@@ -48,16 +48,15 @@ interface Order {
     orderDate: string;
 }
 
-const ViewOrderContainer = (props) => {
-    const orderObj = props.orderObj;
+const ViewOrderContainer = ({orderObj,clickedTab}) => {
     const router = useRouter();
 
    const viewProduct=(id:string)=>{
     router.push(`/viewProduct/${id}`)
    }
 
-   const cancelAndRefund=()=>{
-
+   const cancelAndRefund=(tab:string)=>{
+    clickedTab(tab);
    }
 
   return (
@@ -82,7 +81,7 @@ const ViewOrderContainer = (props) => {
                             <button className='w-full h-max rounded-sm p-1 bg-green-400 font-serif text-white'
                             onClick={()=>viewProduct(item.product._id)}>View Product</button>
                             <button className='w-full h-max rounded-sm p-1 bg-white border border-green-300 font-serif text-black hover:bg-red-400'
-                            onClick={()=>cancelAndRefund(item)}>Cancel and refund</button>
+                            onClick={()=>cancelAndRefund('refund_form_tab')}>Cancel and refund</button>
                         </div>
                 </div>
             </div>

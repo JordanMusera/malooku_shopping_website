@@ -42,8 +42,10 @@ const TrackOrderContainer = ({orderId}:OrderId) => {
         fetchOrderTrack();
     }, [orderId])
     return (
-        <div className='w-full h-full flex flex-col p-5 over'>
-            <p className='text-xl text-black font-semibold'>Track Order</p>
+        <div className='w-full h-full flex flex-col p-5 over items-center justify-center'>
+            {fetchedTrack ?(
+                <div className='w-full'>
+                    <p className='text-xl text-black font-semibold'>Track Order</p>
             <div className='flex flex-col md:flex-row gap-2 justify-between'>
                 <div className='text-md font-semibold text-gray-700 gap-2'>
                     <p>{fetchedTrack && fetchedTrack.orderProgress[0].date}</p>
@@ -91,6 +93,13 @@ const TrackOrderContainer = ({orderId}:OrderId) => {
                     {`${fetchedTrack?.deliveryInfo.pickupStation}`}
                 </div>
             </div>
+                </div>
+            ):(
+                <div className='w-full h-full flex items-center justify-center'>
+                    <p>Progress not available at the moment!</p>
+                </div>
+            )}
+            
 
         </div>
     )
