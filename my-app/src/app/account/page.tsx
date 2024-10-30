@@ -16,11 +16,16 @@ const page = () => {
     const [orderObj,setOrderObj] = useState({});
     const [minMenuVisibility,setMinMenuVisibility] = useState(false);
     const [orderId,setOrderId] = useState('');
+    const [CARorderDetails,setCARorderDetails] = useState({});
 
     const handleTabClick = (data: string) => {
         setTab(data);
         setMinMenuVisibility(false);
         console.log("Clicked_tab: " + data)
+    }
+
+    const handleCancelAndRefund =(data:any)=>{
+        setCARorderDetails(data);
     }
 
     const handleOrderClick = (data:object)=>{
@@ -74,7 +79,7 @@ const page = () => {
                 )}
 
                 {tab === "viewOrderTab" && (
-                    <ViewOrderContainer orderObj={orderObj} clickedTab={handleTabClick} />
+                    <ViewOrderContainer orderObj={orderObj} clickedTab={handleTabClick} handleCancelAndRefund={handleCancelAndRefund}/>
                 )}
 
                 {tab === "trackorder" &&(
@@ -90,7 +95,7 @@ const page = () => {
                 )}
 
                 {tab ==='refund_form_tab' &&(
-                    <RefundFormContainer/>
+                    <RefundFormContainer orderDetails={CARorderDetails}/>
                 )}
 
                 </div>
