@@ -62,5 +62,5 @@ export async function POST(request: NextRequest) {
     await CA.save();
     console.log(cdres);
 
-    return NextResponse.json({ success: true, message: 'Further communications will be made', content: CA });
+    return NextResponse.json({ success: true, message: 'Application submitted.', content: CA });
 }
