@@ -33,7 +33,8 @@ interface RefundOrder{
   },
   selectedReason:string,
   providedReason:string,
-  images:Image[]
+  images:Image[],
+  applicationDate:string
 }
 
 const OrderRefundsContainer = ({clickedTab,refundObj}) => {
@@ -73,13 +74,13 @@ const OrderRefundsContainer = ({clickedTab,refundObj}) => {
                 onClick={()=>handleClickedTab('refunds_tab')}>Refunds</button>
             </div>
 
-            <div className='flex flex-col gap-2'>
+            <div className='flex flex-col-reverse gap-2'>
               {refundedOrders.map((item,index)=>(
                 <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex items-center justify-between'>
                 <Image src={item.order.product.image} alt='' width={100} height={100}/>
                 <div className='flex flex-col gap-2'>
                   <p className='px-1 bg-orange-300 rounded-md w-max'>{item.status}</p>
-                  <p className='text-gray-700 text-sm'>Date Here</p>
+                  <p className='text-gray-700 text-sm'>{item.applicationDate}</p>
                 </div>
                 <div className='flex flex-col gap-3 justify-center'>
                   <p className='text-black text-sm font-medium'>{item.order.product.price} * {item.order.quantity}</p>

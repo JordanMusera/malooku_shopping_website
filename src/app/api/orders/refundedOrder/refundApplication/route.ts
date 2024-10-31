@@ -51,22 +51,44 @@ export async function POST(request: NextRequest) {
         orderId,
         productId,
         order: CAProduct,
-        selectedReason:data.get('selectedReason'),
-        providedReason:data.get('providedReason'),
-        messages:[
-            {message:'Refund requested by user'},
-            {message:'Request is being processed'}
+        selectedReason: data.get('selectedReason'),
+        providedReason: data.get('providedReason'),
+        messages: [
+            { message: 'Refund requested by user' },
+            { message: 'Request is being processed' }
         ],
-        images: cdres.map((res:any) => (
-            {url:res.secure_url,
-            publicId:res.public_id,
-            assetId:res.asset_id
+        images: cdres.map((res: any) => (
+            {
+                url: res.secure_url,
+                publicId: res.public_id,
+                assetId: res.asset_id
             })),
-        
+
     });
 
     await CA.save();
+
+    const order1 = await Order.findOne({ userId: userId, _id: orderId });
+    const refundedProductIndex = order1.products.findIndex((item: { product: { _id: { toString: () => string; }; }; }) => item.product._id.toString() === productId);
+
+    if (refundedProductIndex !== -1) {
+        if (order1.products.length === 1 && order1.products[refundedProductIndex].product._id.toString() === productId) {
+            await Order.findOneAndDelete({ userId: userId, _id: orderId });
+            return NextResponse.json({ success: true, message: 'Application submitted.', content: CA });
+        }
+
+        order1.products.splice(refundedProductIndex, 1);
+        let totalCost = 0;
+        for (const product of order1.products) {
+            totalCost += product.productQtyPrice||0;
+        }
+        order1.totalCost = totalCost;
+
+        await order1.save();
+        return NextResponse.json({ success: true, message: 'Application submitted.', content: CA });
+    }
+
     console.log(CA);
 
-    return NextResponse.json({ success: true, message: 'Application submitted.', content: CA });
+    
 }

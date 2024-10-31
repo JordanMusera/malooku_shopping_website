@@ -9,7 +9,8 @@ const refundOrderSchema = new Schema({
     selectedReason:String,
     providedReason:String,
     images:Array,
-    messages:Array
+    messages:Array,
+    applicationDate:{type:Date,default:Date.now}
 });
 
 const RefundOrder = mongoose.models.RefundOrder||mongoose.model('RefundOrder',refundOrderSchema);

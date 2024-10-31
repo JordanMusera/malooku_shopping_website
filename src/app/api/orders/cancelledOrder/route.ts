@@ -16,14 +16,12 @@ export async function POST(request: NextRequest) {
     const user = await User.findById(userId);
 
     if (user) {
-        const order = await Order.findById(orderId);
+        let order = await Order.findById(orderId);
         const productIndex = order.products.findIndex((p: { product: { _id: { toString: () => any; }; }; }) => p.product._id.toString() === productId);
 
         if (productIndex !== -1 && order.status==='pending') {
-            order.products[productIndex].status = 'cancelled';
-            const order1 = await order.save();
-
-            //return NextResponse.json(order1)
+            order.products.splice(productIndex, 1);
+            await order.save();
 
             const p = order.products[productIndex];
 
