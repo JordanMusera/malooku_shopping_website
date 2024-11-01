@@ -1,5 +1,6 @@
 'use client'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
 interface Product{
@@ -29,10 +30,15 @@ interface CancelledOrders{
 }
 
 const CancelledOrdersContainer = ({clickedTab}) => {
-  const[cancelledOrders,setCancelledOrders] = useState<CancelledOrders[]>([])
+  const[cancelledOrders,setCancelledOrders] = useState<CancelledOrders[]>([]);
+  const router = useRouter();
 
     const handleClickedTab = (tab:string)=>{
         clickedTab(tab)
+    }
+
+    const navigateToViewProduct =(productId:string)=>{
+      router.push(`/viewProduct/${productId}`);
     }
 
     useEffect(()=>{
@@ -69,7 +75,8 @@ const CancelledOrdersContainer = ({clickedTab}) => {
             </div>
             <div className='flex flex-col w-max gap-4'>
               <p className='text-gray-700 text-sm font-semibold'>Id: {item.productId}</p>
-              <button className='border border-pink-300 rounded-lg w-full text-black p-1'>View Product</button>
+              <button className='border border-pink-300 rounded-lg w-full text-black p-1'
+              onClick={()=>navigateToViewProduct(item.productId)}>View Product</button>
             </div>
           </div>
         ))}

@@ -59,12 +59,12 @@ const AccountProfileContainer = () => {
 
 
   return (
-    <form className='w-full h-max flex flex-col items-center p-5' onSubmit={updateDetails}>
+    <form className='w-full h-max flex flex-col items-center md:p-5' onSubmit={updateDetails}>
       <div className='w-32 h-32'>
         <img src='user_icon.png' alt='' sizes='full' className='rounded-full bg-gray-200 p-2 border border-pink-300' />
       </div>
 
-      <div className='w-3/4 flex flex-col gap-2'>
+      <div className='w-full p-3 md:w-3/4 flex flex-col gap-2'>
         <div className='w-full'>
           <label>Full Name</label>
           <input type='text' value={fullName} placeholder='Full Name' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setFullName(e.target.value)}/>

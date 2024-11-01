@@ -81,7 +81,7 @@ const OrdersContainer = ({ clickedOrder, clickedTab, orderId }) => {
     }
 
     return (
-        <div className='gap-2 flex flex-col w-full h-full px-5 md:p-0 relative items-center justify-center'>
+        <div className='gap-2 flex flex-col w-full h-full px-3 py-3 md:px-5 md:p-0 '>
             <div className='top-0 w-full justify-between flex'>
                 <button className='text-md text-black font-semibold bg-pink-300 border border-pink-300 rounded-md px-2'
                 onClick={()=>handleClickedTab('ordersTab')}>Orders</button>
@@ -91,13 +91,13 @@ const OrdersContainer = ({ clickedOrder, clickedTab, orderId }) => {
                 onClick={()=>handleClickedTab('refunds_tab')}>Refunds</button>
             </div>
 
-            <div className='gap-2 flex flex-col w-full h-full px-5 md:p-0 overflow-auto items-center justify-center'>
+            <div className='gap-2 flex flex-col w-full md:px-5 md:p-0 overflow-auto items-center justify-start max-h-[calc(100vh-100px)]'>
                 {userOrders.length > 0 ? (
                     userOrders.map((item, index) => (
                         <div key={index} className='w-full h-max bg-white rounded-lg p-5 relative flex flex-col md:flex-row justify-between items-center gap-2 shadow-lg'>
-                            <div className='relative h-32 w-72 justify-start'>
+                            <div className='h-32 w-full justify-center flex'>
                                 {item.products.map((item2, index) => (
-                                    <div key={index} className={`absolute h-32 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
+                                    <div key={index} className={`h-32 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
                                         <Image
                                             src={item2.product.image}
                                             alt='Product Image'
