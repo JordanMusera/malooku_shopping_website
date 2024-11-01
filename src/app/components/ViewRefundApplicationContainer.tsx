@@ -4,7 +4,7 @@ import React from 'react'
 
 const ViewRefundApplicationContainer = ({ clickedRefund }) => {
     return (
-        <div className='w-full h-full grid grid-cols-2 gap-2'>
+        <div className='w-full h-full flex flex-col md:grid grid-cols-2 gap-2 p-5'>
             <div className='col-span-1 bg-white shadow-sm rounded-xl p-5 overflow-auto'>
                 <div className='flex gap-4'>
                     <div className='flex gap-3 items-center rounded-lg shadow-2xl w-max p-5'>
@@ -45,9 +45,13 @@ const ViewRefundApplicationContainer = ({ clickedRefund }) => {
             <div className='col-span-1 bg-white shadow-sm rounded-xl p-5 flex flex-col gap-4'>
                 <p className='text-lg font-semibold text-pink-300 w-full text-center'>Refund Overview</p>
                 <div className='flex flex-col gap-2'>
-                    {clickedRefund.messages.map((item: any,index: React.Key | null | undefined)=>(
-                        <div key={index} className='bg-green-100 p-1 rounded-md'>
+                    {clickedRefund.messages.map((item: any,index: number)=>(
+                        <div key={index} className='bg-orange-100 p-1 rounded-md'>
+                            <div className='flex gap-2 items-center'>
+                            <p className='bg-orange-200 rounded-full p-1 w-10 h-10 flex items-center justify-center text-sm font-semibold text-black'
+                            >{index+1}</p>
                             <p>{item.message}</p>
+                            </div>
                         </div>
                     ))}
                 </div>

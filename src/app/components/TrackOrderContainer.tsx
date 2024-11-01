@@ -45,7 +45,7 @@ const TrackOrderContainer = ({orderId}:OrderId) => {
         <div className='w-full h-full flex flex-col p-5 over items-center justify-center'>
             {fetchedTrack ?(
                 <div className='w-full'>
-                    <p className='text-xl text-black font-semibold'>Track Order</p>
+                    <p className='text-xl text-pink-300 font-semibold'>Track Order</p>
             <div className='flex flex-col md:flex-row gap-2 justify-between'>
                 <div className='text-md font-semibold text-gray-700 gap-2'>
                     <p>{fetchedTrack && fetchedTrack.orderProgress[0].date}</p>
@@ -54,10 +54,10 @@ const TrackOrderContainer = ({orderId}:OrderId) => {
                 <p className='text-green-500 text-2xl font-semibold'>${fetchedTrack?.totalCost}</p>
             </div>
 
-            <div className='mt-10'>
+            <div className='w-full mt-10'>
                 {fetchedTrack && fetchedTrack.orderProgress.map((item) => (
                     <div>
-                        <div className='flex w-max gap-1 mt-2'>
+                        <div className='flex w-full gap-1 mt-2'>
                             <div className='flex flex-col items-center justify-center w-max gap-1'>
                                 <div className='w-5 h-5 rounded-full bg-pink-300 shadow-xl' />
                                 {item.orderStatus != 'delivered' ? (

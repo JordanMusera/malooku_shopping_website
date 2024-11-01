@@ -55,7 +55,7 @@ const page = () => {
         </div>
     
         <div className='flex w-full col-span-1 xl:col-span-4 h-full xl:p-10 overflow-auto bg-gray-100'>
-            <div className='w-1/6 h-screen bg-white flex flex-col items-center justify-center shadow-lg xl:hidden rounded-r-2xl'>
+            <div className='w-1/6 h-screen bg-pink-100 flex flex-col items-center justify-center shadow-xl xl:hidden'>
             <AccountMenu clikedTab={handleTabClick} />
             </div>
     

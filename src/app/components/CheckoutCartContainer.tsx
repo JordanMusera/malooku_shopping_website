@@ -46,9 +46,9 @@ const CheckoutCartContainer = () => {
     return (
         <div className='p-5 h-full'>
             <p className='text-md text-black font-bold'>Order Summary</p>
-            <div className='relative h-20 w-64'>
+            <div className='h-20 w-max flex flex-shrink'>
                 {cartItems.map((product, index) => (
-                    <div key={index} className={`absolute h-20 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
+                    <div key={index} className={`h-20 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
                         <Image
                             src={product.image}
                             alt='Product Image'

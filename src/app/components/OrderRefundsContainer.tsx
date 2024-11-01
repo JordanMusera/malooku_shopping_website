@@ -64,7 +64,7 @@ const OrderRefundsContainer = ({clickedTab,refundObj}) => {
       refundObj(item);
     }
   return (
-    <div className='gap-2 flex flex-col w-full h-full px-5 md:p-0 relative'>
+    <div className='gap-2 flex flex-col w-full h-full p-3 md:p-5 relative'>
             <div className='top-0 w-full justify-between flex'>
                 <button className='text-md text-black font-semibold bg-white border border-pink-300 rounded-md px-2'
                 onClick={()=>handleClickedTab('ordersTab')}>Orders</button>
@@ -76,22 +76,50 @@ const OrderRefundsContainer = ({clickedTab,refundObj}) => {
 
             <div className='flex flex-col-reverse gap-2'>
               {refundedOrders.map((item,index)=>(
-                <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex items-center justify-between'>
-                <Image src={item.order.product.image} alt='' width={100} height={100}/>
-                <div className='flex flex-col gap-2'>
-                  <p className='px-1 bg-orange-300 rounded-md w-max'>{item.status}</p>
+                <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
+                <div className='flex gap-2 justify-between items-center md:w-1/2'>
+                  <Image src={item.order.product.image} alt='' width={100} height={100}/>
+                <div className='flex flex-col gap-2 relative'>
+                  <div className='flex justify-end md:justify-start'>
+                    <p className='px-1 bg-orange-300 rounded-md w-max'>{item.status}</p>
+                  </div>
+                  <p className='text-black font-semibold text-sm'>{item.order.product.title}</p>
                   <p className='text-gray-700 text-sm'>{item.applicationDate}</p>
                 </div>
-                <div className='flex flex-col gap-3 justify-center'>
+                </div>
+                
+                <div className='flex gap-2 justify-between items-center md:w-1/2'>
+                  <div className='flex flex-col gap-3 justify-center'>
                   <p className='text-black text-sm font-medium'>{item.order.product.price} * {item.order.quantity}</p>
                   <p className='text-green-500 text-xl font-semibold'>${item.order.productQtyPrice}</p>
                 </div>
                 <div className='flex flex-col w-max gap-4'>
-                  <p className='text-gray-700 text-sm font-semibold'>Id: {item._id}</p>
+                  <p className='text-gray-700 text-sm font-semibold'>Id: {item.productId}</p>
                   <button className='border border-pink-300 rounded-lg w-full text-black p-1'
-                  onClick={()=>handleViewApplicationClick(item)}>View Application</button>
+                  onClick={ ()=>handleViewApplicationClick(item)}>View Application</button>
                 </div>
+                </div>
+                
               </div>
+
+
+
+              //   <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex items-center justify-between'>
+              //   <Image src={item.order.product.image} alt='' width={100} height={100}/>
+              //   <div className='flex flex-col gap-2'>
+              //     <p className='px-1 bg-orange-300 rounded-md w-max'>{item.status}</p>
+              //     <p className='text-gray-700 text-sm'>{item.applicationDate}</p>
+              //   </div>
+              //   <div className='flex flex-col gap-3 justify-center'>
+              //     <p className='text-black text-sm font-medium'>{item.order.product.price} * {item.order.quantity}</p>
+              //     <p className='text-green-500 text-xl font-semibold'>${item.order.productQtyPrice}</p>
+              //   </div>
+              //   <div className='flex flex-col w-max gap-4'>
+              //     <p className='text-gray-700 text-sm font-semibold'>Id: {item._id}</p>
+              //     <button className='border border-pink-300 rounded-lg w-full text-black p-1'
+              //     onClick={()=>handleViewApplicationClick(item)}>View Application</button>
+              //   </div>
+              // </div>
               ))}
             </div>
 

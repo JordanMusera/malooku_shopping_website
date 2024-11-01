@@ -210,9 +210,9 @@ const OrderDetailsContainer = () => {
 
 
   return (
-    <div className='xl:pr-5 flex flex-col gap-4'>
+    <div className='xl:pr-5 flex flex-col gap-4 relative'>
 
-      <div className='w-full rounded-2xl bg-white h-max shadow-xl p-5 flex flex-col gap-2'>
+      <div className='w-full rounded-2xl bg-white h-max shadow-xl p-2 flex flex-col gap-2'>
         <label className='text-black font-bold text-md'>Shipping Address</label>
         <p className='text-pink-300 font-bold text-sm flex justify-start cursor-pointer'
           onClick={() => addAddressContainerVisibilityFunction(true)}>+  Add Shipping Address</p>
@@ -315,7 +315,9 @@ const OrderDetailsContainer = () => {
 
         {/*Adding address Container */}
         {addAddressContainerVisibility && (
-          <div className='absolute self-center w-3/4 md:w-1/3 h-max bg-gray-100 shadow-2xl p-5 flex-col rounded-xl gap-2 flex'>
+          <div className='absolute w-full h-full flex items-center justify-center top-0 bg-black bg-opacity-10 rounded-xl'>
+            <div className='w-3/4 md:w-1/3 h-max bg-gray-100 shadow-2xl shadow-pink-200 p-5 flex-col rounded-xl gap-2 flex'>
+            <p className='text-sm font-semibold text-pink-300 text-center w-full'>*Add Shipping Address</p>
             <label htmlFor="countyInput" className='text-black text-sm font-semibold'>County</label>
             <input onChange={e => setCounty(e.target.value)} type="text" id='countyInput' placeholder='County' className='w-full rounded-md h-8 bg-white border border-pink-300 px-5 text-black' />
 
@@ -335,11 +337,14 @@ const OrderDetailsContainer = () => {
             </div>
 
           </div>
+          </div>
+          
         )}
 
 
         {addPaymentContainerVisibility && (
-          <div className='absolute self-center w-3/4 md:w-1/3 h-max bg-gray-100 shadow-2xl p-5 flex-col rounded-xl gap-2 flex'>
+          <div className='absolute w-full h-full flex justify-center items-center bg-black bg-opacity-10 rounded-xl'>
+            <div className='w-3/4 md:w-1/3 h-max bg-gray-100 shadow-2xl shadow-pink-200 p-5 flex-col rounded-xl gap-2 flex'>
             <label htmlFor="payment_type" className='text-black text-sm font-semibold'>Payment Type</label>
             <select value={accType} onChange={e => setAccType(e.target.value)} id='payment_type' className='h-8 rounded-md w-full'>
               <option value="mpesa">M-pesa</option>
@@ -359,6 +364,8 @@ const OrderDetailsContainer = () => {
                 onClick={() => addPaymentMethod1()}>Add</button>
             </div>
           </div>
+          </div>
+          
         )}
 
 <ToastContainer />
