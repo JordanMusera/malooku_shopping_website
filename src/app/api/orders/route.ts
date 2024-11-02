@@ -6,9 +6,11 @@ import Product from "@/app/models/product";
 import Order from "@/app/models/order";
 import { initiateMpesa } from "../authenticate/functions/mpesa";
 import OrderProgress from "@/app/models/orderprogress";
+import PurchasedProduct from "@/app/models/purchased_product";
 
 export async function POST(request: NextRequest) {
-    await dbConnect();
+    try {
+        await dbConnect();
 
     const authToken = request.cookies.get('authToken')?.value || '';
     const authObject = await verifyToken(authToken);
@@ -73,6 +75,31 @@ export async function POST(request: NextRequest) {
                 await orderprogress1.save();
                 console.log(orderprogress1)
 
+                let purchasedProductsList = [];
+
+                for(const product of cartProducts){
+                    purchasedProductsList.push({
+                        status:'delivered',
+                        productId:product.product._id,
+                        reviewed:false
+                    })
+                }
+
+                const purchasedProducts = await PurchasedProduct.findOne({userId:userId});
+                if(purchasedProducts){
+                    purchasedProducts.purchasedList = [...purchasedProducts.purchasedList, ...purchasedProductsList];
+                    await purchasedProducts.save();
+                }else{
+                    const newPurchasedProducts = new PurchasedProduct({
+                        userId:userId,
+                        purchasedList:purchasedProductsList
+                    });
+                    await newPurchasedProducts.save();
+                }
+
+                const purchasedProducts1 = await PurchasedProduct.findOne({userId:userId});
+                console.log(purchasedProducts1)
+
                 return NextResponse.json({ success: true, message: 'Oder placed successfully' });
             }else{
                 return NextResponse.json({ success: false, message: mpesaObj.ResultDesc });
@@ -81,10 +108,10 @@ export async function POST(request: NextRequest) {
         }
 
        return NextResponse.json({ success: false, message: mpesaObj.ResultDesc });
-
-
     }
-
+    } catch (error) {
+        return NextResponse.json({success:false,message:'Some server error occurred!'})
+    }
 
 }
 

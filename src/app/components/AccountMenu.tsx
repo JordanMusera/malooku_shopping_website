@@ -23,7 +23,8 @@ const AccountMenu = ({clikedTab}) => {
             <label className='font-semibold hidden md:flex'>Settings</label>
         </div>
 
-        <div className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
+        <div className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'
+        onClick={()=>handleTabClick('notifications_tab')}>
             <img src="/notification_icon.svg" alt="" width={30} height={30}/>
             <label className='font-semibold hidden md:flex'>Notifications</label>
         </div>

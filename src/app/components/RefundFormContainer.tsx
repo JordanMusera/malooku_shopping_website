@@ -69,8 +69,10 @@ const RefundFormContainer = ({ orderDetails }: { orderDetails: CARDetails }) => 
   };
 
   return (
-    <div className='w-full h-full overflow-auto p-2'>
+    <div className='w-full h-full overflow-auto p-2 flex items-center'>
       <form className='w-full flex flex-col gap-2' onSubmit={submitRefundForm}>
+      <p className='text-md text-pink-300 font-semibold'>*Apply for Refund</p>
+      <p className='text-sm text-red-500 font-semibold bg-red-200 rounded-lg p-1'>*Please provide reasons why you want to refund this product.</p>
         <div className='flex items-center gap-4'>
           <div className='flex gap-3 items-center rounded-lg shadow-2xl w-max p-5'>
             <img src={orderDetails.product.product.image} alt="" width={100} height={100} />
