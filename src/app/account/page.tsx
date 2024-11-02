@@ -12,6 +12,8 @@ import OrderRefundsContainer from '../components/OrderRefundsContainer'
 import RefundFormContainer from '../components/RefundFormContainer'
 import ViewRefundApplicationContainer from '../components/ViewRefundApplicationContainer'
 import NotificationsContainer from '../components/NotificationsContainer'
+import ReviewContainer from '../components/ReviewedContainer'
+import PendingReview from '../components/PendingReview'
 
 const page = () => {
     const [tab, setTab] = useState("edit_profile")
@@ -72,6 +74,8 @@ const page = () => {
                 {tab === 'refund_form_tab' && <RefundFormContainer orderDetails={CARorderDetails} />}
                 {tab === 'view_order_application' && <ViewRefundApplicationContainer clickedRefund={clickedRefund} />}
                 {tab === 'notifications_tab' && <NotificationsContainer/>}
+                {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick}/>}
+                {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick}/>}
             </div>
         </div>
     </div>

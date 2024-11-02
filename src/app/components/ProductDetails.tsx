@@ -1,6 +1,8 @@
+import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/ReactToastify.css'
+import CustomerReviewsContainer from './CustomerReviewsContainer'
 
 interface Product {
   _id: string,
@@ -23,27 +25,11 @@ interface ProductDetailsProps {
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const [isWish, setIsWish] = useState(false);
-  const [reviews,setReviews] = useState([]);
 
   useEffect(() => {
     if (product.wish) {
       setIsWish(product.wish);
     }
-
-    const fetchComments=async()=>{
-      const res = await fetch(`/api/review/comment/${product._id}`);
-
-      if(res.ok){
-         const response = await res.json();
-      if(response.content){
-        setReviews(response.content.productReviews);
-        console.log(response)
-      }
-      }
-     
-      
-    }
-    fetchComments();
   }, [product])
 
   const addToCartFunction = async () => {
@@ -127,10 +113,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               <div>
                 {isWish ? (
                   <img src='/favourite_active.png' width={40} height={40} alt=''
-                  onClick={() => removeFromWishlistFunction()}/>
-                ):(
+                    onClick={() => removeFromWishlistFunction()} />
+                ) : (
                   <img src='/favourite_inactive.png' width={40} height={40} alt=''
-                  onClick={() => addToWishlistFunction()}/>
+                    onClick={() => addToWishlistFunction()} />
                 )}
               </div>
 
@@ -145,38 +131,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
               <button onClick={() => addToCartFunction()}
                 className='text-xl font-bold px-6 py-2 rounded-md bg-white text-black
-        border border-pink-300 w-full'>Purchase</button>
+        border border-pink-300 w-full'>Purchase Now</button>
             </div>
 
           </div>
 
-          <div className='flex flex-col gap-2 mt-3 max-h-screen bg-white rounded-xl p-2 shadow-xl'>
-            <div className='flex justify-between'>
-               <p className='text-md font-semibold text-pink-300'>Customer Reviews</p>
-               <p className='text-sm font-normal text-gray-500'>View All</p>
-            </div>
-           
-            <div className='flex flex-col gap-2'>
-              {reviews.map((item,index)=>(
-              <div key={index} className='h-max w-full bg-gray-100 rounded-md p-2 gap-2'>
-                <p className='text-sm font-semibold text-blue-400'>{item.userName}</p>
-                <p className='text-sm font-normal text-black'>{item.comment}</p>
-                <div className='flex gap-3 justify-end'>
-                  <div className='flex gap-1'>
-                    <img src='/message_icon.png' alt='' width={20} height={20}/>
-                    <p className='text-sm font-normal text-gray-500'>0</p>
-                  </div>
-                  
-                  <div className='flex gap-1'>
-                    <img src='/like_icon.png' alt='' width={20} height={20}/>
-                    <p className='text-sm font-normal text-gray-500'>0</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-            </div>
-            
-          </div>
+          <CustomerReviewsContainer productId={product._id}/>
 
           <div className='rounded-xl h-20 bg-white flex flex-col p-2'>
             <p className='text-sm font-bold text-black'>Specifications</p>

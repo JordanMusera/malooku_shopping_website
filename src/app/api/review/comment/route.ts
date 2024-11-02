@@ -8,7 +8,7 @@ import PurchasedProduct from "@/app/models/purchased_product";
 export async function POST(request: NextRequest) {
     try {
         await dbConnect();
-        const { productId, comment } = await request.json();
+        const { productId, comment,images,replies } = await request.json();
 
         const authToken = request.cookies.get('authToken')?.value || '';
         const authObj = await verifyToken(authToken);
@@ -20,14 +20,16 @@ export async function POST(request: NextRequest) {
         if (user && userPurchased) {
             const productReviews = await ProductReview.findOne({ productId: productId });
             if (productReviews) {
-                const commentAvailable = productReviews.comments.some((item: { userId: string })=>item.userId===userId);
-                if(commentAvailable){
-                    return NextResponse.json({success:false,message:'You Already Provided a Review'})
-                }
+                // const commentAvailable = productReviews.comments.some((item: { userId: string })=>item.userId===userId);
+                // if(commentAvailable){
+                //     return NextResponse.json({success:false,message:'You Already Provided a Review'})
+                // }
                 productReviews.comments.push({
                     userName: user.username,
                     userId: userId,
-                    comment: comment
+                    comment: comment,
+                    images:images,
+                    replies:replies
                 });
 
                 await productReviews.save();
@@ -39,7 +41,9 @@ export async function POST(request: NextRequest) {
                         {
                             userName: user.username,
                             userId: userId,
-                            comment: comment
+                            comment: comment,
+                            images:images,
+                            replies:replies
                         }
                     ]
 
