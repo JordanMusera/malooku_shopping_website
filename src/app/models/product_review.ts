@@ -8,6 +8,7 @@ const review_schema = new Schema({
             userName: String,
             userId: String,
             comment:String,
+            rating:Number,
             likes:Number,
             images:[
                 {imageUrl:String,publicId:String,assetId:String}

@@ -12,14 +12,16 @@ const PendingReview = ({ clickedTab,productId }) => {
     const fetchPendingReview = async() => {
       const res = await fetch('/api/orders/purchasedOrders');
       const response = await res.json();
-      setPendingReviewObj(response.content);
+
+      const pendingReviewList = response.content.filter((item:any)=>item.reviewed===false);
+      setPendingReviewObj(pendingReviewList);
     }
     fetchPendingReview();
   }, [])
 
-  const navigateToReview=(productId:string)=>{
+  const navigateToReview=(productId1:string)=>{
     clickedTab('review_tab');
-    productId = productId;
+    productId(productId1);
   }
 
   return (

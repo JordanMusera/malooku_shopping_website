@@ -14,8 +14,7 @@ export async function GET(request: NextRequest) {
         const purchaseList = await PurchasedProduct.findOne({ userId: userId });
 
         if(purchaseList){
-            const pendingReviewList = purchaseList.purchasedList.filter((item:any)=>item.reviewed===false);
-            return NextResponse.json({success:true,message:'Purchased list fetched successfully',content:pendingReviewList});
+            return NextResponse.json({success:true,message:'Purchased list fetched successfully',content:purchaseList.purchasedList});
         }else{
             return NextResponse.json({success:false,message:'No items found'});
         }

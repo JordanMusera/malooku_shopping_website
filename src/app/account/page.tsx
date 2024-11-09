@@ -15,6 +15,7 @@ import NotificationsContainer from '../components/NotificationsContainer'
 import ReviewContainer from '../components/ReviewedContainer'
 import PendingReview from '../components/PendingReview'
 import PostReviewContainer from '../components/PostReviewContainer'
+import ViewReviewContainer from '../components/ViewReviewContainer'
 
 const page = () => {
     const [tab, setTab] = useState("edit_profile")
@@ -53,6 +54,7 @@ const page = () => {
         setClickedRefund(item)
     }
 
+
     return (
         <div className='relative grid grid-cols-1 xl:grid-cols-6 h-screen w-screen'>
         <div className='h-full col-span-1 justify-center items-center bg-pink-100 hidden xl:flex'>
@@ -77,8 +79,9 @@ const page = () => {
                 {tab === 'view_order_application' && <ViewRefundApplicationContainer clickedRefund={clickedRefund} />}
                 {tab === 'notifications_tab' && <NotificationsContainer/>}
                 {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick} productId={setProductId}/>}
-                {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick}/>}
-                {tab === 'review_tab' && <PostReviewContainer/>}
+                {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick} productId={setProductId}/>}
+                {tab === 'review_tab' && <PostReviewContainer productId={productId}/>}
+                {tab === 'view_review_tab' && <ViewReviewContainer/>}
             </div>
         </div>
     </div>

@@ -1,12 +1,15 @@
 'use client'
 import React, { useState } from 'react'
+import RatingComponent from './RatingComponent';
+import { ToastContainer,toast } from 'react-toastify';
+import 'react-toastify/ReactToastify.css'
 
-const PostReviewContainer = () => {
+const PostReviewContainer = ({productId}) => {
   const [images,setImages] = useState([]);
   const [imageFiles,setImageFiles] = useState([]);
 
-  const [rating,setRating] = useState('');
-  const [review,setReview] = useState('');
+  const [rating,setRating] = useState(0);
+  const [review,setReview] = useState(null);
 
   const handleImageInput=(e:any)=>{
     e.preventDefault();
@@ -20,12 +23,21 @@ const PostReviewContainer = () => {
     
   }
 
+  const setRatingValue=(value:number)=>{
+    setRating(value);
+    console.log(value)
+  }
+
   const handleFormSubmit=async(e:any)=>{
     e.preventDefault();
+
+    if(rating==0 || review==null){
+      return toast.error('Provide your rating and review!')
+    }
     const formData = new FormData();
-    formData.append('rating',rating);
+    formData.append('rating',rating.toString());
     formData.append('review',review);
-    formData.append('productId','670050f1b9ca8de293f9a360')
+    formData.append('productId',productId)
 
     if(imageFiles.length!==0){
       imageFiles.forEach((file)=>{
@@ -38,20 +50,28 @@ const PostReviewContainer = () => {
       body:formData
     });
 
-    const response = await res.json();
+    if(res.ok){
+      const response = await res.json();
+      if(response.success){
+        toast.success(response.message);
+      }else{
+        toast.error(response.message);
+      }
+    }
+    
   }
 
   return (
-    <form className='w-full h-full flex justify-center items-center' onSubmit={handleFormSubmit}>
-      <div className='w-full xl:w-max h-max flex flex-col gap-3 bg-white xl:p-10 xl:rounded-lg'>
+    <form className='w-full h-full flex justify-center items-center p-5' onSubmit={handleFormSubmit}>
+      <div className='w-full flex flex-col gap-3 bg-white p-10 rounded-lg'>
       <div>
         <p className='text-md text-black font-semibold'>Rate Product</p>
-        <input type="text" placeholder='enter rating' onChange={(e)=>setRating(e.target.value)} />
+        <RatingComponent setRatingValue={setRatingValue}/>
       </div>
 
       <div className='flex flex-col gap-3'>
         <p className='text-md text-black font-semibold'>Upload Images - (Optional)</p>
-        <div className='flex gap-3 items-center overflow-auto'>
+        <div className='h-max flex gap-3 items-center overflow-y-hidden overflow-x-auto'>
           {images.map((item,index)=>(
             <div>
               <img src={item} alt="" width={100} height={100}
@@ -66,7 +86,7 @@ const PostReviewContainer = () => {
             placeholder='Add images'
             className='hidden' />
             <label htmlFor="image_upload" className='bg-pink-300 rounded-full
-            p-2 w-8 h-8 text-sm text-white'>Add image(s)</label>
+            p-2 w-8 h-20 text-sm text-white'>Add image(s)</label>
           </div>
         </div>
       </div>
@@ -83,7 +103,7 @@ const PostReviewContainer = () => {
         <button type='submit' className='w-max px-3 py-1 border border-pink-300 bg-pink-200 rounded-xl'>Submit</button>
       </div>
       </div>
-      
+      <ToastContainer/>
     </form>
   )
 }

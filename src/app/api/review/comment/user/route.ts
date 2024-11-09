@@ -9,10 +9,11 @@ import { uploadMultipleToCloudinary } from "@/app/api/authenticate/functions/clo
 export async function POST(request: NextRequest) {
     try {
         await dbConnect();
-        //const { productId, comment,images,replies } = await request.json();
+       
         const data = await request.formData();
         const productId = data.get('productId') as string;
         const comment = data.get('review') as string;
+        const rating = parseFloat(data.get('rating') as string);
         const images = [];
 
         const fileArray = data.getAll('images') as File[];
@@ -48,14 +49,11 @@ export async function POST(request: NextRequest) {
         if (user && userPurchased) {
             const productReviews = await ProductReview.findOne({ productId: productId });
             if (productReviews) {
-                // const commentAvailable = productReviews.comments.some((item: { userId: string })=>item.userId===userId);
-                // if(commentAvailable){
-                //     return NextResponse.json({success:false,message:'You Already Provided a Review'})
-                // }
                 productReviews.comments.push({
                     userName: user.username,
                     userId: userId,
                     comment: comment,
+                    rating: rating,
                     images:images,
                     //replies:replies
                 });
@@ -73,7 +71,7 @@ export async function POST(request: NextRequest) {
                     console.log("RRS: "+rrs);
                 }
 
-                return NextResponse.json({ success: false, message: 'Review posted', content: productReviews });
+                return NextResponse.json({ success: true, message: 'Review posted', content: productReviews });
             } else {
                 const productReview = new ProductReview({
                     productId: productId,
@@ -82,6 +80,7 @@ export async function POST(request: NextRequest) {
                             userName: user.username,
                             userId: userId,
                             comment: comment,
+                            rating: rating,
                             images:images,
                             //replies:replies
                         }
@@ -102,13 +101,13 @@ export async function POST(request: NextRequest) {
                 }
                 
 
-                return NextResponse.json({ success: false, message: 'Review posted', content: productReview });
+                return NextResponse.json({ success: true, message: 'Review posted', content: productReview });
             }
         } else {
             return NextResponse.json({ success: false, message: 'User not authenticated!' });
         }
     } catch (error) {
-
+        return NextResponse.json({ success: false, message: 'Some server error occurred!'});
     }
 }
 

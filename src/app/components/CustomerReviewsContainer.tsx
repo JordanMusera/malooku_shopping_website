@@ -2,6 +2,7 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
 import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.min.css'
+import { FaStar } from 'react-icons/fa';
 
 interface Image{
     imageUrl:string,
@@ -23,6 +24,7 @@ interface Comment{
     userName:string,
     userId:string,
     comment:string,
+    rating:number,
     images:Image[],
     replies:Reply[],
     date:string
@@ -94,11 +96,22 @@ const CustomerReviewsContainer = ({productId}:any) => {
                 <div className='flex flex-col gap-2 max-h-screen overflow-auto'>
                 {reviews.map((item, index) => (
                     <div key={index} className='h-max w-full bg-gray-100 rounded-md p-2 gap-2'>
-                        <div className='flex gap-2'>
-                            <Image src={item.userDp} width={30} height={30} alt='' className='rounded-full' />
+                        <div className='w-full flex justify-between'>
+                            <div className='flex gap-2 '>
+                                 <Image src={item.userDp} width={30} height={30} alt='' className='rounded-full' />
                             <div>
                                 <p className='text-sm font-semibold text-blue-400'>{item.userName}</p>
                                 <p className='text-[10px] font-normal text-gray-500'>{item.date}</p>
+                            </div>
+                            </div>
+                           
+                            <div className='flex justify-end'>
+                                {
+                                    [...Array(5)].map((rating,index)=>{
+                                        return <FaStar key={index}
+                                        color={index < item.rating ? "#ffc107" : "#e4e5e9"}/>
+                                    })
+                                }
                             </div>
                         </div>
 
