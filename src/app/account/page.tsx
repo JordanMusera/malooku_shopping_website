@@ -14,12 +14,14 @@ import ViewRefundApplicationContainer from '../components/ViewRefundApplicationC
 import NotificationsContainer from '../components/NotificationsContainer'
 import ReviewContainer from '../components/ReviewedContainer'
 import PendingReview from '../components/PendingReview'
+import PostReviewContainer from '../components/PostReviewContainer'
 
 const page = () => {
     const [tab, setTab] = useState("edit_profile")
     const [orderObj, setOrderObj] = useState({});
     const [minMenuVisibility, setMinMenuVisibility] = useState(false);
     const [orderId, setOrderId] = useState('');
+    const [productId,setProductId] = useState('');
     const [CARorderDetails, setCARorderDetails] = useState({});
     const [clickedRefund, setClickedRefund] = useState({});
 
@@ -74,8 +76,9 @@ const page = () => {
                 {tab === 'refund_form_tab' && <RefundFormContainer orderDetails={CARorderDetails} />}
                 {tab === 'view_order_application' && <ViewRefundApplicationContainer clickedRefund={clickedRefund} />}
                 {tab === 'notifications_tab' && <NotificationsContainer/>}
-                {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick}/>}
+                {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick} productId={setProductId}/>}
                 {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick}/>}
+                {tab === 'review_tab' && <PostReviewContainer/>}
             </div>
         </div>
     </div>

@@ -6,7 +6,8 @@ const purchased_product_schema = new Schema({
         {
             status:{type:String,enum:['refunded','delivered']},
             reviewed:Boolean,
-            productId:String
+            productId:String,
+            product:Object
         }
     ]
 })

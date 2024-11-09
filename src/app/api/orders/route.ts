@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
                     purchasedProductsList.push({
                         status:'delivered',
                         productId:product.product._id,
+                        product:product.product,
                         reviewed:false
                     })
                 }

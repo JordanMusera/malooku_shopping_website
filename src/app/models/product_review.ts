@@ -10,7 +10,7 @@ const review_schema = new Schema({
             comment:String,
             likes:Number,
             images:[
-                {imageUrl:String}
+                {imageUrl:String,publicId:String,assetId:String}
             ],
             replies:[
                 {

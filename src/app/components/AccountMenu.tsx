@@ -8,9 +8,9 @@ const AccountMenu = ({clikedTab}) => {
     }
   return (
     <div className='flex flex-col gap-10 md:gap-5'>
-        <div onClick={()=>handleTabClick('reviewed_tab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
+        <div onClick={()=>handleTabClick('pending_review_tab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
             <img src="/review_icon.png" alt="" width={30} height={30}/>
-            <label className='font-semibold hidden md:flex'>Orders</label>
+            <label className='font-semibold hidden md:flex'>Reviews</label>
         </div>
 
          <div onClick={()=>handleTabClick('ordersTab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
