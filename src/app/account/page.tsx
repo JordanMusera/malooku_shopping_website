@@ -81,7 +81,7 @@ const page = () => {
                 {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick} productId={setProductId}/>}
                 {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick} productId={setProductId}/>}
                 {tab === 'review_tab' && <PostReviewContainer productId={productId}/>}
-                {tab === 'view_review_tab' && <ViewReviewContainer/>}
+                {tab === 'view_review_tab' && <ViewReviewContainer productId={productId}/>}
             </div>
         </div>
     </div>
