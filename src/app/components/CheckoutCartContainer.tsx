@@ -13,6 +13,7 @@ const CheckoutCartContainer = () => {
 
 
     const makePayment = async () => {
+        const loadingToast = toast.loading('Initiating m-pesa push...');
         if (shippingAddress2.city === '' || shippingAddress2.county === '') {
             toast.error('Please select shipping address')
         } else if (paymentMethod.accType === '' || paymentMethod.accNumber === 0) {
@@ -29,12 +30,16 @@ const CheckoutCartContainer = () => {
                 })
             })
 
-            const response = await res.json();
+            toast.dismiss(loadingToast);
+            if(res.ok){
+                const response = await res.json();
             if(response.success){
                 toast.success(response.message);
             }else{
                 toast.info(response.message);
             }
+            }
+            
         }
 
     }
@@ -76,7 +81,7 @@ const CheckoutCartContainer = () => {
                 <span className='text-md text-green-500 font-bold'>${totalAmount}</span>
             </p>
 
-            <button onClick={() => makePayment()} className='bg-pink-300 rounded-2xl p-1 w-full mt-3 text-md font-bold text-white hover:shadow-xl'>Purchase</button>
+            <button onClick={() => makePayment()} className='bg-pink-300 rounded-xl p-2 w-full mt-3 text-lg font-bold text-white hover:shadow-xl'>Purchase</button>
 
             <div className='my-3'>
                 <p className='text-[12px] text-gray-400 font-normal w-full justify-center flex'>Accepted secure payment methods</p>

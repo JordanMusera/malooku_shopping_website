@@ -3,12 +3,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import cartReducer from './cartSlice';
 import userReducer from './userSlice';
 import orderReducer from './orderSlice';
+import accTabReducer from './tabSlice'
 
 export const store = configureStore({
   reducer: {
     cart: cartReducer,
     user: userReducer,
-    order: orderReducer
+    order: orderReducer,
+    acc_clicked_tab: accTabReducer
   },
 });
 

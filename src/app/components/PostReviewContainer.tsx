@@ -3,8 +3,9 @@ import React, { useState } from 'react'
 import RatingComponent from './RatingComponent';
 import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.css'
+import { FaArrowLeft } from 'react-icons/fa';
 
-const PostReviewContainer = ({productId}) => {
+const PostReviewContainer = ({productId,clickedTab}) => {
   const [images,setImages] = useState([]);
   const [imageFiles,setImageFiles] = useState([]);
 
@@ -62,8 +63,11 @@ const PostReviewContainer = ({productId}) => {
   }
 
   return (
-    <form className='w-full h-full flex justify-center items-center p-5' onSubmit={handleFormSubmit}>
-      <div className='w-full flex flex-col gap-3 bg-white p-10 rounded-lg'>
+    <form className='w-full h-full flex flex-col gap-5 p-5' onSubmit={handleFormSubmit}>
+       <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
+          clickedTab('pending_review_tab')
+        }}/>
+      <div className='w-full h-full justify-center flex flex-col gap-3 bg-white p-10 rounded-lg'>
       <div>
         <p className='text-md text-black font-semibold'>Rate Product</p>
         <RatingComponent setRatingValue={setRatingValue}/>

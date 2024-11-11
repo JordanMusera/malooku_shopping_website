@@ -10,7 +10,8 @@ const userSchema = new Schema({
     username: String,
     fullname: String,
     email: String,
-    phone: String,
+    role:{type:String,default:'user'},
+    phone: Number,
     password: String,
     shippingAddress: [
         {

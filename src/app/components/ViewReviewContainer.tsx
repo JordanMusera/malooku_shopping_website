@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import RatingComponent from './RatingComponent';
 import Image from 'next/image';
-import { FaStar } from 'react-icons/fa';
+import { FaStar,FaArrowLeft } from 'react-icons/fa';
 import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.css'
 
-const ViewReviewContainer = ({productId}) => {
+const ViewReviewContainer = ({productId,clickedTab}) => {
     const [fetchedReviews, setFetchedReviews] = useState([]);
 
     useEffect(() => {
@@ -40,7 +40,10 @@ const ViewReviewContainer = ({productId}) => {
 
     return (
         <div className='w-full h-full overflow-auto p-5'>
-            <div className='flex flex-col gap-3'>
+            <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
+          clickedTab('review_tab')
+        }}/>
+            <div className='flex flex-col gap-3 pt-5'>
                 {fetchedReviews.map((item, index) => (
                     <div key={index} className='w-full h-max bg-white rounded-lg flex  justify-between p-2'>
                         <div className='w-1/3 p-2 flex gap-2 items-center justify-center'>

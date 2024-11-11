@@ -1,11 +1,15 @@
 import { StaticImport } from 'next/dist/shared/lib/get-img-props'
 import Image from 'next/image'
 import React from 'react'
+import { FaArrowLeft } from 'react-icons/fa'
 
-const ViewRefundApplicationContainer = ({ clickedRefund }) => {
+const ViewRefundApplicationContainer = ({ clickedRefund,clickedTab }:any) => {
     return (
         <div className='w-full h-full flex flex-col md:grid grid-cols-2 gap-2 p-5'>
-            <div className='col-span-1 bg-white shadow-sm rounded-xl p-5 overflow-auto'>
+             <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
+          clickedTab('refunds_tab')
+        }}/>
+            <div className='col-span-1 bg-white shadow-sm rounded-xl p-5 overflow-auto mt-10'>
                 <div className='flex gap-4'>
                     <div className='flex gap-3 items-center rounded-lg shadow-2xl w-max p-5'>
                         <img src={clickedRefund.order.product.image} alt="" width={100} height={100} />
@@ -42,7 +46,7 @@ const ViewRefundApplicationContainer = ({ clickedRefund }) => {
                 </div>
             </div>
 
-            <div className='col-span-1 bg-white shadow-sm rounded-xl p-5 flex flex-col gap-4'>
+            <div className='col-span-1 bg-white shadow-sm rounded-xl p-5 flex flex-col gap-4 mt-10'>
                 <p className='text-lg font-semibold text-pink-300 w-full text-center'>Refund Overview</p>
                 <div className='flex flex-col gap-2'>
                     {clickedRefund.messages.map((item: any,index: number)=>(

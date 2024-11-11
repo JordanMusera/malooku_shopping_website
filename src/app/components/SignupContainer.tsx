@@ -11,9 +11,28 @@ const SignupContainer = () => {
     const[password,setPassword] = useState('');
 
     const router = useRouter();
+
+    const validateEmail = (email:string) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
     
-    const loginFunction=async(e: { preventDefault: () => void; })=>{
+    const signupFunction=async(e: { preventDefault: () => void; })=>{
         e.preventDefault();
+
+        if(!email || !validateEmail(email)){
+          return toast.info('Please provide a valid email!');
+        }
+    
+        if(password.length<6){
+          return toast.info('password < 6 chars');
+        }
+
+        if(username.length<6){
+          return toast.info('username < 6 chars');
+        }
+
+    const loadingToast = toast.loading('Creating account');
     const res = await fetch('/api/authenticate/signup',{
         method:'POST',
         headers:{
@@ -26,6 +45,7 @@ const SignupContainer = () => {
         })    
     })
 
+    toast.dismiss(loadingToast);
     const response = await res.json();
 
     if (response.success) {
@@ -40,13 +60,13 @@ const SignupContainer = () => {
 
   return (
     <div className='w-3/4'>
-       <form className='w-full p-3 rounded-lg bg-pink-300 h-max flex flex-col text-black gap-1' onSubmit={loginFunction}>
+       <form className='w-full p-3 rounded-lg bg-pink-300 h-max flex flex-col text-black gap-1' onSubmit={signupFunction}>
     <label className='flex justify-center w-full font-bold text-xl text-white'>SIGNUP PAGE</label>
     <label>Username</label>
   <input type='text' placeholder='Enter username' className='rounded h-10 px-2'
   onChange={e=>setUsername(e.target.value)}/>
     <label>Email</label>
-  <input type='email' placeholder='Enter email' className='rounded h-10 px-2'
+  <input type='text' placeholder='Enter email' className='rounded h-10 px-2'
   onChange={e=>setEmail(e.target.value)}/>
   <label>Password</label>
   <input type='password' placeholder='Enter password' className='rounded h-10 px-2'

@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+import { FaArrowLeft } from 'react-icons/fa'
 
 interface OrderProgress {
     orderStatus: string,
@@ -30,7 +31,7 @@ interface OrderId{
     orderId:string
 }
 
-const TrackOrderContainer = ({orderId}:OrderId) => {
+const TrackOrderContainer = ({orderId,clickedTab}:any) => {
     const [fetchedTrack, setFetchedTrack] = useState<FetchedProgress | null>(null);
 
     useEffect(() => {
@@ -42,8 +43,13 @@ const TrackOrderContainer = ({orderId}:OrderId) => {
         fetchOrderTrack();
     }, [orderId])
     return (
-        <div className='w-full h-full flex flex-col p-5 over items-center justify-center'>
-            {fetchedTrack ?(
+        <div className='w-full h-full flex flex-col p-5'>
+              <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
+          clickedTab('ordersTab')
+        }}/>
+
+        <div className='flex items-center justify-center w-full h-full overflow-auto'>
+        {fetchedTrack ?(
                 <div className='w-full'>
                     <p className='text-xl text-pink-300 font-semibold'>Track Order</p>
             <div className='flex flex-col md:flex-row gap-2 justify-between'>
@@ -101,6 +107,8 @@ const TrackOrderContainer = ({orderId}:OrderId) => {
             )}
             
 
+        </div>
+            
         </div>
     )
 }

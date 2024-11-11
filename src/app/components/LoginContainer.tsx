@@ -8,8 +8,23 @@ const LoginContainer = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const validateEmail = (email:string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const loginFunction = async (e: { preventDefault: () => void; }) => {
     e.preventDefault()
+    
+    if(!validateEmail(email)){
+      return toast.info('Please provide a valid email!')
+    }
+
+    if(password.length<6){
+      return toast.info('password < 6 chars')
+    }
+
+    const loadingToast = toast.loading('Validating info');
     const res = await fetch('/api/authenticate/login', {
       method: 'POST',
       headers: {
@@ -22,6 +37,7 @@ const LoginContainer = () => {
 
     })
 
+    toast.dismiss(loadingToast);
     const response = await res.json();
 
     if (response.success) {
@@ -37,7 +53,7 @@ const LoginContainer = () => {
       <form className='w-full p-3 rounded-lg bg-pink-300 h-max flex flex-col text-black gap-1' onSubmit={loginFunction}>
         <label className='flex justify-center w-full font-bold text-xl text-white'>LOGIN PAGE</label>
         <label>Email</label>
-        <input type='email' placeholder='Enter email' className='rounded h-10 px-2'
+        <input type='text' placeholder='Enter email' className='rounded h-10 px-2'
           onChange={e => setEmail(e.target.value)} />
         <label>Password</label>
         <input type='password' placeholder='Enter password' className='rounded h-10 px-2'

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
 
-const PendingReview = ({ clickedTab,productId }) => {
+const PendingReview = ({ clickedTab,productId }:any) => {
   const [pendingReviewObj,setPendingReviewObj] = useState([]);
 
   const handleClickedTab = (tab: string) => {
@@ -26,14 +26,14 @@ const PendingReview = ({ clickedTab,productId }) => {
 
   return (
     <div className='gap-2 flex flex-col w-full h-full p-3 md:p-5 relative'>
-      <div className='top-0 w-full justify-between flex gap-2 xl:gap-10'>
+      <div className='top-0 w-full h-9 justify-between flex gap-3 xl:gap-10'>
         <button className='w-full text-md text-black font-semibold border border-pink-300 bg-pink-300 rounded-md px-2'
           onClick={() => handleClickedTab('pending_review_tab')}>Pending Review</button>
         <button className='w-full text-md text-black font-semibold border border-pink-300 bg-white rounded-md px-2'
           onClick={() => handleClickedTab('reviewed_tab')}>Reviewed</button>
       </div>
      
-     <div className='flex flex-col gap-4 overflow-auto'>
+     <div className='flex flex-col gap-4 overflow-auto pt-5'>
       {pendingReviewObj && pendingReviewObj.map((item,index)=>(
         <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
         <div className='flex gap-2 justify-between items-center w-full md:w-1/2'>

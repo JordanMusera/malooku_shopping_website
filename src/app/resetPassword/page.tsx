@@ -9,7 +9,7 @@ const page = () => {
           <img src="/shopping_girl.png" alt="" sizes='full' className='h-full object-contain' />
         </div>
         <div className='col-span-1 flex flex-col gap-5 w-full h-full justify-center items-center bg-gray-200'>
-        <label className='font-extrabold text-2xl text-pink-300'>MALOOKU WEBSITE</label>
+        <label className='flex md:hidden font-extrabold text-2xl text-pink-300'>MALOOKU WEBSITE</label>
           <ResetPasswordContainer/>
         </div>
         

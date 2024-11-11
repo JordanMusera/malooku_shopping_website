@@ -26,14 +26,14 @@ const ReviewedContainer = ({ clickedTab, productId }) => {
 
   return (
     <div className='gap-2 flex flex-col w-full h-full p-3 md:p-5'>
-      <div className='top-0 w-full justify-between flex gap-2'>
+      <div className='top-0 w-full h-10 justify-between flex gap-3'>
         <button className='w-full text-md text-black font-semibold border border-pink-300 bg-white rounded-md px-2'
           onClick={() => handleClickedTab('pending_review_tab')}>Pending Review</button>
         <button className='w-full text-md text-black font-semibold border border-pink-300 bg-pink-300 rounded-md px-2'
           onClick={() => handleClickedTab('reviewed_tab')}>Reviewed</button>
       </div>
 
-      <div className='flex flex-col gap-4 overflow-auto'>
+      <div className='flex flex-col gap-4 overflow-auto pt-5'>
         {pendingReviewObj && pendingReviewObj.map((item, index) => (
           <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
             <div className='flex gap-2 justify-between items-center w-full md:w-1/2'>
