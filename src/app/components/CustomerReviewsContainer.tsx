@@ -93,7 +93,7 @@ const CustomerReviewsContainer = ({productId}:any) => {
                  <p className='text-md font-semibold text-pink-300'>Customer Reviews<span>({reviews.length})</span></p>
                  <p className='text-sm font-normal text-gray-500'>View All</p>
              </div>
-                <div className='flex flex-col gap-2 max-h-screen overflow-auto'>
+                <div className='flex flex-col-reverse gap-2 max-h-screen overflow-auto'>
                 {reviews.map((item, index) => (
                     <div key={index} className='h-max w-full bg-gray-100 rounded-md p-2 gap-2'>
                         <div className='w-full flex justify-between'>

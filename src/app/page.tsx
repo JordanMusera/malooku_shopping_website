@@ -21,7 +21,7 @@ export default function Home() {
     fetchUser();
   },[])
   return (
-    <div className="h-screen relative overflow-auto">
+    <div className="h-screen relative overflow-auto md:px-10">
       <div className="sticky top-0 z-10 shadow-xl">
         <Topbar/>
       </div>

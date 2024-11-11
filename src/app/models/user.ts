@@ -10,7 +10,7 @@ const userSchema = new Schema({
     username: String,
     fullname: String,
     email: String,
-    role:{type:String,default:'user'},
+    role: { type: String, default: 'user', enum: ['user', 'admin'] },
     phone: Number,
     password: String,
     shippingAddress: [

@@ -1,11 +1,12 @@
 'use client'
 import React, { useState } from 'react'
 
-const AccountMenu = ({clikedTab}) => {
+const AccountMenu = ({clikedTab}:any) => {
 
     const handleTabClick=(data:string)=>{
         clikedTab(data);
     }
+    
   return (
     <div className='flex flex-col gap-10 md:gap-5'>
         <div onClick={()=>handleTabClick('pending_review_tab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
@@ -21,11 +22,6 @@ const AccountMenu = ({clikedTab}) => {
         <div onClick={()=>handleTabClick('favouriteTab')} className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
             <img src="/favourite_icon.svg" alt="" width={30} height={30}/>
             <label className='font-semibold hidden md:flex'>Favourite</label>
-        </div>
-
-        <div className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'>
-            <img src="/settings_icon.svg" alt="" width={30} height={30}/>
-            <label className='font-semibold hidden md:flex'>Settings</label>
         </div>
 
         <div className='flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start'

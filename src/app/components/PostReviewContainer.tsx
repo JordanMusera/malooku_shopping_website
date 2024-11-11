@@ -46,19 +46,23 @@ const PostReviewContainer = ({productId,clickedTab}) => {
       })
     }
 
+    const loadingToast = toast.loading('Posting review...');
     const res = await fetch('/api/review/comment/user',{
       method:'POST',
       body:formData
     });
 
+    toast.dismiss(loadingToast);
     if(res.ok){
       const response = await res.json();
       if(response.success){
-        toast.success(response.message);
+        await toast.success(response.message);
       }else{
-        toast.error(response.message);
+        await toast.error(response.message);
       }
     }
+
+    clickedTab('reviewed_tab');
     
   }
 
@@ -82,7 +86,7 @@ const PostReviewContainer = ({productId,clickedTab}) => {
           className='rounded-md'/>
             </div>
           ))}
-          <div>
+          <div className='w-max'>
             <input type="file"
             id='image_upload'
             multiple
@@ -90,7 +94,7 @@ const PostReviewContainer = ({productId,clickedTab}) => {
             placeholder='Add images'
             className='hidden' />
             <label htmlFor="image_upload" className='bg-pink-300 rounded-full
-            p-2 w-8 h-20 text-sm text-white'>Add image(s)</label>
+            p-2 w-8 h-20 text-md font-bold text-white'>Add</label>
           </div>
         </div>
       </div>

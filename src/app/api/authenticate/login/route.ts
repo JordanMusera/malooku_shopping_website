@@ -39,7 +39,7 @@ export async function POST(request:Request,response:Response){
         maxAge:maxAge
     });
 
-    return new Response(JSON.stringify({success:true,message:'Login Success'}),
+    return new Response(JSON.stringify({success:true,message:'Login Success',content:user}),
         {
         status:200,
         headers:{'Set-Cookie':serialized}

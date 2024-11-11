@@ -33,7 +33,7 @@ const PendingReview = ({ clickedTab,productId }:any) => {
           onClick={() => handleClickedTab('reviewed_tab')}>Reviewed</button>
       </div>
      
-     <div className='flex flex-col gap-4 overflow-auto pt-5'>
+     <div className='flex flex-col-reverse gap-4 overflow-auto pt-5'>
       {pendingReviewObj && pendingReviewObj.map((item,index)=>(
         <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
         <div className='flex gap-2 justify-between items-center w-full md:w-1/2'>

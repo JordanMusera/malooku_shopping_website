@@ -1,6 +1,7 @@
 import { verifyToken } from "@/app/api/authenticate/functions/auth";
 import dbConnect from "@/app/config/database";
 import ProductReview from "@/app/models/product_review";
+import PurchasedProduct from "@/app/models/purchased_product";
 import User from "@/app/models/user";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,6 +31,16 @@ export async function DELETE(request:NextRequest,{params}:Params){
             );
     
             await reviews.save();
+
+            const purchasedProducts = await PurchasedProduct.findOne({userId:userId});
+
+            const purchasedProductIndex = purchasedProducts.purchasedList.findIndex((item:any)=>item.productId===productId);
+
+            if(purchasedProductIndex!==-1){
+                purchasedProducts.purchasedList[purchasedProductIndex].reviewed=false;
+
+                await purchasedProducts.save();
+            }
     
             return NextResponse.json({
                 success: true,

@@ -41,9 +41,9 @@ const ViewReviewContainer = ({productId,clickedTab}) => {
     return (
         <div className='w-full h-full overflow-auto p-5'>
             <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
-          clickedTab('review_tab')
+          clickedTab('reviewed_tab')
         }}/>
-            <div className='flex flex-col gap-3 pt-5'>
+            <div className='flex flex-col-reverse gap-3 pt-10'>
                 {fetchedReviews.map((item, index) => (
                     <div key={index} className='w-full h-max bg-white rounded-lg flex  justify-between p-2'>
                         <div className='w-1/3 p-2 flex gap-2 items-center justify-center'>
