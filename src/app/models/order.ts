@@ -5,7 +5,7 @@ const orderSchema = new Schema({
     products:Array,
     totalCost:Number,
     orderDate:{type:Date,default:Date.now},
-    status:{type:String,enum:['pending','shipped','delivered','cancelled'],default:'pending'},
+    status: { type: String, enum: ['pending', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
     shippingAddress:{
         postalCode:{type:String,require:true},
         street:{type:String,required:true},

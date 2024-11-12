@@ -16,3 +16,23 @@ export async function GET(request:NextRequest){
     }
     
 }
+
+export async function POST(request: NextRequest) {
+    try {
+        await dbConnect();
+        const { orderId, orderStatus } = await request.json();
+      
+        const order = await Order.findById(orderId);
+
+        if (order) {
+            order.status = orderStatus;
+            await order.save();
+
+            return NextResponse.json({ success: true, message: 'Status updated successfully' });
+        }
+
+        return NextResponse.json({ success: false, message: 'Order not found!' });
+    } catch (error) {
+        return NextResponse.json({ success: false, message: 'Some server error occurred' });
+    }
+}

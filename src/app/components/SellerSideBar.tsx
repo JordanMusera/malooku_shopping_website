@@ -3,7 +3,12 @@ import { MdOutlineDashboard,MdOutlineShoppingBag,MdOutlinePayment,MdOutlineSetti
 import { FaBoxOpen } from 'react-icons/fa'
 import { AiOutlineUser,AiOutlineProfile,AiOutlineOrderedList } from 'react-icons/ai'
 
-const sellerSideBar = () => {
+const sellerSideBar = ({clickedTab}:any) => {
+
+  const handleTabClick=(tab:string)=>{
+    clickedTab(tab);
+  }
+
   return (
     <div className='w-full h-full flex flex-col justify-between py-5 mx-10 text-md text-black font-semibold'>
       <label className='font-extrabold text-2xl text-pink-300'>MALOOKU</label>
@@ -11,12 +16,12 @@ const sellerSideBar = () => {
         <MdOutlineDashboard className='w-7 h-7'/>
         <p>Dashboard</p>
       </button>
-      <button className='flex gap-1 items-center'>
+      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('ordersTab')}>
         <MdOutlineShoppingBag className='w-7 h-7'/>
         <p>Orders</p>
       </button>
 
-      <button className='flex gap-1 items-center'>
+      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('productsTab')}>
         <FaBoxOpen className='w-7 h-7'/>
         <p>Products</p>
       </button>
