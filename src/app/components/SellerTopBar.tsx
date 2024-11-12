@@ -3,7 +3,7 @@ import { FaSearch,FaChevronDown } from 'react-icons/fa'
 
 const SellerTopBar = () => {
   return (
-    <div className='bg-white h-12 w-full flex justify-between gap-6 text-black font-semibold py-1 px-10'>
+    <div className='bg-white h-12 w-full flex justify-between gap-6 text-black font-semibold py-1 px-10 '>
       <div className='flex justify-between items-center bg-gray-100 w-1/4 h-full border-pink-300 border rounded-2xl'>
         <input type='text' placeholder='Search here' className='w-full bg-gray-100 rounded-s-2xl p-2'/>
         <FaSearch className='w-4 h-4 mx-2'/>

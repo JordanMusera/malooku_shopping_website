@@ -5,17 +5,18 @@ import SellerOrders from '../components/SellerOrders'
 
 const page = () => {
   return (
-    <div className='h-screen bg-white w-screen grid grid-cols-8'>
-       <div className='col-span-1 bg-white h-full'>
-        <SellerSideBar/>
-       </div>
-       <div className='col-span-7 h-full'>
-        <SellerTopBar/>
-        <div className='h-full bg-gray-100 rounded-tl-2xl'>
-          <SellerOrders/>
-        </div>
-       </div>
+    <div className='h-screen bg-white w-screen flex'>
+  <div className='col-span-1 bg-white h-full'>
+    <SellerSideBar/>
+  </div>
+  <div className='flex-1 flex flex-col'>
+    <SellerTopBar/>
+    <div className='bg-gray-100 rounded-tl-2xl flex-grow overflow-auto'>
+      <SellerOrders/>
     </div>
+  </div>
+</div>
+
   )
 }
 
