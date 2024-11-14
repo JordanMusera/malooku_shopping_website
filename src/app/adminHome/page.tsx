@@ -4,6 +4,7 @@ import SellerSideBar from '../components/SellerSideBar'
 import SellerTopBar from '../components/SellerTopBar'
 import SellerOrders from '../components/SellerOrders'
 import SellerProductsContainer from '../components/SellerProductsContainer'
+import SellerUsersContainer from '../components/SellerUsersContainer'
 
 const page = () => {
   const [clickedTab,setClickedTab] = useState('');
@@ -22,6 +23,7 @@ const page = () => {
     <div className='bg-gray-100 rounded-tl-2xl flex-grow overflow-auto'>
       {clickedTab==='ordersTab' && <SellerOrders/>}
       {clickedTab ==='productsTab' && <SellerProductsContainer/>}
+      {clickedTab ==='usersTab' && <SellerUsersContainer/>} 
       
     </div>
   </div>

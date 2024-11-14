@@ -26,7 +26,7 @@ const sellerSideBar = ({clickedTab}:any) => {
         <p>Products</p>
       </button>
 
-      <button className='flex gap-1 items-center'>
+      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('usersTab')}>
         <AiOutlineUser className='w-7 h-7'/>
         <p>Customers</p>
       </button>
