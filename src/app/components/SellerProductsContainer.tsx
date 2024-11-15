@@ -7,6 +7,7 @@ import SellerAddProductContainer from './SellerAddProductContainer';
 
 const SellerProductsContainer = () => {
     const [products, setProducts] = useState([]);
+    const [addProductVisibility, setAddProductVisibility] = useState(false);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -59,20 +60,26 @@ const SellerProductsContainer = () => {
         }
     ]
 
+    const addProductVisibilityFn = (visibility: boolean) => {
+        setAddProductVisibility(visibility);
+    }
+
     return (
-        <div className='p-10 flex gap-4 relative'>
+        <div className='h-screen p-10 flex gap-4 relative'>
             <Table columns={productColumns} dataSource={products} className='w-3/4' />
             <div className='w-1/4 rounded-lg bg-white p-2'>
-                <div className='text-md text-black font-semibold bg-pink-200 rounded-lg w-max p-2'>
-                    <FaPlus/>
+                <div className='text-md text-black font-semibold bg-pink-200 rounded-lg w-max p-2 hover:cursor-pointer' onClick={()=>addProductVisibilityFn(true)}>
+                    <FaPlus />
                     <p>Add Product</p>
                 </div>
-                <hr className='h-2 shadow-xl m-2'/>
+                <hr className='h-2 shadow-xl m-2' />
             </div>
-            <div className='absolute bg-green w-full h-max items-center justify-center'>
-                <SellerAddProductContainer/>
-            </div>
-            
+            {addProductVisibility &&
+                <div className='absolute top-0 left-0 bg-green w-full h-max items-center justify-center m-4'>
+                    <SellerAddProductContainer setAddProductVisibility={addProductVisibilityFn} />
+                </div>
+            }
+
         </div>
     )
 }
