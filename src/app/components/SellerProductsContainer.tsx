@@ -53,7 +53,7 @@ const SellerProductsContainer = () => {
             title: 'Delete',
             key: '_id',
             render: () => (
-                <div>
+                <div className='flex items-center'>
                     <button className='bg-orange-300 p-1 rounded-lg hover:bg-red-400 text-white text-sm font-semibold'>Delete</button>
                 </div>
             )
@@ -65,8 +65,11 @@ const SellerProductsContainer = () => {
     }
 
     return (
-        <div className='h-screen p-10 flex gap-4 relative'>
-            <Table columns={productColumns} dataSource={products} className='w-3/4' />
+        <div className='h-full p-10 flex gap-4 relative'>
+            <div className='h-full w-3/4'>
+                <Table columns={productColumns} dataSource={products}  scroll={{ y: 500 }} className='w-full' />
+            </div>
+            
             <div className='w-1/4 rounded-lg bg-white p-2'>
                 <div className='text-md text-black font-semibold bg-pink-200 rounded-lg w-max p-2 hover:cursor-pointer' onClick={()=>addProductVisibilityFn(true)}>
                     <FaPlus />
@@ -79,6 +82,7 @@ const SellerProductsContainer = () => {
                     <SellerAddProductContainer setAddProductVisibility={addProductVisibilityFn} />
                 </div>
             }
+
 
         </div>
     )

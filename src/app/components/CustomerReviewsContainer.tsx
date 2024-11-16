@@ -73,12 +73,17 @@ const CustomerReviewsContainer = ({productId}:any) => {
 
         if(res.ok){
             const response = await res.json();
-            if(response.success){
+            if (response.redirect) {
+                window.location.href = response.url;
+            }else{
+                if(response.success){
                 setReviews(response.content.comments);
                 setReplyMessage('');
             }else{
                 toast.error(response.message);
             }
+            }
+            
         }else{
             toast.error('Some server error occurred')
         }

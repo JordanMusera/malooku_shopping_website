@@ -31,15 +31,15 @@ const sellerSideBar = ({clickedTab}:any) => {
         <p>Customers</p>
       </button>
 
-      <button className='flex gap-1 items-center'>
+      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('paymentTab')}>
         <MdOutlinePayment className='w-7 h-7'/>
         <p>Payments</p>
       </button>
 
-      <button className='flex gap-1 items-center'>
+      {/* <button className='flex gap-1 items-center'>
         <MdOutlineEvent className='w-7 h-7'/>
         <p>Events</p>
-      </button>
+      </button> */}
 
       <button className='flex gap-1 items-center'>
         <AiOutlineOrderedList className='w-7 h-7'/>

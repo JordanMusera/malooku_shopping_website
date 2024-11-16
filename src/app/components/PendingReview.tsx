@@ -33,12 +33,12 @@ const PendingReview = ({ clickedTab,productId }:any) => {
           onClick={() => handleClickedTab('reviewed_tab')}>Reviewed</button>
       </div>
      
-     <div className='flex flex-col-reverse gap-4 overflow-auto pt-5'>
+     <div className='flex flex-col-reverse gap-4 overflow-auto pt-5 justify-between'>
       {pendingReviewObj && pendingReviewObj.map((item,index)=>(
         <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
         <div className='flex gap-2 justify-between items-center w-full md:w-1/2'>
           <Image src={item.product.image} alt='' width={100} height={100} />
-          <div className='flex flex-col gap-2 relative'>
+          <div className='flex flex-col gap-2 w-full px-10'>
             <div className='flex justify-end md:justify-start'>
               <p className='px-1 bg-green-300 rounded-md w-max'>{item.status}</p>
             </div>

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/ReactToastify.css'
 import CustomerReviewsContainer from './CustomerReviewsContainer'
+import { message } from 'antd'
 
 interface Product {
   _id: string,
@@ -64,13 +65,16 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     }
     )
 
-    const response = await res.json();
+    if(res.ok){
+       const response = await res.json();
     if (response.success) {
-      toast.success(response.message);
+      message.success(response.message);
       setIsWish(true);
     } else {
-      toast.error(response.message);
+      message.error(response.message);
     }
+    }
+   
   }
 
   const removeFromWishlistFunction = async () => {
@@ -83,10 +87,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
     const response = await res.json();
     if (response.success) {
-      toast.success(response.message);
+      message.success(response.message);
       setIsWish(false);
     } else {
-      toast.error(response.message);
+      message.error(response.message);
     }
   }
 
@@ -129,9 +133,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 className='text-xl font-bold px-6 py-2 rounded-md bg-pink-300 xl:bg-pink-200 text-white
         hover:bg-pink-300 border border-pink-300 w-full'>Add to Cart</button>
 
-              <button onClick={() => addToCartFunction()}
-                className='text-xl font-bold px-6 py-2 rounded-md bg-white text-black
-        border border-pink-300 w-full'>Purchase Now</button>
             </div>
 
           </div>

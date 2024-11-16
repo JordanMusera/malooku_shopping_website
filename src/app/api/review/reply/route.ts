@@ -9,6 +9,9 @@ export async function POST(request:NextRequest){
         await dbConnect();
 
         const authToken = request.cookies.get('authToken')?.value||'';
+        if(!authToken){
+            return NextResponse.json({redirect:true,url:'/login'});
+        }
         const authObj = await verifyToken(authToken);
         const userId = authObj.userId;
     

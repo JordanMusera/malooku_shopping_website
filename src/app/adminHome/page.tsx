@@ -5,6 +5,7 @@ import SellerTopBar from '../components/SellerTopBar'
 import SellerOrders from '../components/SellerOrders'
 import SellerProductsContainer from '../components/SellerProductsContainer'
 import SellerUsersContainer from '../components/SellerUsersContainer'
+import SellerPaymentsContainer from '../components/SellerPaymentsContainer'
 
 const page = () => {
   const [clickedTab,setClickedTab] = useState('');
@@ -24,6 +25,7 @@ const page = () => {
       {clickedTab==='ordersTab' && <SellerOrders/>}
       {clickedTab ==='productsTab' && <SellerProductsContainer/>}
       {clickedTab ==='usersTab' && <SellerUsersContainer/>} 
+      {clickedTab ==='paymentTab' && <SellerPaymentsContainer/>}
       
     </div>
   </div>

@@ -26,8 +26,11 @@ const HomeProducts = () => {
     useEffect(()=>{
         const fetchData = async()=>{
             const res = await fetch('/api/products');
-            const products:Product[] = await res.json();
+            if(res.ok){
+               const products:Product[] = await res.json();
             setProducts(products);
+            }
+           
         }
         fetchData();
     },[]);
@@ -43,11 +46,11 @@ const HomeProducts = () => {
         className='flex flex-col justify-between items-center rounded-xl bg-white border hover:border-pink-300 p-1 cursor-pointer'
         onClick={() => productClicked(product)}
       >
-        <div className='h-48 w-full flex'> {/* Set a fixed height */}
+        <div className='h-48 w-full flex'>
           <img 
-            className='rounded w-full h-full object-contain' // Use object-contain to fit the image
+            className='rounded w-full h-full object-contain'
             src={product.image}
-            alt={product.title} // Add meaningful alt text
+            alt={product.title}
             sizes='(max-width: 640px) 100px, (max-width: 768px) 150px, (max-width: 1024px) 200px, 300px'
           />
         </div>

@@ -29,7 +29,7 @@ export async function POST(request:NextRequest){
         const productPrice = data.get('productPrice') as string;
         const productDescription = data.get('productDescription') as string;
         const productCategory = data.get('productCategory') as string;
-        //const productSpecifications = data.get('productSpecifications') as string;
+        const productSpecifications = data.get('productSpecifications') as string;
         const productQty = data.get('productQty') as string;
 
         const imageArray = data.getAll('images') as File[];

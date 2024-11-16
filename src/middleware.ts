@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from 'jsonwebtoken'
-import { stringify } from "querystring";
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest) {
-    const cookie = request.cookies.get('authToken')?.value||'';
-    console.log(cookie);
-    console.log('Hello');
+export async function middleware(request: NextRequest) {
+    const token = request.cookies.get('authToken')?.value || '';
 
-    console.log("Token Validity: ")
+    if (!token) {
+        return NextResponse.redirect(new URL('/login', request.url));
+    }
 
-    return NextResponse.next();
+    try {
+        const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || "");
+        await jwtVerify(token, secretKey);
+
+        return NextResponse.next();
+    } catch (error) {
+        console.error("JWT Verification Error:", error);
+        return NextResponse.redirect(new URL('/login', request.url));
+    }
 }
 
 export const config = {
-    matcher: ['/', '/your-route-here'], // Define which routes trigger the middleware
+    matcher: ['/account', '/another-protected-route']
 };
-
-
