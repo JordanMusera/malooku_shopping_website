@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { message } from 'antd';
 interface Cart {
   cartData: CartItem[],
   totalCartCost: number
@@ -87,10 +88,10 @@ const OrderDetailsContainer = () => {
     });
     const response = await res.json();
     if (response.success) {
-      toast.success('Address added');
+      message.success('Address added');
       dispatch(setShippingAddress(response.content.shippingAddress))
     } else {
-      toast.error(response.message);
+      message.error(response.message);
     }
 
   }
@@ -109,10 +110,10 @@ const OrderDetailsContainer = () => {
     });
     const response = await res.json();
     if (response.success) {
-      toast.success('Address deleted');
+      message.success('Address deleted');
       dispatch(setShippingAddress(response.content.shippingAddress))
     } else {
-      toast.error(response.message);
+      message.error(response.message);
     }
   }
 
@@ -130,10 +131,10 @@ const OrderDetailsContainer = () => {
     });
     const response = await res.json();
     if (response.success) {
-      toast.success('Payment method deleted');
+      message.success('Payment method deleted');
       dispatch(setPayments(response.content.paymentMethods))
     } else {
-      toast.error(response.message);
+      message.error(response.message);
     }
   }
 
@@ -158,10 +159,10 @@ const OrderDetailsContainer = () => {
     });
     const response = await res.json();
     if (response.success) {
-      toast.success('Address added');
+      message.success(response.message);
       dispatch(setPayments(response.content.paymentMethods))
     } else {
-      toast.error(response.message);
+      message.error(response.message);
     }
   }
 

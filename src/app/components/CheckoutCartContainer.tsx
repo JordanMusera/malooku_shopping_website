@@ -30,7 +30,7 @@ const CheckoutCartContainer = () => {
                 })
             })
 
-            toast.dismiss(loadingToast);
+            
             if(res.ok){
                 const response = await res.json();
             if(response.success){
@@ -39,6 +39,8 @@ const CheckoutCartContainer = () => {
                 toast.info(response.message);
             }
             }
+
+            toast.dismiss(loadingToast);
             
         }
 

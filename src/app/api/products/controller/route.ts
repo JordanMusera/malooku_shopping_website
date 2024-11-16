@@ -30,6 +30,7 @@ export async function POST(request:NextRequest){
         const productDescription = data.get('productDescription') as string;
         const productCategory = data.get('productCategory') as string;
         const productSpecifications = data.get('productSpecifications') as string;
+        const specifications = JSON.parse(productSpecifications);
         const productQty = data.get('productQty') as string;
 
         const imageArray = data.getAll('images') as File[];
@@ -61,7 +62,7 @@ export async function POST(request:NextRequest){
             description:productDescription,
             category:productCategory,
             images:imageUrls,
-            //specifications:productSpecifications,
+            specifications:specifications,
             qty:productQty
         });
 

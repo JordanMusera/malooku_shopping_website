@@ -9,6 +9,7 @@ import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.css';
+import { FaChevronDown } from 'react-icons/fa';
 
 
 interface Cart {
@@ -33,7 +34,9 @@ interface CartItem {
 }
 
 interface UserItem {
-  username: ReactNode;
+  username: string,
+  email:string,
+  role:string
 }
 
 const Topbar = () => {
@@ -251,14 +254,15 @@ const Topbar = () => {
       )}
 
 
-      <Link href='/account' className='text-xl font-semibold hover:text-green-500 group flex border border-gray-500 rounded-lg hover:border-green-500 p-1 gap-1
-      hidden md:flex'>
-        <div>
-          <img src='/user_icon.png' alt='' width={30} height={30} />
+<Link href='/account' className='flex gap-2 items-center justify-end me-3'>
+        <div className='h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center'>
+          <img src="/user_icon.png" alt="" width={30} height={30} className='object-contain'/>
         </div>
-        <span className='flex flex-col items-center text-sm font-medium justify-center'>
-          {userItem?.username}
-        </span>
+        <div className='text-start text-sm hidden md:flex md:flex-col'>
+          <p className='text-black'>{userItem?.email}</p>
+          <p className='text-gray-600'>{userItem?.role}</p>
+        </div>
+        <FaChevronDown className='hidden md:flex'/>
       </Link>
 
       {minmenu && (
