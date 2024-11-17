@@ -42,7 +42,7 @@ const HomeProducts = () => {
   return (
     <div className='flex items-center justify-center relative'>
       {products.length !== 0 ? (
-        <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5 w-full justify-center px-3'>
+        <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5 xl:gap-10 w-full justify-center px-3'>
           {products.map(product => (
             <div
               key={product.id}
