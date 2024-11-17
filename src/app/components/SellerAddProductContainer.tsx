@@ -33,7 +33,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
   const [variantValue, setvariantValue] = useState("");
   const [variantPrice, setvariantPrice] = useState("");
   const [VariantsList, setVariantsList] = useState<string[]>([]);
-  const [productVariants, setProductVariants] = useState<ProductVariants[]>([]);
+  const [productVariants, setProductVariants] = useState<ProductVariants>({});
   const [errors, setErrors] = useState({
     productName: false,
     productCategory: false,
@@ -57,7 +57,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
     },
     {
       title: "Delete",
-      render: (record) => (
+      render: (record:any) => (
         <div>
           <AiOutlineDelete
             className="text-red-300 text-xl"
@@ -129,6 +129,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
       formData.append("images", image);
     }
     formData.append("productSpecifications", JSON.stringify(specifications));
+    formData.append("productVariants", JSON.stringify(productVariants));
 
     const res = await fetch("/api/products/controller", {
       method: "POST",
@@ -152,38 +153,32 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
   const addProductVariantFn = (e: any) => {
     e.preventDefault();
 
-    // Check if variant and value are provided
-    if (!variant || !variantValue || !variantPrice) {
+    if (!variantInput || !variantValue || !variantPrice) {
       return message.error("Please fill out all fields.");
     }
 
-    // Validate that variantPrice is a valid number
     const price = parseFloat(variantPrice);
     if (isNaN(price) || price <= 0) {
       return message.error("Please provide a valid price.");
     }
 
-    // Check if the variant category exists
     setProductVariants((prev) => {
-      const updatedVariants = { ...prev };
+      const updatedVariants: ProductVariants = { ...prev };
 
-      if (updatedVariants[variant]) {
-        // Check if the variant value already exists in the category
-        const valueExists = updatedVariants[variant].some(
+      if (updatedVariants[variantInput]) {
+        const valueExists = updatedVariants[variantInput].some(
           (item: any) => item.value === variantValue
         );
 
         if (valueExists) {
-          // Update price if value exists
           return {
             ...updatedVariants,
-            [variant]: updatedVariants[variant].map((item: any) =>
+            [variantInput]: updatedVariants[variantInput].map((item: any) =>
               item.value === variantValue ? { ...item, price } : item
             ),
           };
         } else {
-          // Add new value and price to existing variant category
-          updatedVariants[variant].push({
+          updatedVariants[variantInput].push({
             value: variantValue,
             price,
           });
@@ -191,8 +186,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
           return updatedVariants;
         }
       } else {
-        // If variant doesn't exist, create a new category and add the value
-        updatedVariants[variant] = [{ value: variantValue, price }];
+        updatedVariants[variantInput] = [{ value: variantValue, price }];
         return updatedVariants;
       }
     });
@@ -214,37 +208,72 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
   // Columns configuration for the Antd table
   const columns1 = [
     {
-      title: 'Variant',
-      dataIndex: 'variant',
-      key: 'variant',
+      title: "Variant",
+      dataIndex: "variant",
+      key: "variant",
       // Merging rows with same variant name
       render: (text: string, record: any, index: number) => {
         // Merging the same variant value
         if (index > 0 && tableData[index - 1].variant === text) {
-          return ''; // Return empty string to merge cells
+          return ""; // Return empty string to merge cells
         }
         return text;
       },
     },
     {
-      title: 'Value',
-      dataIndex: 'value',
-      key: 'value',
+      title: "Value",
+      dataIndex: "value",
+      key: "value",
     },
     {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
     },
+    {
+        title:'Delete',
+        key:'value',
+        render:(record)=>(
+            <div className="flex justify-center items-center">
+                 <AiOutlineDelete
+            className="text-red-300 text-xl w-max"
+            onClick={() => deleteVariantValue(record)}
+          />
+            </div>
+        )
+    }
   ];
+
+  const deleteVariantValue = (record: any) => {
+    console.log(record)
+    setProductVariants((prevProductVariants) => {
+      const updatedProductVariants = { ...prevProductVariants };
+  
+      updatedProductVariants[record.variant] = updatedProductVariants[record.variant].filter(
+        (item) => item.value !== record.value
+      );
+  
+      if (updatedProductVariants[record.variant].length === 0) {
+        delete updatedProductVariants[record.variant];
+      }
+  
+      return updatedProductVariants;
+    });
+  };
+  
 
   return (
     <form
       onSubmit={handleFormSubmit}
       className="w-1/2 h-1/2 bg-white shadow-2xl p-10 rounded-xl border border-pink-300 gap-3 flex flex-col"
     >
-      <p className="text-md font-semibold text-black">Upload Product Images</p>
-      <div className="w-full flex gap-4 items-center overflow-auto">
+      <h1 className="text-black font-semibold text-sm">
+         Upload product images - 
+          <span className="text-gray-500">
+            (*First images is the main image)
+          </span>
+        </h1>
+      <div className="w-full flex flex-shrink gap-4 items-center overflow-auto">
         {imageArray?.map((item, index) => (
           <div key={index}>
             <img
@@ -275,6 +304,12 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
         </label>
       </div>
 
+      <h1 className="text-black font-semibold text-sm">
+          Fill product details - 
+          <span className="text-gray-500">
+            (*Provide all relevant details to customers)
+          </span>
+        </h1>
       <div className="flex flex-col gap-3">
         <div className="flex gap-3">
           <input
@@ -363,14 +398,14 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
         </div>
 
         <Table
-        rowKey="value" // This will use value as the unique identifier for rows
-        columns={columns1}
-        dataSource={tableData} // Ensure this is an array
-        bordered
-        pagination={false}
-        rowClassName="variant-row"
-        // Additional props if needed
-      />
+          rowKey="value" // This will use value as the unique identifier for rows
+          columns={columns1}
+          dataSource={tableData} // Ensure this is an array
+          bordered
+          pagination={false}
+          rowClassName="variant-row"
+          // Additional props if needed
+        />
 
         <h1 className="text-black font-semibold text-sm">
           Add Variant -{" "}

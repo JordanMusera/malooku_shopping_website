@@ -12,6 +12,8 @@ interface Product {
     price:number,
     description:string,
     category:string,
+    variants:object,
+    specifications:Array<object>,
     image:string,
     rating:{
         rate:number,

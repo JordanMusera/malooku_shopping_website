@@ -31,6 +31,8 @@ export async function POST(request:NextRequest){
         const productCategory = data.get('productCategory') as string;
         const productSpecifications = data.get('productSpecifications') as string;
         const specifications = JSON.parse(productSpecifications);
+        const productVariants = data.get('productVariants') as string;
+        const variants = JSON.parse(productVariants);
         const productQty = data.get('productQty') as string;
 
         const imageArray = data.getAll('images') as File[];
@@ -63,6 +65,7 @@ export async function POST(request:NextRequest){
             category:productCategory,
             images:imageUrls,
             specifications:specifications,
+            variants:variants,
             qty:productQty
         });
 

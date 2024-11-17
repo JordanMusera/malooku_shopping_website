@@ -10,6 +10,7 @@ const productSchema = new Schema({
     image:String,
     images:Array,
     specifications:{type:Array,default:[]},
+    variants:{type:Object,default:{}},
     wish:Boolean,
     rating:{
         rate:Number,
