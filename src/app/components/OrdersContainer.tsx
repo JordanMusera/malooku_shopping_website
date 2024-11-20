@@ -82,7 +82,7 @@ const OrdersContainer = ({ clickedOrder, clickedTab, orderId }) => {
 
     return (
         <div className='gap-2 flex flex-col w-full h-full p-3 md:p-5 relative'>
-            <div className='top-0 w-full h-10 justify-between flex md:px-5 gap-2'>
+            <div className='top-0 w-full md:w-max h-10 justify-between flex md:px-5 gap-2'>
                 <button className='text-md w-full text-black font-semibold bg-pink-300 border border-pink-300 rounded-md px-2'
                 onClick={()=>handleClickedTab('ordersTab')}>Orders</button>
                 <button className='text-md w-full text-black font-semibold border border-pink-300 bg-white rounded-md px-2'

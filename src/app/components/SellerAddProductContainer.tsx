@@ -1,7 +1,9 @@
 "use client";
 import { message, Select, Table } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AiOutlineDelete } from "react-icons/ai";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/ReactToastify.css";
 
 interface Specification {
   specification: string;
@@ -17,7 +19,11 @@ interface ProductVariants {
   [variant: string]: Variant[];
 }
 
-const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
+const SellerAddProductContainer = ({
+  setAddProductVisibility,
+  clickedProduct,
+  updatedProducts,
+}: any) => {
   const [imageArray, setImageArray] = useState<string[]>([]);
   const [imageFileArray, setImageFileArray] = useState<File[]>([]);
   const [productName, setProductName] = useState("");
@@ -44,6 +50,53 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
     specifications: false,
   });
 
+  useEffect(() => {
+    if (clickedProduct) {
+      setProductName(clickedProduct.title || "");
+      setProductCategory(clickedProduct.category || "");
+      setProductPrice(clickedProduct.price || 0);
+      setProductQty(clickedProduct.qty || 0);
+      setProductDescription(clickedProduct.description || "");
+
+      setImageArray(
+        clickedProduct.images?.map((img: any) => img.imageUrl) || []
+      );
+      setSpecifications(clickedProduct.specifications || []);
+
+      const variants = clickedProduct.variants || {};
+      setProductVariants(variants);
+      setVariantsList(Object.keys(variants));
+    }
+  }, [clickedProduct]);
+
+  useEffect(() => {
+    const convertImageToFile = async () => {
+      if (imageArray.length > 0) {
+        const files = [];
+        for (const image of imageArray) {
+          try {
+            const response = await fetch(image);
+            const arrayBuffer = await response.arrayBuffer();
+
+            console.log("Array Buffer: ", arrayBuffer);
+
+            const file = new File([arrayBuffer], "image.jpg", {
+              type: "image/jpeg",
+            });
+            files.push(file);
+          } catch (error) {
+            console.error("Error fetching image:", error);
+          }
+        }
+        setImageFileArray(files);
+      }
+    };
+
+    if (imageArray.length > 0) {
+      convertImageToFile();
+    }
+  }, [imageArray]);
+
   const columns = [
     {
       title: "Specification",
@@ -57,7 +110,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
     },
     {
       title: "Delete",
-      render: (record:any) => (
+      render: (record: any) => (
         <div>
           <AiOutlineDelete
             className="text-red-300 text-xl"
@@ -118,8 +171,11 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
       return;
     }
 
-    setAddProductVisibility(false);
+    //setAddProductVisibility(false);
     const formData = new FormData();
+    if (clickedProduct) {
+      formData.append("productId", clickedProduct._id);
+    }
     formData.append("productName", productName);
     formData.append("productCategory", productCategory);
     formData.append("productPrice", productPrice.toString());
@@ -131,13 +187,24 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
     formData.append("productSpecifications", JSON.stringify(specifications));
     formData.append("productVariants", JSON.stringify(productVariants));
 
+    const loading = toast.loading("Writing data...");
+    const method = clickedProduct ? "PUT" : "POST";
     const res = await fetch("/api/products/controller", {
-      method: "POST",
+      method: method,
       body: formData,
     });
 
-    const response = await res.json();
-    console.log(response);
+    toast.dismiss(loading);
+    if (res.ok) {
+      setAddProductVisibility(false);
+      const response = await res.json();
+      if (response.success) {
+        updatedProducts(response.content);
+        message.success(response.message);
+      } else {
+        message.error(response.message);
+      }
+    }
   };
 
   const addVariantFn = (e: any) => {
@@ -231,36 +298,40 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
       key: "price",
     },
     {
-        title:'Delete',
-        key:'value',
-        render:(record)=>(
-            <div className="flex justify-center items-center">
-                 <AiOutlineDelete
+      title: "Delete",
+      key: "value",
+      render: (record) => (
+        <div className="flex justify-center items-center">
+          <AiOutlineDelete
             className="text-red-300 text-xl w-max"
             onClick={() => deleteVariantValue(record)}
           />
-            </div>
-        )
-    }
+        </div>
+      ),
+    },
   ];
 
   const deleteVariantValue = (record: any) => {
-    console.log(record)
+    console.log(record);
     setProductVariants((prevProductVariants) => {
       const updatedProductVariants = { ...prevProductVariants };
-  
-      updatedProductVariants[record.variant] = updatedProductVariants[record.variant].filter(
-        (item) => item.value !== record.value
-      );
-  
+
+      updatedProductVariants[record.variant] = updatedProductVariants[
+        record.variant
+      ].filter((item) => item.value !== record.value);
+
       if (updatedProductVariants[record.variant].length === 0) {
         delete updatedProductVariants[record.variant];
       }
-  
+
       return updatedProductVariants;
     });
   };
-  
+
+  const deleteImage = (index: number) => {
+    setImageArray((prev) => prev.filter((image, i) => i !== index));
+    setImageFileArray((prev) => prev.filter((image, i) => i !== index));
+  };
 
   return (
     <form
@@ -268,14 +339,12 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
       className="w-1/2 h-1/2 bg-white shadow-2xl p-10 rounded-xl border border-pink-300 gap-3 flex flex-col"
     >
       <h1 className="text-black font-semibold text-sm">
-         Upload product images - 
-          <span className="text-gray-500">
-            (*First images is the main image)
-          </span>
-        </h1>
+        Upload product images -
+        <span className="text-gray-500">(*First images is the main image)</span>
+      </h1>
       <div className="w-full flex flex-shrink gap-4 items-center overflow-auto">
         {imageArray?.map((item, index) => (
-          <div key={index}>
+          <div key={index} className="flex">
             <img
               src={item}
               alt=""
@@ -283,13 +352,16 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
               height={100}
               className="object-contain"
             />
+            <AiOutlineDelete
+              className="text-red-300 text-2xl"
+              onClick={() => deleteImage(index)}
+            />
           </div>
         ))}
         <input
           type="file"
           id="file_upload"
           multiple
-          required
           placeholder="Add images"
           className={`bg-pink-200 rounded-xl font-semibold p-1 h-max w-max hidden`}
           onChange={handleImageInput}
@@ -305,70 +377,85 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
       </div>
 
       <h1 className="text-black font-semibold text-sm">
-          Fill product details - 
-          <span className="text-gray-500">
-            (*Provide all relevant details to customers)
-          </span>
-        </h1>
+        Fill product details -
+        <span className="text-gray-500">
+          (*Provide all relevant details to customers)
+        </span>
+      </h1>
       <div className="flex flex-col gap-3">
-        <div className="flex gap-3">
-          <input
-            value={productName}
-            type="text"
-            placeholder="Product Name"
-            className={`p-2 w-full rounded-xl bg-white shadow-md border shadow-pink-200 ${
-              errors.productName ? "border-red-500" : ""
-            }`}
-            onChange={(e) => setProductName(e.target.value)}
-          />
+        <div className="flex gap-3 w-full justify-between">
+          <div className="flex flex-col gap-1 w-full">
+            <h1 className="text-black font-semibold text-sm">Product name</h1>
+            <input
+              value={productName}
+              type="text"
+              placeholder="Product Name"
+              className={`p-2 w-full rounded-xl bg-white shadow-md border shadow-pink-200 ${
+                errors.productName ? "border-red-500" : ""
+              }`}
+              onChange={(e) => setProductName(e.target.value)}
+            />
+          </div>
 
-          <Select
-            placeholder="Select a category"
-            style={{ width: 200 }}
-            onChange={(value) => setProductCategory(value)}
-            className={`w-full h-10 rounded-xl bg-white shadow-md border shadow-pink-200 ${
-              errors.productName ? "border-red-500" : ""
-            }`}
-          >
-            <option value="technology">Technology</option>
-            <option value="sports">Sports</option>
-            <option value="fashion">Fashion</option>
-            <option value="health">Health</option>
-          </Select>
+          <div className="flex flex-col gap-1 w-full">
+            <h1 className="text-black font-semibold text-sm">Category</h1>
+            <Select
+              placeholder="Select a category"
+              value={productCategory}
+              onChange={(value) => setProductCategory(value)}
+              className={`w-full h-10 rounded-xl bg-white shadow-md border shadow-pink-200 ${
+                errors.productName ? "border-red-500" : ""
+              }`}
+            >
+              <option value="technology">Technology</option>
+              <option value="sports">Sports</option>
+              <option value="fashion">Fashion</option>
+              <option value="health">Health</option>
+            </Select>
+          </div>
         </div>
 
         <div className="flex gap-3">
-          <input
-            value={productPrice}
-            type="number"
-            placeholder="Price"
-            className={`p-2 w-full rounded-xl bg-white shadow-md border shadow-pink-200 ${
-              errors.productPrice ? "border-red-500" : ""
-            }`}
-            onChange={(e) => setProductPrice(parseInt(e.target.value))}
-          />
+          <div className="flex flex-col gap-1 w-full">
+            <h1 className="text-black font-semibold text-sm">Price</h1>
+            <input
+              value={productPrice}
+              type="number"
+              placeholder="Price"
+              className={`p-2 w-full rounded-xl bg-white shadow-md border shadow-pink-200 ${
+                errors.productPrice ? "border-red-500" : ""
+              }`}
+              onChange={(e) => setProductPrice(parseInt(e.target.value))}
+            />
+          </div>
 
-          <input
-            value={productQty}
-            type="number"
-            placeholder="Product QTY"
-            className={`p-2 border w-full rounded-xl bg-white shadow-md shadow-pink-200 ${
-              errors.productQty ? "border-red-500" : ""
-            }`}
-            onChange={(e) => setProductQty(parseInt(e.target.value))}
-          />
+          <div className="flex flex-col gap-1 w-full">
+            <h1 className="text-black font-semibold text-sm">Quantity</h1>
+            <input
+              value={productQty}
+              type="number"
+              placeholder="Product QTY"
+              className={`p-2 border w-full rounded-xl bg-white shadow-md shadow-pink-200 ${
+                errors.productQty ? "border-red-500" : ""
+              }`}
+              onChange={(e) => setProductQty(parseInt(e.target.value))}
+            />
+          </div>
         </div>
 
         <div>
-          <input
-            value={productDescription}
-            type="text"
-            placeholder="Product Description"
-            className={`p-2 border w-full h-max min-h-20 rounded-xl bg-white shadow-md shadow-pink-200 ${
-              errors.productDescription ? "border-red-500" : ""
-            }`}
-            onChange={(e) => setProductDescription(e.target.value)}
-          />
+          <div className="flex flex-col gap-1">
+            <h1 className="text-black font-semibold text-sm">Description</h1>
+            <input
+              value={productDescription}
+              type="text"
+              placeholder="Product Description"
+              className={`p-2 border w-full h-max min-h-20 rounded-xl bg-white shadow-md shadow-pink-200 ${
+                errors.productDescription ? "border-red-500" : ""
+              }`}
+              onChange={(e) => setProductDescription(e.target.value)}
+            />
+          </div>
         </div>
 
         <Table columns={columns} dataSource={specifications} />
@@ -390,7 +477,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
             onChange={(e) => setSpecificationDescription(e.target.value)}
           />
           <button
-            className="text-2xl p-2 bg-pink-300 w-10 h-10 rounded-full flex items-center justify-center font-bold hover:shadow-xl hover:shadow-pink-200"
+            className="text-2xl p-2 bg-pink-300 w-10 h-10 rounded-xl flex items-center justify-center font-bold hover:shadow-xl hover:shadow-pink-200"
             onClick={addSpecification}
           >
             +
@@ -421,7 +508,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
             onChange={(e) => setVariant(e.target.value)}
           />
           <button
-            className="text-2xl p-2 bg-pink-300 w-10 h-10 rounded-full flex items-center justify-center font-bold hover:shadow-xl hover:shadow-pink-200"
+            className="text-2xl p-2 bg-pink-300 w-10 h-10 rounded-xl flex items-center justify-center font-bold hover:shadow-xl hover:shadow-pink-200"
             onClick={addVariantFn}
           >
             +
@@ -466,7 +553,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
             onChange={(e) => setvariantPrice(e.target.value)}
           />
           <button
-            className="text-2xl p-2 bg-pink-300 w-10 h-10 rounded-full flex items-center justify-center font-bold hover:shadow-xl hover:shadow-pink-200"
+            className="text-2xl p-2 bg-pink-300 w-10 h-10 rounded-xl flex items-center justify-center font-bold hover:shadow-xl hover:shadow-pink-200"
             onClick={addProductVariantFn}
           >
             +
@@ -488,6 +575,7 @@ const SellerAddProductContainer = ({ setAddProductVisibility }: any) => {
           </button>
         </div>
       </div>
+      <ToastContainer />
     </form>
   );
 };

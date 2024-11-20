@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import { AiOutlineComment, AiOutlineEdit, AiOutlineHeart, AiOutlineLock, AiOutlineNotification, AiOutlineProfile, AiOutlineSecurityScan, AiOutlineShopping, AiOutlineUser } from "react-icons/ai";
+import { FaComment } from "react-icons/fa";
 
 const AccountMenu = ({ clikedTab }: any) => {
   const handleTabClick = (data: string) => {
@@ -7,12 +9,12 @@ const AccountMenu = ({ clikedTab }: any) => {
   };
 
   return (
-    <div className="flex flex-col gap-10 md:gap-5">
+    <div className="flex flex-col gap-16 md:gap-5">
       <div
         onClick={() => handleTabClick("pending_review_tab")}
         className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
       >
-        <img src="/review_icon.png" alt="" width={30} height={30} />
+        <AiOutlineComment className="text-4xl"/>
         <label className="font-semibold hidden md:flex">Reviews</label>
       </div>
 
@@ -20,7 +22,7 @@ const AccountMenu = ({ clikedTab }: any) => {
         onClick={() => handleTabClick("ordersTab")}
         className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
       >
-        <img src="/orders_icon.svg" alt="" width={30} height={30} />
+        <AiOutlineShopping className="text-4xl"/>
         <label className="font-semibold hidden md:flex">Orders</label>
       </div>
 
@@ -28,7 +30,7 @@ const AccountMenu = ({ clikedTab }: any) => {
         onClick={() => handleTabClick("favouriteTab")}
         className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
       >
-        <img src="/favourite_icon.svg" alt="" width={30} height={30} />
+        <AiOutlineHeart className="text-4xl"/>
         <label className="font-semibold hidden md:flex">Favourite</label>
       </div>
 
@@ -36,12 +38,12 @@ const AccountMenu = ({ clikedTab }: any) => {
         className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
         onClick={() => handleTabClick("notifications_tab")}
       >
-        <img src="/notification_icon.svg" alt="" width={30} height={30} />
+       <AiOutlineNotification className="text-4xl"/>
         <label className="font-semibold hidden md:flex">Notifications</label>
       </div>
 
       <div className="md:flex items-center gap-1 w-full p-1 rounded-lg justify-start hidden">
-        <img src="/profile_icon.svg" alt="" width={30} height={30} />
+      <AiOutlineUser className="text-4xl"/>
         <label className="font-semibold hidden md:flex">Profile</label>
       </div>
 
@@ -50,7 +52,7 @@ const AccountMenu = ({ clikedTab }: any) => {
           onClick={() => handleTabClick("edit_profile")}
           className="flex justify-start items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300"
         >
-          <img src="/edit_icon.svg" alt="" width={30} height={30} />
+          <AiOutlineEdit className="text-4xl"/>
           <label className="font-semibold hidden md:flex">Edit</label>
         </div>
 
@@ -58,7 +60,7 @@ const AccountMenu = ({ clikedTab }: any) => {
           onClick={() => handleTabClick("security")}
           className="flex justify-start items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300"
         >
-          <img src="/security_icon.svg" alt="" width={30} height={30} />
+          <AiOutlineLock className="text-4xl"/>
           <label className="font-semibold hidden md:flex">Security</label>
         </div>
       </div>

@@ -77,11 +77,11 @@ const page = () => {
             </div>
 
             <div className='flex w-full col-span-1 xl:col-span-4 h-full xl:p-10 overflow-auto bg-gray-100'>
-                <div className='w-1/6 h-screen bg-pink-100 flex flex-col items-center justify-center shadow-xl xl:hidden'>
+                <div className='w-16 h-screen bg-pink-100 flex flex-col items-center justify-center shadow-xl xl:hidden'>
                     <AccountMenu clikedTab={handleTabClick} />
                 </div>
 
-                <div className='flex items-center justify-center h-full w-5/6 xl:w-full'>
+                <div className='flex items-center justify-center h-full w-full'>
                     {tab === "ordersTab" && <OrdersContainer clickedOrder={handleOrderClick} clickedTab={handleTabClick} orderId={handleClickedOrder} />}
                     {tab === "edit_profile" && <AccountProfileContainer />}
                     {tab === "security" && <AccountSecurityContainer />}
