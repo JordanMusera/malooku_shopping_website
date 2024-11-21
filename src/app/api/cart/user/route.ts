@@ -64,7 +64,7 @@ export async function GET(request:NextRequest,{params}:Params){
 export async function POST(request:NextRequest){
     await dbConnect();
     //const {id} = params;
-    const {productId,orderedQty} = await request.json();
+    const {productId,orderedQty,selectedProductVariants,selectedProductPrice} = await request.json();
 
     const userToken = request.cookies.get('authToken')?.value||'';
 
@@ -73,7 +73,7 @@ export async function POST(request:NextRequest){
     }
     const decodedToken = await verifyToken(userToken);
     const userId = decodedToken.userId;
-    console.log("IDD: "+userId);
+    console.log("IDD: "+ JSON.stringify(selectedProductVariants));
 
     const cart = await Cart.findOne({userId:userId});
 
@@ -85,7 +85,7 @@ export async function POST(request:NextRequest){
         }
         
 
-        cart.products.push({ productId:productId, quantity: orderedQty });
+        cart.products.push({ productId:productId, quantity: orderedQty ,selectedProductVariants:selectedProductVariants,selectedProductPrice:selectedProductPrice});
         console.log(cart)
 
         await cart.save();
@@ -94,7 +94,7 @@ export async function POST(request:NextRequest){
     }else{
          const newCart = new Cart({
             userId: userId,
-            products: [{ productId, quantity: orderedQty }],
+            products: [{ productId, quantity: orderedQty,selectedProductVariants:selectedProductVariants,selectedProductPrice:selectedProductPrice }],
             date: new Date()
         });
 

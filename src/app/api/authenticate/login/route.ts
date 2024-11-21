@@ -19,7 +19,7 @@ export async function POST(request:Request,response:Response){
 
     if(passwordValid){
 
-        const secret = process.env.JWT_SECRET || "";
+    const secret = process.env.JWT_SECRET || "";
     const maxAge = 60*60*24*15;
 
     const token = sign(

@@ -1,17 +1,21 @@
 import React from 'react'
 import { MdOutlineDashboard,MdOutlineShoppingBag,MdOutlinePayment,MdOutlineSettings,MdOutlineLogout,MdOutlineEventSeat, MdOutlineEvent } from 'react-icons/md'
 import { FaBoxOpen } from 'react-icons/fa'
-import { AiOutlineUser,AiOutlineProfile,AiOutlineOrderedList } from 'react-icons/ai'
+import { AiOutlineUser,AiOutlineProfile,AiOutlineOrderedList, AiOutlineCloseSquare } from 'react-icons/ai'
 
-const sellerSideBar = ({clickedTab}:any) => {
+const sellerSideBar = ({clickedTab,toggleMenuVisibility}:any) => {
 
   const handleTabClick=(tab:string)=>{
     clickedTab(tab);
   }
 
   return (
-    <div className='w-full h-full flex flex-col justify-between py-5 mx-10 text-md text-black font-semibold'>
-      <label className='font-extrabold text-2xl text-pink-300'>MALOOKU</label>
+    <div className='w-full h-full flex flex-col justify-between py-5 ps-10 text-md text-black font-semibold'>
+      <div className='flex flex-between w-full'>
+         <label className='font-extrabold text-2xl text-pink-300 w-full'>MALOOKU</label>
+         <AiOutlineCloseSquare className='text-4xl me-5 text-red-500' onClick={toggleMenuVisibility}/>
+      </div>
+     
       <button className='flex gap-1 items-center'>
         <MdOutlineDashboard className='w-7 h-7'/>
         <p>Dashboard</p>

@@ -4,7 +4,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/ReactToastify.css";
 import CustomerReviewsContainer from "./CustomerReviewsContainer";
 import { message, Table } from "antd";
-import { title } from "process";
 
 interface Product {
   _id: string;
@@ -25,24 +24,27 @@ interface ProductDetailsProps {
   product: Product;
 }
 
-const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
+const ProductDetails: React.FC<ProductDetailsProps> = ({ product }:any) => {
   const [isWish, setIsWish] = useState(false);
   const [qty, setQty] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<{
     [key: string]: string;
   }>({});
+  const [selectedProductPrice,setSelectedProductPrice] = useState('')
 
-  const handleSelection = (variantType: string, variantValue: string) => {
+  const handleSelection = (variantType: string, variant: any) => {
     setSelectedVariants((prev) => ({
       ...prev,
-      [variantType]: variantValue,
+      [variantType]: variant.value,
     }));
+    setSelectedProductPrice(variant.price);
   };
 
   useEffect(() => {
     if (product.wish) {
       setIsWish(product.wish);
     }
+    setSelectedProductPrice(product.price);
   }, [product]);
 
   const addToCartFunction = async () => {
@@ -54,6 +56,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       body: JSON.stringify({
         productId: product._id,
         orderedQty: qty,
+        selectedProductVariants:selectedVariants,
+        selectedProductPrice:selectedProductPrice
       }),
     });
 
@@ -134,7 +138,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           <p className="text-2xl font-bold">{product.title}</p>
 
           <div className="flex my-3 text-pink-300">
-            <p className="text-4xl font-bold">${product.price}</p>
+            <p className="text-4xl font-bold">${selectedProductPrice}</p>
           </div>
 
           <p className="border border-pink-300 rounded-xl p-2 min-h-10">
@@ -197,7 +201,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                               ? "bg-pink-300 text-white"
                               : "bg-white border border-pink-300"
                           }`}
-                          onClick={() => handleSelection(key, variant.value)}
+                          onClick={() => handleSelection(key, variant)}
                         >
                           {variant.value}
                         </button>

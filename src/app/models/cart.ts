@@ -7,7 +7,8 @@ const cartSchema = new Schema({
     products:[
         {
             productId:String,
-            quantity:Number
+            quantity:Number,
+            selectedProductVariants:{type:Object, default:{}},
         }
     ]
 });
