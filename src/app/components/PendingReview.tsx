@@ -13,10 +13,12 @@ const PendingReview = ({ clickedTab, productId }: any) => {
       const res = await fetch("/api/orders/purchasedOrders");
       const response = await res.json();
 
-      const pendingReviewList = response.content.filter(
-        (item: any) => item.reviewed === false
-      );
-      setPendingReviewObj(pendingReviewList);
+      if (response.content) {
+        const pendingReviewList = response.content.filter(
+          (item: any) => item.reviewed === false
+        );
+        setPendingReviewObj(pendingReviewList);
+      }
     };
     fetchPendingReview();
   }, []);
@@ -45,19 +47,14 @@ const PendingReview = ({ clickedTab, productId }: any) => {
 
       <div className="flex flex-col-reverse gap-2 overflow-auto pt-5 justify-between">
         {pendingReviewObj &&
-          pendingReviewObj.map((item, index) => (
+          pendingReviewObj.map((item: any, index) => (
             <div
               key={index}
               className="bg-white h-max w-full rounded-sm shadow-lg p-5 flex md:flex-row items-center justify-between md:gap-6"
               onClick={() => navigateToReview(item.productId)}
             >
               <div className="flex gap-2 justify-between items-center w-full md:w-1/2">
-                <Image
-                  src={item.product.image}
-                  alt=""
-                  width={80}
-                  height={80}
-                />
+                <Image src={item.product.image} alt="" width={80} height={80} />
                 <div className="flex flex-col gap-2 w-full px-10">
                   <div className="flex justify-end md:justify-start">
                     <p className="px-1 bg-gray-300 rounded-md w-max">
@@ -72,8 +69,6 @@ const PendingReview = ({ clickedTab, productId }: any) => {
                   </p>
                 </div>
               </div>
-
-              
             </div>
           ))}
       </div>

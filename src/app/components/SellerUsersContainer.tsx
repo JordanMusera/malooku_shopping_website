@@ -64,7 +64,7 @@ const SellerUsersContainer = () => {
 
     ]
   return (
-    <div className='p-10'>
+    <div className='p-10 w-full'>
       <Table columns={columns} dataSource={users}/>
     </div>
   )

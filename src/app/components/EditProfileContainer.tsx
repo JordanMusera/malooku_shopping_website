@@ -23,9 +23,13 @@ const AccountProfileContainer = () => {
        setFullName(user.name);
        setEmail(user.email);
        setPhone(user.phone);
-       setCounty(user.address.county);
-       setCity(user.address.city);
+      
+       if(user.address){
+         setCounty(user.address.county);
+         setCity(user.address.city);
        setStreet(user.address.street);
+       }
+       
       }
     }
     fetchDetails();

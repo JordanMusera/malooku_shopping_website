@@ -10,7 +10,7 @@ const sellerSideBar = ({clickedTab,toggleMenuVisibility}:any) => {
   }
 
   return (
-    <div className='w-full h-full flex flex-col justify-between py-5 ps-10 text-md text-black font-semibold'>
+    <div className='w-max h-full flex flex-col justify-between py-5 ps-10 text-md text-black font-semibold bg-pink-100'>
       <div className='flex flex-between w-full'>
          <label className='font-extrabold text-2xl text-pink-300 w-full'>MALOOKU</label>
          <AiOutlineCloseSquare className='text-4xl me-5 text-red-500' onClick={toggleMenuVisibility}/>
@@ -48,16 +48,6 @@ const sellerSideBar = ({clickedTab,toggleMenuVisibility}:any) => {
       <button className='flex gap-1 items-center'>
         <AiOutlineOrderedList className='w-7 h-7'/>
         <p>Constants</p>
-      </button>
-
-      <button className='flex gap-1 items-center'>
-        <MdOutlineSettings className='w-7 h-7'/>
-        <p>Settings</p>
-      </button>
-
-      <button className='flex gap-1 items-center'>
-        <AiOutlineProfile className='w-7 h-7'/>
-        <p>My profile</p>
       </button>
 
       <button className='flex gap-1 items-center'>

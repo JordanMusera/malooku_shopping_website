@@ -39,7 +39,7 @@ const favouriteContainer = () => {
 
   return (
     <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 w-full justify-center px-3'>
-      {products.map(product => (
+      {products?.map(product => (
         <div
           key={product.id}
           className='flex flex-col justify-between items-center rounded-xl bg-white border hover:border-pink-300 p-1 cursor-pointer'

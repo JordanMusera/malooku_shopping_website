@@ -1,15 +1,16 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { ToastContainer,toast } from 'react-toastify';
-import 'react-toastify/ReactToastify.css'
+import 'react-toastify/ReactToastify.css';
+import { useRouter } from 'next/navigation';
 
 interface EmailProps{
     email:string
 }
 
 const verifyEmailContainer: React.FC<EmailProps> = ({email}) => {
+    const router = useRouter();
     const[otpCode,setOtpCode] = useState('');
-
     const decodedEmail = email ? decodeURIComponent(email) : '';
 
     const submitOtp=async(e: { preventDefault: () => void; })=>{
@@ -28,6 +29,7 @@ const verifyEmailContainer: React.FC<EmailProps> = ({email}) => {
         const response = await res.json();
         if(response.success){
             toast.success(response.message);
+            router.push('/login');
         }else{
             toast.error(response.message);
         }

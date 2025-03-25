@@ -13,8 +13,10 @@ const ReviewedContainer = ({ clickedTab, productId }:any) => {
     const fetchPendingReview = async () => {
       const res = await fetch('/api/orders/purchasedOrders');
       const response = await res.json();
-      const pendingReviewList = response.content.filter((item:any)=>item.reviewed===true);
-      setPendingReviewObj(pendingReviewList);
+      if(response.content){
+        const pendingReviewList = response.content.filter((item:any)=>item.reviewed===true);
+        setPendingReviewObj(pendingReviewList);
+      }
     }
     fetchPendingReview();
   }, [])

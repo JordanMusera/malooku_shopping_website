@@ -4,12 +4,9 @@ import { FaSearch,FaChevronDown } from 'react-icons/fa'
 
 const SellerTopBar = ({toggleMenuVisibility}:any) => {
   return (
-    <div className='bg-white h-16 w-full flex justify-between gap-6 text-black font-semibold py-1 px-5 items-center'>
+    <div className='bg-pink-200 h-16 w-full flex justify-between gap-6 text-black font-semibold py-1 px-5 items-center'>
       <AiOutlineMenuUnfold className='text-3xl' onClick={toggleMenuVisibility}/>
-      <div className='hidden md:flex justify-between items-center bg-gray-100 w-1/4 h-full border-pink-300 border rounded-2xl'>
-        <input type='text' placeholder='Search here' className='w-full bg-gray-100 rounded-s-2xl p-2'/>
-        <FaSearch className='w-4 h-4 mx-2'/>
-      </div>
+      <label className='font-extrabold text-2xl text-pink-300 hidden md:flex'>MALOOKU</label>
 
       <div className='hidden md:flex justify-between w-full'>
          <button>Home</button>

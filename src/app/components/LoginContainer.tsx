@@ -3,10 +3,12 @@ import Link from 'next/link';
 import React, { useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.css'
+import { useRouter } from 'next/navigation';
 
 const LoginContainer = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter()
 
   const validateEmail = (email:string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,6 +44,7 @@ const LoginContainer = () => {
 
     if (response.success) {
       toast.success(response.message);
+      router.push('/')
     } else {
       toast.error(response.message);
     }

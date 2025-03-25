@@ -20,23 +20,16 @@ const page = () => {
   };
 
   return (
-    <div className="h-screen bg-white w-screen flex flex-col relative">
-      <div className="fixed top-0 z-50 w-full md:hidden">
-        <SellerTopBar toggleMenuVisibility={toggleMenuVisibility} />
-      </div>
+    <div className="h-screen bg-white w-screen flex flex-col">
+      
 
       <div className="w-full flex h-full">
-        <div
-          className={`col-span-1 bg-white h-full absolute shadow-2xl w-2/3 z-50 transition-transform duration-300 ${
-            menuVisibility ? "translate-x-0" : "-translate-x-full"
-          } xl:static xl:w-1/4`}
-        >
           <SellerSideBar
             clickedTab={handleClickedTab}
             toggleMenuVisibility={toggleMenuVisibility}
           />
-        </div>
-        <div>
+       
+        
           <div className="fixed top-0 z-50 w-full">
             <SellerTopBar toggleMenuVisibility={toggleMenuVisibility} />
           </div>
@@ -46,7 +39,7 @@ const page = () => {
             {clickedTab === "usersTab" && <SellerUsersContainer />}
             {clickedTab === "paymentTab" && <SellerPaymentsContainer />}
           </div>
-        </div>
+        
       </div>
     </div>
   );
