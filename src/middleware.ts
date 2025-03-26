@@ -1,5 +1,5 @@
+import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from 'jose';
 
 export async function middleware(request: NextRequest) {
     const token = request.cookies.get('authToken')?.value || '';
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     } catch (error) {
         console.error("JWT Verification Error:", error);
-        //return NextResponse.redirect(new URL('/login', request.url));
+        return NextResponse.redirect(new URL('/login', request.url));
     }
 }
 
