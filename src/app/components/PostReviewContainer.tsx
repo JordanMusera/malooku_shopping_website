@@ -5,7 +5,7 @@ import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.css'
 import { FaArrowLeft } from 'react-icons/fa';
 
-const PostReviewContainer = ({productId,clickedTab}) => {
+const PostReviewContainer = ({productId,clickedTab}:any) => {
   const [images,setImages] = useState([]);
   const [imageFiles,setImageFiles] = useState([]);
 

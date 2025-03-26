@@ -37,7 +37,7 @@ interface RefundOrder{
   applicationDate:string
 }
 
-const OrderRefundsContainer = ({clickedTab,refundObj}) => {
+const OrderRefundsContainer = ({clickedTab,refundObj}:any) => {
   const[refundedOrders,setRefundedOrders] = useState<RefundOrder[]>([]);
 
     const handleClickedTab = (tab:string)=>{

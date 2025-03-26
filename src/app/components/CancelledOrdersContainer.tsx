@@ -29,7 +29,7 @@ interface CancelledOrders {
   cancellationDate: string;
 }
 
-const CancelledOrdersContainer = ({ clickedTab }) => {
+const CancelledOrdersContainer = ({ clickedTab }:any) => {
   const [cancelledOrders, setCancelledOrders] = useState<CancelledOrders[]>([]);
   const router = useRouter();
 

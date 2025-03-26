@@ -16,7 +16,6 @@ interface Product {
 }
 
 interface OrderProduct {
-    [x: string]: ReactNode;
     product: Product;
     quantity: number;
     productQtyPrice: number;
@@ -47,7 +46,7 @@ interface Order {
 }
 
 
-const OrdersContainer = ({ clickedOrder, clickedTab, orderId }) => {
+const OrdersContainer = ({ clickedOrder, clickedTab, orderId }:any) => {
     const [userOrders, setUserOrders] = useState<Order[]>([]);
     useEffect(() => {
         const fetchOrders = async () => {
