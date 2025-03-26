@@ -15,7 +15,8 @@ interface Product {
   rating: {
     rate: number,
     count: number
-  }
+  },
+  images:any
 }
 
 const HomeProducts = () => {
@@ -52,7 +53,7 @@ const HomeProducts = () => {
               <div className='h-48 w-full flex'>
                 <img
                   className='rounded w-full h-full object-contain'
-                  src={product.image}
+                  src={product?.images[1]?.imageUrl}
                   alt={product.title}
                   sizes='(max-width: 640px) 100px, (max-width: 768px) 150px, (max-width: 1024px) 200px, 300px'
                 />
