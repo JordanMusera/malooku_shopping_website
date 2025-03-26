@@ -20,7 +20,7 @@ interface CARDetails {
   orderId: string;
 }
 
-const RefundFormContainer = ({ orderDetails }: { orderDetails: CARDetails }) => {
+const RefundFormContainer = ({ orderDetails }: { orderDetails: any }) => {
   const [image, setImage] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [selectedReason, setSelectedReason] = useState('');
