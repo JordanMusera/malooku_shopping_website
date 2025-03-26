@@ -42,7 +42,7 @@ interface UserItem {
 const Topbar = () => {
   const [cartDetails, setCartDetails] = useState<Cart>({ cartData: [], totalCartCost: 0 });
   const [isCartActive, setIsCartActive] = useState(false);
-  const [userItem, setUserItem] = useState<UserItem>({});
+  const [userItem, setUserItem] = useState<UserItem | null>(null);
   const [minmenu, setMinmenu] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -238,7 +238,7 @@ const Topbar = () => {
               </div>
             ) : (
               <div>
-                {cartItems.map((product: { id: Key | null | undefined; orderedQty: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; image: string | StaticImport; title: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; price: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; productQtyPrice: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }) => (
+                {cartItems.map((product) => (
                   <div key={product.id} className='flex items-center gap-2 p-2'>
                     <div className='flex flex-col justify-center items-center'>
                       <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleAddToCart(product)}>+</button>

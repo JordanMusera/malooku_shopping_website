@@ -32,7 +32,7 @@ const SellerUsersContainer = () => {
         {
             title:'Full Name',
             key:'_id',
-            render: (_,record)=>(
+            render: (_:any,record:any)=>(
                 record.name
                 ?<p>{record.name.firstname}  {record.name.lastname}</p>
                 :<p>Null</p>
@@ -41,7 +41,7 @@ const SellerUsersContainer = () => {
         {
             title:'Phone',
             key:'_id',
-            render:(record)=>(
+            render:(record:any)=>(
                 record.phone
                 ?<p>{record.phone}</p>
                 :<p>Null</p>
@@ -55,7 +55,7 @@ const SellerUsersContainer = () => {
         {
             title: 'Shipping Address',
             key: 'address',
-            render: (_, record) => (
+            render: (_:any, record:any) => (
                 record.address
                     ? `${record.address.street}, ${record.address.city}, ${record.address.county}`
                     : 'No Address'
