@@ -22,13 +22,13 @@ interface ProductImageViewProps {
 
 
 const ProductImageView: React.FC<ProductImageViewProps> = ({product}) => {
-  const [imageIndex,setImageIndex] = useState(1);
+  const [imageIndex,setImageIndex] = useState(0);
   const [images,setImages] = useState(product.images);
 
   const switchImages=(btn:string)=>{
-    if(btn== 'back' && imageIndex>1){
+    if(btn== 'back' && imageIndex>0){
       setImageIndex(imageIndex-1);
-    }else if (btn==='forward' && imageIndex<images.length) {
+    }else if (btn==='forward' && imageIndex<images.length-1) {
       setImageIndex(imageIndex+1);
     }
   }

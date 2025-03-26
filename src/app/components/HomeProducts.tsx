@@ -25,7 +25,7 @@ const HomeProducts = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch('/api/products');
+      const res = await fetch('/api/products',{ cache: 'no-store' });
       if (res.ok) {
         const products: Product[] = await res.json();
         setProducts(products);
