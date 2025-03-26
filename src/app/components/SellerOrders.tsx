@@ -5,7 +5,7 @@ import { DownOutlined } from '@ant-design/icons';
 import Image from 'next/image';
 
 const SellerOrders = () => {
-    const [ordersArr, setOrdersArr] = useState([]);
+    const [ordersArr, setOrdersArr] = useState<any>([]);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -22,8 +22,8 @@ const SellerOrders = () => {
         fetchOrders();
     }, []);
 
-    const handleStatusChange = (status, record) => {
-        const updatedData = ordersArr.map((item) =>
+    const handleStatusChange = (status:any, record:any) => {
+        const updatedData = ordersArr.map((item:any) =>
             item._id === record._id ? { ...item, status } : item
         );
         setOrdersArr(updatedData);
@@ -31,7 +31,7 @@ const SellerOrders = () => {
         message.success(`Status updated to ${status}`);
     };
 
-    const updateDbOrderStatus=async(orderStatus,orderId)=>{
+    const updateDbOrderStatus=async(orderStatus:any,orderId:any)=>{
         const res = await fetch('/api/orders/controller',{
             method:'POST',
             headers:{
@@ -53,7 +53,7 @@ const SellerOrders = () => {
         }
     }
 
-    const getStatusMenu = (record) => (
+    const getStatusMenu = (record:any) => (
         <Menu onClick={({ key }) => handleStatusChange(key, record)}>
             <Menu.Item key="pending">pending</Menu.Item>
             <Menu.Item key="shipped">shipped</Menu.Item>
@@ -68,7 +68,7 @@ const SellerOrders = () => {
         {
             title: 'Shipping Address',
             key: 'shippingAddress',
-            render: (_, record) => (
+            render: (_:any, record:any) => (
                 `${record.shippingAddress.street}, ${record.shippingAddress.city}, ${record.shippingAddress.county}, ${record.shippingAddress.postalCode}`
             ),
         },
@@ -76,7 +76,7 @@ const SellerOrders = () => {
         {
             title: 'Status',
             key: 'status',
-            render: (_, record) => (
+            render: (_:any, record:any) => (
                 <Dropdown overlay={getStatusMenu(record)} trigger={['click']}>
                     <Button>
                         {record.status} <DownOutlined />
@@ -89,7 +89,7 @@ const SellerOrders = () => {
 
     const productColumns = [
         { title:'Image',key:'_id',dataIndex:['product','image'],
-            render:(url)=>(
+            render:(url:any)=>(
                 <div>
                     <Image src={url} alt='image' width={100} height={100} className='w-10 h-10 object-contain'/>
                 </div>
@@ -104,13 +104,13 @@ const SellerOrders = () => {
         { title: 'Total Price', dataIndex: 'productQtyPrice', key: 'productQtyPrice' },
     ];
 
-    const expandedRowRender = (record) => {
+    const expandedRowRender = (record:any) => {
         return (
             <Table
                 columns={productColumns}
                 dataSource={record.products}
                 pagination={false}
-                rowKey={(record) => record.product._id}
+                rowKey={(record:any) => record.product._id}
             />
         );
     };

@@ -2,7 +2,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 interface ReplyProps {
-  reply: Reply;
+  reply: any;
   onReplySubmit: (replyId: string, message: string) => void;
 }
 
@@ -45,7 +45,7 @@ const ReplyComponent = ({ reply, onReplySubmit }: ReplyProps) => {
       )}
 
       <div className='pl-4'>
-        {reply.replies?.map((nestedReply) => (
+        {reply.replies?.map((nestedReply:any) => (
           <ReplyComponent key={nestedReply._id} reply={nestedReply} onReplySubmit={onReplySubmit} />
         ))}
       </div>

@@ -6,11 +6,11 @@ import 'react-toastify/ReactToastify.css'
 import { FaArrowLeft } from 'react-icons/fa';
 
 const PostReviewContainer = ({productId,clickedTab}:any) => {
-  const [images,setImages] = useState([]);
-  const [imageFiles,setImageFiles] = useState([]);
+  const [images, setImages] = useState<string[]>([]);
+const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   const [rating,setRating] = useState(0);
-  const [review,setReview] = useState(null);
+  const [review,setReview] = useState('');
 
   const handleImageInput=(e:any)=>{
     e.preventDefault();

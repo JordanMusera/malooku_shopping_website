@@ -5,7 +5,7 @@ import { FaStar,FaArrowLeft } from 'react-icons/fa';
 import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.css'
 
-const ViewReviewContainer = ({productId,clickedTab}) => {
+const ViewReviewContainer = ({productId,clickedTab}:any) => {
     const [fetchedReviews, setFetchedReviews] = useState([]);
 
     useEffect(() => {
@@ -44,12 +44,12 @@ const ViewReviewContainer = ({productId,clickedTab}) => {
           clickedTab('reviewed_tab')
         }}/>
             <div className='flex flex-col-reverse gap-3 pt-10'>
-                {fetchedReviews.map((item, index) => (
+                {fetchedReviews.map((item:any, index) => (
                     <div key={index} className='w-full h-max bg-white rounded-lg flex  justify-between p-2'>
                         <div className='w-1/3 p-2 flex gap-2 items-center justify-center'>
                             {item.images.length!=0 ? (
                                 <div className='flex gap-2'>
-                                    {item.images.map((image, imgIndex) => (
+                                    {item.images.map((image:any, imgIndex:any) => (
                                         <div key={imgIndex} className='flex h-20'>
                                             <Image src={image.imageUrl} alt='Review Image' width={80} height={80} className='object-contain' />
                                         </div>

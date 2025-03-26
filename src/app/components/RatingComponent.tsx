@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { FaStar } from 'react-icons/fa'
 
-const RatingComponent = ({setRatingValue}) => {
+const RatingComponent = ({setRatingValue}:any) => {
   const [rating, setRating] = useState(0);
 
   const setRatingFn = (value: number) => {

@@ -187,7 +187,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }:any) => {
             <div>
               {product.variants && (
                 <div className="flex gap-10 flex-shrink">
-                {Object.entries(product.variants).map(([key, values], index) => (
+                {Object.entries(product.variants as Record<any,any[]>).map(([key, values], index) => (
                   <div key={index}>
                     <p className="text-sm font-semibold text-black my-2">
                       {key}
