@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
         console.log(cdres);
 
-        for(const item of cdres){
+        for(const item of cdres as Array<{secure_url:string,public_id:string,asset_id:string}>){
             images.push({
                 imageUrl: item.secure_url,
                 publicId: item.public_id,
