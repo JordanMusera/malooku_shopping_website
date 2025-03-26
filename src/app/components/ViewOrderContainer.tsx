@@ -47,7 +47,7 @@ interface Order {
 }
 
 interface ViewOrderContainerProps {
-  orderObj: Order;
+  orderObj: any;
   clickedTab: (tab: string) => void;
   handleCancelAndRefund: (orderDetails: { orderId: string; product: OrderProduct }) => void;
 }
@@ -87,7 +87,7 @@ const ViewOrderContainer: React.FC<ViewOrderContainerProps> = ({
   return (
     <div className="w-full h-full relative p-5 xl:p-0">
       <div className="gap-2 flex flex-col">
-        {orderObj.products.map((item, index) => (
+        {orderObj.products.map((item:any, index:any) => (
           <div key={index} className="bg-white rounded-xl h-max p-3 md:p-5 flex flex-col md:flex-row justify-between items-center w-full gap-1">
             <div className="flex md:justify-between w-full md:w-2/4">
               <Image src={item.product.image} alt="" width={80} height={80} className="object-cover rounded-xl shadow-lg mr-5" />
