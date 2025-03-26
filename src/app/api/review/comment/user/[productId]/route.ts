@@ -17,7 +17,7 @@ export async function GET(request:NextRequest,{params}:Params){
     const authObj = await verifyToken(authToken);
     const userId = authObj.userId;
 
-    const {productId} = params;
+    const productId = params.id;
 
     const user = await User.findById(userId);
     if(user){
