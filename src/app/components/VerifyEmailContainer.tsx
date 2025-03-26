@@ -4,11 +4,9 @@ import { ToastContainer,toast } from 'react-toastify';
 import 'react-toastify/ReactToastify.css';
 import { useRouter } from 'next/navigation';
 
-interface EmailProps{
-    email:string
-}
 
-const verifyEmailContainer: React.FC<EmailProps> = ({email}) => {
+
+const verifyEmailContainer = ({email}:any) => {
     const router = useRouter();
     const[otpCode,setOtpCode] = useState('');
     const decodedEmail = email ? decodeURIComponent(email) : '';
