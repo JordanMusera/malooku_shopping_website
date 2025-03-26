@@ -300,7 +300,7 @@ const SellerAddProductContainer = ({
     {
       title: "Delete",
       key: "value",
-      render: (record) => (
+      render: (record:any) => (
         <div className="flex justify-center items-center">
           <AiOutlineDelete
             className="text-red-300 text-xl w-max"
