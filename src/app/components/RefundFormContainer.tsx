@@ -28,6 +28,7 @@ const RefundFormContainer = ({ orderDetails }: { orderDetails: CARDetails }) => 
   const [imageArray, setImageArray] = useState<string[]>([]);
   const [imageFileArray, setImageFileArray] = useState<File[]>([]);
 
+
   const submitRefundForm = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     const formData = new FormData();
