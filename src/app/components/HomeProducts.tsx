@@ -60,7 +60,7 @@ const HomeProducts = () => {
               </div>
 
               <p className='text-sm font-semibold px-2'>{product.title.length > 20 ? product.title.slice(0, 40) + "..." : product.title}</p>
-              <p className='text-xl w-full px-2 font-medium text-pink-400'>${product.price}</p>
+              <p className='text-xl w-full px-2 font-medium text-pink-400'>Ksh.{product.price}</p>
             </div>
           ))}
         </div>

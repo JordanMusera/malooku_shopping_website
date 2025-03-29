@@ -47,6 +47,7 @@ const Topbar = () => {
   const [minmenu, setMinmenu] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [cartState,setCartState] = useState('Loading...')
 
   const router = useRouter();
 
@@ -82,7 +83,9 @@ const Topbar = () => {
     if (res.ok) {
       try {
         const data: Cart = await res.json();
-        //setCartDetails(data);
+        if(data.cartData.length==0){
+          setCartState("Cart is Empty")
+        }
 
         dispatch(setCart(data))
 
@@ -131,6 +134,7 @@ const Topbar = () => {
   const showCart = () => {
     setIsCartActive(true);
     setMinmenu(false);
+    setCartState('Loading...')
     fetchCartData();
   }
 
@@ -229,13 +233,13 @@ const Topbar = () => {
         </div>
 
         {isCartActive && (
-          <div className='absolute w-screen p-5 sm:bottom-0 h-[calc(100vh-37px)] mt-3 md:w-max md:h-max md:max-h-[500px] bg-gray-100 top-[40px] md:top-[50px] z-10 right-0 md:rounded-md md:border border-pink-300 overflow-auto'>
+          <div className='absolute w-screen p-5 xl:w-1/3 sm:bottom-0 h-[calc(100vh-37px)] mt-3 xl:mr-2 md:w-max md:h-max md:max-h-[500px] bg-gray-100 top-[40px] md:top-[50px] z-10 right-0 md:rounded-md md:border border-pink-300 overflow-auto'>
             <p className='text-lg font-bold m-1 flex justify-center'>My Cart</p>
             <hr className='h-[2px] bg-pink-300' />
 
             {cartItems.length === 0 ? (
               <div className='w-full h-1/2 xl:h-20 flex justify-center items-center'>
-                <p className='text-xl font-semi-bold text-red-500'>Cart is empty</p>
+                <p className='text-xl font-semi-bold text-red-500'>{cartState}</p>
               </div>
             ) : (
               <div>
@@ -249,10 +253,10 @@ const Topbar = () => {
                     <div className='w-full border border-gray-100 flex items-center gap-3'>
                       <Image src={product.images[0].imageUrl} alt="" width={80} height={80} className='rounded-md' />
                       <div>
-                        <p className='text-sm font-semibold text-black truncate'>{product.title.length>60 ? product.title.slice(0,60)+'...' : product.title}</p>
+                        <p className='text-sm font-semibold text-black'>{product.title.length>50 ? product.title.slice(0,50)+'...' : product.title}</p>
                         <div className='flex flex-col'>
-                          <p className='text-sm font-bold text-gray-600'>Price: ${product.price}</p>
-                          <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> ${product.productQtyPrice}</p>
+                          <p className='text-sm font-bold text-gray-600'>Price: Ksh.{product.price}</p>
+                          <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> Ksh.{product.productQtyPrice}</p>
                         </div>
                       </div>
 
