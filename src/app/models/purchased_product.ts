@@ -4,7 +4,7 @@ const purchased_product_schema = new Schema({
     userId:String,
     purchasedList:[
         {
-            status:{type:String,enum:['refunded','delivered']},
+            status:{type:String,enum:['undelivered','refunded','delivered']},
             reviewed:Boolean,
             productId:String,
             product:Object

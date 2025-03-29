@@ -138,7 +138,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }:any) => {
           <p className="text-2xl font-bold">{product.title}</p>
 
           <div className="flex my-3 text-pink-300">
-            <p className="text-4xl font-bold">${selectedProductPrice}</p>
+            <p className="text-4xl font-bold">Ksh.{selectedProductPrice}</p>
           </div>
 
           <p className="border border-pink-300 rounded-xl p-2 min-h-10">

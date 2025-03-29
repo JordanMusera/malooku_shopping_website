@@ -282,7 +282,7 @@ const Topbar = () => {
             <div className='flex justify-between items-center px-4 py-2'>
               <div className='flex flex-col items-center justify-center'>
                 <p className='text-sm font-bold m-1 text-gray-600'>Total Cost</p>
-                <p className='text-lg font-bold m-1 text-black'>${totalAmount}</p>
+                <p className='text-lg font-bold m-1 text-black'>Ksh.{totalAmount}</p>
               </div>
               <button className='border-[2px] border-pink-300 rounded-xl bg-gray-300 h-8 w-20 flex items-center justify-center hover:bg-pink-300'
                 onClick={() => navigatePlaceOrdersPage()}>Checkout</button>
