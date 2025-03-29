@@ -25,7 +25,7 @@ const HomeProducts = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch('/api/products',{ cache: 'no-store' });
+      const res = await fetch('/api/products?timestamp=${Date.now()}',{ cache: 'no-store' });
       if (res.ok) {
         const products: Product[] = await res.json();
         setProducts(products);
@@ -53,7 +53,7 @@ const HomeProducts = () => {
               <div className='h-48 w-full flex'>
                 <img
                   className='rounded w-full h-full object-contain'
-                  src={product?.images[1]?.imageUrl}
+                  src={product?.images[0]?.imageUrl}
                   alt={product.title}
                   sizes='(max-width: 640px) 100px, (max-width: 768px) 150px, (max-width: 1024px) 200px, 300px'
                 />

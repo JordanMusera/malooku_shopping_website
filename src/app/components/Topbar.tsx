@@ -30,7 +30,8 @@ interface CartItem {
   category: string,
   image: string,
   orderedQty: number,
-  productQtyPrice: number
+  productQtyPrice: number,
+  images:any
 }
 
 interface UserItem {
@@ -245,10 +246,10 @@ const Topbar = () => {
                       <p className='font-bold'>{product.orderedQty}</p>
                       <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleMinusFromCart(product)}>-</button>
                     </div>
-                    <div className='w-full border border-gray-100 flex items-center'>
-                      <Image src={product.image} alt="" width={80} height={80} className='rounded-md' />
+                    <div className='w-full border border-gray-100 flex items-center gap-3'>
+                      <Image src={product.images[0].imageUrl} alt="" width={80} height={80} className='rounded-md' />
                       <div>
-                        <p className='text-sm font-semibold text-black'>{product.title}</p>
+                        <p className='text-sm font-semibold text-black truncate'>{product.title.length>60 ? product.title.slice(0,60)+'...' : product.title}</p>
                         <div className='flex flex-col'>
                           <p className='text-sm font-bold text-gray-600'>Price: ${product.price}</p>
                           <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> ${product.productQtyPrice}</p>

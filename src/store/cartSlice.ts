@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { WritableDraft } from "immer"
 
 interface CartItem {
+    images: any
     rating: {
         rate: number,
         count: number

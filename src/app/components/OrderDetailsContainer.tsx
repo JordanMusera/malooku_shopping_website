@@ -218,7 +218,7 @@ const OrderDetailsContainer = () => {
         <p className='text-pink-300 font-bold text-sm flex justify-start cursor-pointer'
           onClick={() => addAddressContainerVisibilityFunction(true)}>+  Add Shipping Address</p>
 
-        <div className='gap-2 items-start flex w-full overflow-x-auto'>
+        <div className='gap-2 items-start flex w-full overflow-x-auto px-3'>
           {shippingAddress.map((item, index) => (
             <div
               key={index}

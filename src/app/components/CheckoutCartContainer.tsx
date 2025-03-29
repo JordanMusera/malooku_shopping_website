@@ -11,53 +11,51 @@ const CheckoutCartContainer = () => {
     (state: RootState) => state.cart
   );
 
-  const makePayment = async () => {
-    const loadingToast = toast.loading("Initiating m-pesa push...");
-    if (shippingAddress2.city === "" || shippingAddress2.county === "") {
-      toast.error("Please select shipping address");
-    } else if (paymentMethod.accType === "" || paymentMethod.accNumber === 0) {
-      toast.error("Please select a payment method");
-    } else {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          shippingAddress: shippingAddress2,
-          paymentMethod: paymentMethod,
-        }),
-      });
-
-      if (res.ok) {
-        const response = await res.json();
-        if (response.success) {
-          toast.success(response.message);
-        } else {
-          toast.info(response.message);
-        }
-      }
-
-      toast.dismiss(loadingToast);
-    }
-  };
-
   const { shippingAddress2, paymentMethod } = useSelector(
     (state: RootState) => state.order
   );
+
+  const makePayment = async () => {
+    if (shippingAddress2.city === "" || shippingAddress2.county === "") {
+      toast.error("Please select shipping address");
+      return;
+    }
+    if (paymentMethod.accType === "" || paymentMethod.accNumber === 0) {
+      toast.error("Please select a payment method");
+      return;
+    }
+
+    const loadingToast = toast.loading("Initiating M-Pesa push...");
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shippingAddress: shippingAddress2, paymentMethod }),
+        cache: "no-store",
+      });
+
+      const response = await res.json();
+      toast.dismiss(loadingToast);
+
+      if (res.ok && response.success) {
+        toast.success(response.message);
+      } else {
+        toast.error(response.message || "Payment failed");
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("Something went wrong, please try again!");
+    }
+  };
 
   return (
     <div className="p-5 h-full">
       <p className="text-md text-black font-bold">Order Summary</p>
       <div className="h-20 w-max flex flex-shrink">
-        {cartItems.map((product, index) => (
-          <div
-            key={index}
-            className={`h-20 z-${index} hover:z-40 cursor-pointer`}
-            style={{ left: `${index * 20}px` }}
-          >
+        {cartItems.map((product) => (
+          <div key={product.id} className="h-20 cursor-pointer">
             <Image
-              src={product.image}
+              src={product.images?.[0]?.imageUrl || "/placeholder.jpg"}
               alt="Product Image"
               width={50}
               height={50}
@@ -67,13 +65,11 @@ const CheckoutCartContainer = () => {
         ))}
       </div>
 
-      <div>
-        {cartItems.map((product, index) => (
-          <div className="flex text-sm font-semibold items-center gap-2 justify-between">
+      <div className="flex flex-col gap-3">
+        {cartItems.map((product) => (
+          <div key={product.id} className="flex text-sm font-semibold items-center gap-2 justify-between">
             <p className="text-gray-800 font-light">{product.title}</p>
-            <p className="text-black">
-              {product.price}*{product.orderedQty}
-            </p>
+            <p className="text-black">{product.price} * {product.orderedQty}</p>
             <p className="text-green-500">${product.productQtyPrice}</p>
           </div>
         ))}
@@ -85,7 +81,7 @@ const CheckoutCartContainer = () => {
       </p>
 
       <button
-        onClick={() => makePayment()}
+        onClick={makePayment}
         className="bg-pink-300 rounded-xl p-2 w-full mt-3 text-lg font-bold text-white hover:shadow-xl"
       >
         Purchase
@@ -96,10 +92,11 @@ const CheckoutCartContainer = () => {
           Accepted secure payment methods
         </p>
         <div className="flex gap-1 justify-center">
-          <img src="/mpesa_logo.svg" alt="" width={35} height={35} />
-          <img src="/visa_icon.svg" alt="" width={35} height={35} />
+          <img src="/mpesa_logo.svg" alt="M-Pesa" width={35} height={35} />
+          <img src="/visa_icon.svg" alt="Visa" width={35} height={35} />
         </div>
       </div>
+
       <ToastContainer />
     </div>
   );
