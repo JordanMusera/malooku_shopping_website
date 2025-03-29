@@ -57,46 +57,51 @@ const Topbar = () => {
   useEffect(() => {
     const fetchUser = async () => {
       const res = await fetch('/api/users');
-
+  
       if (res.ok) {
         const response = await res.json();
-
         if (response.success) {
           setUserItem(response.user);
           console.log(response.user);
         }
       }
-
-    }
-
-    const delayDebounce = setTimeout(() => {
-      searchItem(searchText);
-  }, 500); // 500ms debounce delay
-
-  return () => clearTimeout(delayDebounce);
-
+    };
+  
     fetchUser();
-  }, [searchText])
-
-  const fetchCartData = async () => {
-    const res = await fetch('/api/cart/user');
-    if (res.ok) {
-      try {
-        const data: Cart = await res.json();
-        if(data.cartData.length==0){
-          setCartState("Cart is Empty")
-        }
-
-        dispatch(setCart(data))
-
-
-      } catch (error) {
-        console.log('Login first!')
-      }
-
+    fetchCartData(); // Ensure cart data is fetched when the component mounts
+  
+    if (searchText.length > 0) {
+      const delayDebounce = setTimeout(() => {
+        searchItem(searchText);
+      }, 500);
+      return () => clearTimeout(delayDebounce);
     }
-  }
-
+  }, [searchText]);
+  
+  const fetchCartData = async () => {
+    setCartState("Loading...");
+  
+    try {
+      const res = await fetch('/api/cart/user');
+  
+      if (res.ok) {
+        const data: Cart = await res.json();
+        
+        if (data.cartData.length === 0) {
+          setCartState("Cart is Empty");
+        } else {
+          setCartState("");
+          dispatch(setCart(data));
+        }
+      } else {
+        setCartState("Cart is Empty");
+      }
+    } catch (error) {
+      console.log("Login first!");
+      setCartState("Cart is Empty");
+    }
+  };
+  
   const toggleCartVisibility = () => {
     setIsCartActive((prevValue) => {
       const newValue = !prevValue;

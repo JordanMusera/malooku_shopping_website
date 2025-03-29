@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
         }
 
         const mpesaObj = await initiateMpesa(paymentMethod.accNumber, Math.round(totalPrice));
-        console.log(mpesaObj);
 
         if (mpesaObj.processed) {
             if (mpesaObj.ResultCode === '0') {
@@ -80,7 +79,7 @@ export async function POST(request: NextRequest) {
 
                 for(const product of cartProducts){
                     purchasedProductsList.push({
-                        status:'undelivered',
+                        status:'pending',
                         productId:product.product._id,
                         product:product.product,
                         reviewed:false
@@ -99,10 +98,9 @@ export async function POST(request: NextRequest) {
                     await newPurchasedProducts.save();
                 }
 
-                const purchasedProducts1 = await PurchasedProduct.findOne({userId:userId});
-                console.log(purchasedProducts1)
+                await PurchasedProduct.findOne({userId:userId});
 
-                //await Cart.updateOne({ userId: userId }, { $set: { products: [] } });
+                await Cart.deleteOne({ userId: userId });
 
                 return NextResponse.json({ success: true, message: 'Oder placed successfully' });
             }else{
@@ -114,7 +112,7 @@ export async function POST(request: NextRequest) {
        return NextResponse.json({ success: false, message: mpesaObj.ResultDesc });
     }
     } catch (error) {
-        console.log(error);
+        console.log("Error: "+error);
         return NextResponse.json({success:false,message:'Some server error occurred!'})
     }
 

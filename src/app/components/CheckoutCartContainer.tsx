@@ -5,8 +5,10 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/ReactToastify.css";
+import { useRouter } from "next/navigation";
 
 const CheckoutCartContainer = () => {
+  const router = useRouter();
   const { cartItems, loading, totalAmount } = useSelector(
     (state: RootState) => state.cart
   );
@@ -16,16 +18,16 @@ const CheckoutCartContainer = () => {
   );
 
   const makePayment = async () => {
-    if (shippingAddress2.city === "" || shippingAddress2.county === "") {
+    if (!shippingAddress2 || !shippingAddress2.city || !shippingAddress2.county) {
       toast.error("Please select shipping address");
       return;
     }
-    if (paymentMethod.accType === "" || paymentMethod.accNumber === 0) {
+    if (!paymentMethod || !paymentMethod.accType || !paymentMethod.accNumber) {
       toast.error("Please select a payment method");
       return;
     }
 
-    const loadingToast = toast.loading("Initiating M-Pesa push...");
+    const loadingToast = toast.loading("Initiating M-Pesa push...") || "";
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -35,15 +37,17 @@ const CheckoutCartContainer = () => {
       });
 
       const response = await res.json();
-      toast.dismiss(loadingToast);
+
+      if (loadingToast) toast.dismiss(loadingToast);
 
       if (res.ok && response.success) {
         toast.success(response.message);
+        router.push('/');
       } else {
         toast.error(response.message || "Payment failed");
       }
     } catch (error) {
-      toast.dismiss(loadingToast);
+      if (loadingToast) toast.dismiss(loadingToast);
       toast.error("Something went wrong, please try again!");
     }
   };
