@@ -52,7 +52,7 @@ const ReviewedContainer = ({ clickedTab, productId }:any) => {
             >
               <div className="flex gap-2 justify-between items-center w-full md:w-1/2">
                 <Image
-                  src={item.product.image}
+                  src={item.product.images[0].imageUrl}
                   alt=""
                   width={80}
                   height={80}

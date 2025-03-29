@@ -26,7 +26,8 @@ interface RefundOrder{
       price:number,
       description:string,
       category:string,
-      image:string
+      image:string,
+      images:any
     },
     quantity:number,
     productQtyPrice:number
@@ -78,7 +79,7 @@ const OrderRefundsContainer = ({clickedTab,refundObj}:any) => {
               {refundedOrders.map((item,index)=>(
                 <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
                 <div className='flex gap-2 justify-between items-center md:w-1/2'>
-                  <Image src={item.order.product.image} alt='' width={100} height={100}/>
+                  <Image src={item.order.product.images[0].imageUrl} alt='' width={100} height={100}/>
                 <div className='flex flex-col gap-2 relative'>
                   <div className='flex justify-end md:justify-start'>
                     <p className='px-1 bg-orange-300 rounded-md w-max'>{item.status}</p>

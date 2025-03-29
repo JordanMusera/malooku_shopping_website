@@ -75,8 +75,8 @@ const RefundFormContainer = ({ orderDetails }: { orderDetails: any }) => {
       <p className='text-md text-pink-300 font-semibold'>*Apply for Refund</p>
       <p className='text-sm text-red-500 font-semibold bg-red-200 rounded-lg p-1'>*Please provide reasons why you want to refund this product.</p>
         <div className='flex items-center gap-4'>
-          <div className='flex gap-3 items-center rounded-lg shadow-2xl w-max p-5'>
-            <img src={orderDetails.product.product.image} alt="" width={100} height={100} />
+          <div className='flex gap-3 items-center rounded-lg w-max p-5'>
+            <img src={orderDetails.product.product.images[0].imageUrl} alt="" width={100} height={100} />
             <div>
               <p className='text-sm font-semibold'>{orderDetails.product.product.title}</p>
               <div className='flex gap-4 text-lg'>
@@ -125,7 +125,7 @@ const RefundFormContainer = ({ orderDetails }: { orderDetails: any }) => {
               className='rounded-2xl p-1 hidden'
               onChange={handleImageInput}
             />
-            <label htmlFor="file_upload" className='bg-pink-200 border border-pink-300 hover:bg-pink-300 text-sm font-bold text-white rounded-full w-max h-8 flex items-center justify-center p-1'>Add Image</label>
+            <label htmlFor="file_upload" className='bg-pink-200 border border-pink-300 hover:bg-pink-300 text-sm font-bold text-white rounded-full w-max h-8 flex items-center justify-center p-1 ms-5'>Add Image</label>
           </div>
 
         </div>
@@ -135,7 +135,7 @@ const RefundFormContainer = ({ orderDetails }: { orderDetails: any }) => {
           type='text'
           maxLength={500}
           placeholder='Provide reason for refund'
-          className='h-40 w-full justify-center items-center text-center rounded-lg'
+          className='h-40 w-full justify-center items-center text-center rounded-lg ms-5'
           onChange={(e) => setProvidedReason(e.target.value)}
         />
 

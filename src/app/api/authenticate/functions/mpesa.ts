@@ -1,7 +1,3 @@
-import { TIMEOUT } from "dns";
-import { NextResponse } from "next/server";
-import { useState } from "react";
-
 const consumerKey = process.env.MPESA_CONSUMER_KEY;
 const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
 const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');

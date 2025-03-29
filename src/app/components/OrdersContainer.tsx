@@ -13,6 +13,7 @@ interface Product {
     description: string;
     category: string;
     image: string;
+    images: any
 }
 
 interface OrderProduct {
@@ -98,7 +99,7 @@ const OrdersContainer = ({ clickedOrder, clickedTab, orderId }:any) => {
                                 {item.products.map((item2, index) => (
                                     <div key={index} className={`h-32 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
                                         <Image
-                                            src={item2.product.image}
+                                            src={item2.product.images[0].imageUrl}
                                             alt='Product Image'
                                             width={50}
                                             height={50}

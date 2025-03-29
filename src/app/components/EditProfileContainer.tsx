@@ -20,7 +20,7 @@ const AccountProfileContainer = () => {
       if(response.success){
        const user = response.user;
 
-       setFullName(user.name);
+       setFullName(user.username);
        setEmail(user.email);
        setPhone(user.phone);
       

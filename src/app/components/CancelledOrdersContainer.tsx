@@ -15,6 +15,7 @@ interface Product {
   description: string;
   category: string;
   image: string;
+  images:any;
 }
 
 interface CancelledOrders {
@@ -82,7 +83,7 @@ const CancelledOrdersContainer = ({ clickedTab }:any) => {
             >
               <div className="flex gap-2 justify-between items-center md:w-1/2">
                 <Image
-                  src={item.product.image}
+                  src={item.product.images[0].imageUrl}
                   alt=""
                   width={100}
                   height={100}

@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
                 for(const product of cartProducts){
                     purchasedProductsList.push({
-                        status:'delivered',
+                        status:'pending',
                         productId:product.product._id,
                         product:product.product,
                         reviewed:false

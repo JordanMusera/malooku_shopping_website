@@ -11,8 +11,8 @@ const ViewRefundApplicationContainer = ({ clickedRefund,clickedTab }:any) => {
         }}/>
             <div className='col-span-1 bg-white shadow-sm rounded-xl p-5 overflow-auto mt-10'>
                 <div className='flex gap-4'>
-                    <div className='flex gap-3 items-center rounded-lg shadow-2xl w-max p-5'>
-                        <img src={clickedRefund.order.product.image} alt="" width={100} height={100} />
+                    <div className='flex gap-3 items-center rounded-lg w-max p-5'>
+                        <img src={clickedRefund.order.product.images[0].imageUrl} alt="" width={100} height={100} />
                         <div>
                             <p className='text-sm font-semibold'>{clickedRefund.order.product.title}</p>
                             <div className='flex gap-4 text-lg'>

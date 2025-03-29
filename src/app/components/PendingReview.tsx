@@ -54,7 +54,7 @@ const PendingReview = ({ clickedTab, productId }: any) => {
               onClick={() => navigateToReview(item.productId)}
             >
               <div className="flex gap-2 justify-between items-center w-full md:w-1/2">
-                <Image src={item.product.image} alt="" width={80} height={80} />
+                <Image src={item.product.images[0].imageUrl} alt="" width={80} height={80} />
                 <div className="flex flex-col gap-2 w-full px-10">
                   <div className="flex justify-end md:justify-start">
                     <p className="px-1 bg-gray-300 rounded-md w-max">

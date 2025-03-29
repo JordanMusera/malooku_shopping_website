@@ -14,6 +14,7 @@ interface Product {
   description: string;
   category: string;
   image: string;
+  images: any;
 }
 
 interface OrderProduct {
@@ -80,8 +81,13 @@ const ViewOrderContainer: React.FC<ViewOrderContainerProps> = ({
       body: JSON.stringify({ productId, orderId: orderObj._id }),
     });
 
-    const response = await res.json();
+    if(res.ok){
+      const response = await res.json();
     response.success ? toast.success(response.message) : toast.error(response.message);
+    }else{
+      toast.error("Some server error occurred!")
+    }
+    
   };
 
   return (
@@ -90,7 +96,7 @@ const ViewOrderContainer: React.FC<ViewOrderContainerProps> = ({
         {orderObj.products.map((item:any, index:any) => (
           <div key={index} className="bg-white rounded-xl h-max p-3 md:p-5 flex flex-col md:flex-row justify-between items-center w-full gap-1">
             <div className="flex md:justify-between w-full md:w-2/4">
-              <Image src={item.product.image} alt="" width={80} height={80} className="object-cover rounded-xl shadow-lg mr-5" />
+              <Image src={item.product.images[0].imageUrl} alt="" width={80} height={80} className="object-cover rounded-xl shadow-lg mr-5" />
               <div className="w-max md:w-1/3">
                 <p className="text-sm text-black font-bold">{item.product.title}</p>
                 <p className="text-sm text-gray-600 font-bold flex gap-2"><span>Price:</span><span className="text-black">${item.product.price}</span></p>
@@ -112,9 +118,9 @@ const ViewOrderContainer: React.FC<ViewOrderContainerProps> = ({
         <div className="w-full h-full flex items-center justify-center z-20 absolute left-0 top-0 bg-black bg-opacity-20 xl:bg-opacity-10 p-5">
           <div className="w-max md:w-1/3 h-max bg-white rounded-lg shadow-2xl p-5 shadow-pink-200 border-orange-300">
             <div className="flex items-center justify-center gap-2">
-              <Image src={clickedProduct.product.image} alt="" width={100} height={100} className="rounded-xl" />
+              <Image src={clickedProduct.product.images[0].imageUrl} alt="" width={100} height={100} className="rounded-xl" />
               <div className="text-sm font-semibold">
-                <p>{clickedProduct.product.title}</p>
+                <p>{clickedProduct.product.title.length>60 ? clickedProduct.product.title.slice(0,60)+'...' : clickedProduct.product.title}</p>
                 <p>QTY: <span>{clickedProduct.quantity}</span></p>
               </div>
             </div>
