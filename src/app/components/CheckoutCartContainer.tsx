@@ -41,8 +41,11 @@ const CheckoutCartContainer = () => {
       if (loadingToast) toast.dismiss(loadingToast);
 
       if (res.ok && response.success) {
-        toast.success(response.message);
-        router.push('/');
+        await toast.success(response.message);
+        setTimeout(()=>{
+          router.push('/');
+        },2000);
+        
       } else {
         toast.error(response.message || "Payment failed");
       }

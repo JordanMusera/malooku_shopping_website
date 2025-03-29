@@ -68,8 +68,7 @@ const Topbar = () => {
     };
   
     fetchUser();
-    fetchCartData(); // Ensure cart data is fetched when the component mounts
-  
+
     if (searchText.length > 0) {
       const delayDebounce = setTimeout(() => {
         searchItem(searchText);
@@ -89,6 +88,7 @@ const Topbar = () => {
         
         if (data.cartData.length === 0) {
           setCartState("Cart is Empty");
+          dispatch(setCart(data));
         } else {
           setCartState("");
           dispatch(setCart(data));
