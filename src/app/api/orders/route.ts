@@ -98,8 +98,8 @@ export async function POST(request: NextRequest) {
                     await newPurchasedProducts.save();
                 }
 
-                const purchasedProducts1 = await PurchasedProduct.findOne({userId:userId});
-                console.log(purchasedProducts1)
+                //clearing user's cart
+                await Cart.findOneAndUpdate({ userId: userId }, { $set: { products: [] } });
 
                 return NextResponse.json({ success: true, message: 'Oder placed successfully' });
             }else{
