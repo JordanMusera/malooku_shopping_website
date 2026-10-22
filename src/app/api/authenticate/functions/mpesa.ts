@@ -17,12 +17,12 @@ export function mpesaConfig(){
 export function normalizePhone(value:unknown){let phone=String(value??'').replace(/[\s+-]/g,'');if(/^0[17]\d{8}$/.test(phone))phone='254'+phone.slice(1);if(/^[17]\d{8}$/.test(phone))phone='254'+phone;if(!/^254[17]\d{8}$/.test(phone))throw new MpesaError('Enter a valid Kenyan M-Pesa number.');return phone;}
 function credentials(config:ReturnType<typeof mpesaConfig>){const timestamp=new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Nairobi',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date());const part=(type:string)=>timestamp.find(p=>p.type===type)!.value;const time=['year','month','day','hour','minute','second'].map(part).join('');return {BusinessShortCode:config.shortcode,Password:Buffer.from(config.shortcode+config.passkey+time).toString('base64'),Timestamp:time};}
 async function accessToken(config:ReturnType<typeof mpesaConfig>){
- try{const response=await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{headers:{Authorization:'Basic '+Buffer.from(process.env.MPESA_CONSUMER_KEY+':'+process.env.MPESA_CONSUMER_SECRET).toString('base64')},cache:'no-store',signal:AbortSignal.timeout(15000)});const data=await response.json();if(!response.ok||!data.access_token)throw Error();return data.access_token as string;}catch{throw new MpesaError('Unable to authenticate with M-Pesa. Please try again shortly.');}
+ try{const response=await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{headers:{Authorization:'Basic '+Buffer.from(process.env.MPESA_CONSUMER_KEY+':'+process.env.MPESA_CONSUMER_SECRET).toString('base64')},cache:'no-store',signal:AbortSignal.timeout(8000)});const data=await response.json();if(!response.ok||!data.access_token)throw Error();return data.access_token as string;}catch{throw new MpesaError('Unable to authenticate with M-Pesa. Please try again shortly.');}
 }
 export async function startMpesa(phone:string,amount:number){
  const config=mpesaConfig();const token=await accessToken(config);
  let response:Response;
- try{response=await fetch(config.base+'/mpesa/stkpush/v1/processrequest',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...credentials(config),TransactionType:process.env.MPESA_TRANSACTION_TYPE||'CustomerPayBillOnline',Amount:amount,PartyA:phone,PartyB:config.shortcode,PhoneNumber:phone,CallBackURL:config.callback,AccountReference:'Malooku',TransactionDesc:'Store purchase'}),signal:AbortSignal.timeout(15000)});}catch{throw new MpesaError('M-Pesa has not confirmed whether the request was sent. Do not pay again; contact the store if a prompt arrives.',true);}
+ try{response=await fetch(config.base+'/mpesa/stkpush/v1/processrequest',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...credentials(config),TransactionType:process.env.MPESA_TRANSACTION_TYPE||'CustomerPayBillOnline',Amount:amount,PartyA:phone,PartyB:config.shortcode,PhoneNumber:phone,CallBackURL:config.callback,AccountReference:'Malooku',TransactionDesc:'Store purchase'}),signal:AbortSignal.timeout(12000)});}catch{throw new MpesaError('M-Pesa has not confirmed whether the request was sent. Do not pay again; contact the store if a prompt arrives.',true);}
  let data;try{data=await response.json();}catch{throw new MpesaError('M-Pesa returned an unreadable response. Do not retry payment yet.',true);}
  if(!response.ok || String(data.ResponseCode)!=='0' || !data.CheckoutRequestID)throw new MpesaError(data.errorMessage||data.ResponseDescription||'M-Pesa could not send the request. Please try again.');
  return data.CheckoutRequestID as string;
@@ -38,7 +38,7 @@ export async function queryMpesa(checkoutId:string){
   const response=await fetch(config.base+'/mpesa/stkpushquery/v1/query',{
    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
    body:JSON.stringify({...credentials(config),CheckoutRequestID:checkoutId}),
-   cache:'no-store',signal:AbortSignal.timeout(15000)
+   cache:'no-store',signal:AbortSignal.timeout(8000)
   });
   const data=await response.json();
   if(response.ok && data.ResultCode!==undefined && data.ResultCode!==null){

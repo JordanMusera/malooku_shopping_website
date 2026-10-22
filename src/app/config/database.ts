@@ -9,7 +9,7 @@ const dbConnect = async () => {
     if (!uri) throw new Error("MONGODB_URI is not configured");
 
     if (!connectionPromise) {
-        connectionPromise = mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 })
+        connectionPromise = mongoose.connect(uri, { serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000, socketTimeoutMS: 8000, waitQueueTimeoutMS: 5000 })
             .catch((error) => {
                 connectionPromise = null;
                 throw error;
