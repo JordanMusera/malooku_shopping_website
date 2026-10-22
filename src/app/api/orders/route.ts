@@ -55,6 +55,8 @@ export async function POST(request: NextRequest) {
 
         const mpesaObj = await initiateMpesa(paymentMethod.accNumber, Math.round(totalPrice));
 
+        if ('pending' in mpesaObj && mpesaObj.pending) return NextResponse.json({success:false,pending:true,message:mpesaObj.ResultDesc},{status:202});
+
         if (mpesaObj.processed) {
             if (String(mpesaObj.ResultCode) === '0') {
                 const order = new Order(orderObj);

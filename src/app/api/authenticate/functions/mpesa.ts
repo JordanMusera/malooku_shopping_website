@@ -51,10 +51,11 @@ export async function initiateMpesa(phone: number, price: number) {
     let accessToken;
     const shortcode = config.shortcode;
     const passkey = config.passkey;
-    const timestamp = await generateTimeStamp();
+    const timestamp = credentials(config).Timestamp;
     const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64');
 
     const res1 = await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{
+        signal: AbortSignal.timeout(5000),
         headers:{
             'Authorization': `Basic ${auth}`,
         }
@@ -65,6 +66,7 @@ export async function initiateMpesa(phone: number, price: number) {
 
     const res2 = await fetch(config.base+'/mpesa/stkpush/v1/processrequest', {
         method: 'POST',
+        signal: AbortSignal.timeout(10000),
         headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
@@ -96,9 +98,12 @@ export async function initiateMpesa(phone: number, price: number) {
     }
 
 
+    if(!res2.ok || String(response2.ResponseCode)!=='0' || !response2.CheckoutRequestID)throw new MpesaError(response2.ResponseDescription||'M-Pesa did not accept the request.');
+    console.info('mpesa_checkout_accepted',{checkoutId:response2.CheckoutRequestID});
     const body = await confirmPayment(accessToken,password,timestamp,response2.CheckoutRequestID);
     const b2 = {
-        processed:true,
+        processed:!body.pending,
+        pending:body.pending,
         ResultCode:body.ResultCode,
         ResultDesc:body.ResultDesc
     }
@@ -108,41 +113,25 @@ export async function initiateMpesa(phone: number, price: number) {
 
 }
 
-const confirmPayment=async(accessToken:string,password:string,timestamp:string,CheckoutRequestID:string)=>{
-    const res = await fetch(mpesaConfig().base+'/mpesa/stkpushquery/v1/query',{
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body:JSON.stringify({
-            "BusinessShortCode":mpesaConfig().shortcode,
-            "Password": password,
-            "Timestamp":timestamp,
-            "CheckoutRequestID": CheckoutRequestID,
-        })
-    })
-
-    const response = await res.json();
-    if(response.ResponseCode){
-        return response;
-    }else{
-        return await confirmPayment(accessToken,password,timestamp,CheckoutRequestID)
+// ResponseCode acknowledges the lookup; ResultCode describes the payment.
+// Keep querying the same checkout ID when the payment is still processing.
+export async function confirmPayment(accessToken:string,password:string,timestamp:string,CheckoutRequestID:string){
+    const deadline=Date.now()+25000;
+    for(let attempt=0;attempt<8 && Date.now()<deadline;attempt++){
+        try{
+            const res=await fetch(mpesaConfig().base+'/mpesa/stkpushquery/v1/query',{
+                method:'POST',cache:'no-store',
+                signal:AbortSignal.timeout(Math.max(1,Math.min(5000,deadline-Date.now()))),
+                headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
+                body:JSON.stringify({BusinessShortCode:mpesaConfig().shortcode,Password:password,Timestamp:timestamp,CheckoutRequestID})
+            });
+            const response=await res.json();
+            if(res.ok && response.ResultCode!==undefined && response.ResultCode!==null && !isProcessingResult(response.ResultCode,response.ResultDesc)){
+                return {pending:false,ResultCode:String(response.ResultCode),ResultDesc:response.ResultDesc};
+            }
+        }catch{ /* A failed lookup does not mean the payment failed. */ }
+        if(attempt<7 && Date.now()+3000<deadline)await new Promise(resolve=>setTimeout(resolve,3000));
     }
-
-}
-
-const generateTimeStamp=()=>{
-const now = new Date();
-const year = now.getFullYear();
-const month = String(now.getMonth() + 1).padStart(2, '0');
-const day = String(now.getDate()).padStart(2, '0');
-const hours = String(now.getHours()).padStart(2, '0');
-const minutes = String(now.getMinutes()).padStart(2, '0');
-const seconds = String(now.getSeconds()).padStart(2, '0');
-
-const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}`;
-
-
-return timestamp;
+    console.warn('mpesa_confirmation_delayed',{checkoutId:CheckoutRequestID});
+    return {pending:true,ResultCode:'4999',ResultDesc:'M-Pesa has not confirmed the final result yet. Do not pay again. Contact the store with your M-Pesa receipt if money was deducted.'};
 }
