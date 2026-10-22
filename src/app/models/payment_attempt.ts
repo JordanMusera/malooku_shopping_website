@@ -1,7 +1,8 @@
 import mongoose,{Schema} from 'mongoose';
 import {recordPayment} from './payments';
-const schema=new Schema({userId:{type:String,required:true},activeKey:{type:String},state:{type:String,default:'starting'},checkoutId:String,amount:Number,environment:String,order:Object,cartId:Schema.Types.ObjectId,cartProducts:Array,message:String,lastResultCode:String},{timestamps:true});
+const schema=new Schema({userId:{type:String,required:true},activeKey:{type:String},state:{type:String,default:'starting'},checkoutId:String,merchantRequestId:String,callbackTokenHash:String,confirmation:Object,callbackReceivedAt:Date,legacyCallbackReceivedAt:Date,confirmedAt:Date,amount:Number,environment:String,order:Object,cartId:Schema.Types.ObjectId,cartProducts:Array,message:String,lastResultCode:String},{timestamps:true});
 schema.index({activeKey:1},{unique:true,sparse:true});
+schema.index({'confirmation.receiptNumber':1},{unique:true,sparse:true});
 // Persist the ledger before checkout sends the STK request, and on every status change.
 schema.post('save', async function(doc) { await recordPayment(doc); });
 schema.post('updateOne', async function() {

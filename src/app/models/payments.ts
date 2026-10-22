@@ -10,6 +10,10 @@ const schema = new Schema({
  orderId: Schema.Types.ObjectId,
  message: String,
  lastResultCode: String,
+ receiptNumber: String,
+ confirmationSource: String,
+ transactionDate: String,
+ confirmedAt: Date,
 }, {timestamps: true});
 
 const Payment = mongoose.models.Payment || mongoose.model('Payment', schema);
@@ -31,5 +35,6 @@ export async function recordPayment(attempt: any) {
  await Payment.updateOne({_id: attempt._id, ...(attempt.state === 'paid' ? {} : {state: {$ne: 'paid'}})},
   {$set: {...base, state: attempt.state, checkoutId: attempt.checkoutId,
    message: attempt.message, lastResultCode: attempt.lastResultCode,
-   ...(attempt.state === 'paid' ? {orderId: attempt._id} : {})}});
+   ...(attempt.confirmation?.receiptNumber ? {receiptNumber:attempt.confirmation.receiptNumber,confirmationSource:attempt.confirmation.source,transactionDate:attempt.confirmation.transactionDate} : {}),
+   ...(attempt.state === 'paid' ? {orderId: attempt._id,confirmedAt:attempt.confirmedAt} : {})}});
 }
