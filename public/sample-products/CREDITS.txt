@@ -1,0 +1,7 @@
+Sample product photography (local development catalog):
+Backpack and wristwatch: DummyJSON product dataset, https://dummyjson.com/
+T-shirt: https://images.unsplash.com/photo-1521572163474-6864f9cf17ab
+Headphones: https://images.unsplash.com/photo-1505740420928-5e560c06d30e
+Mug: https://images.unsplash.com/photo-1514228742587-6b1558fcca3d
+Bottle: https://images.unsplash.com/photo-1602143407151-7111542de6e8
+Images are illustrative sample catalog assets, not representations of actual inventory.

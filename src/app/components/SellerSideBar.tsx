@@ -1,62 +1,12 @@
-import React from 'react'
-import { MdOutlineDashboard,MdOutlineShoppingBag,MdOutlinePayment,MdOutlineSettings,MdOutlineLogout,MdOutlineEventSeat, MdOutlineEvent } from 'react-icons/md'
-import { FaBoxOpen } from 'react-icons/fa'
-import { AiOutlineUser,AiOutlineProfile,AiOutlineOrderedList, AiOutlineCloseSquare } from 'react-icons/ai'
-
-const sellerSideBar = ({clickedTab,toggleMenuVisibility}:any) => {
-
-  const handleTabClick=(tab:string)=>{
-    clickedTab(tab);
-  }
-
-  return (
-    <div className='w-max h-full flex flex-col justify-between py-5 ps-10 text-md text-black font-semibold bg-pink-100'>
-      <div className='flex flex-between w-full'>
-         <label className='font-extrabold text-2xl text-pink-300 w-full'>MALOOKU</label>
-         <AiOutlineCloseSquare className='text-4xl me-5 text-red-500' onClick={toggleMenuVisibility}/>
-      </div>
-     
-      <button className='flex gap-1 items-center'>
-        <MdOutlineDashboard className='w-7 h-7'/>
-        <p>Dashboard</p>
-      </button>
-      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('ordersTab')}>
-        <MdOutlineShoppingBag className='w-7 h-7'/>
-        <p>Orders</p>
-      </button>
-
-      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('productsTab')}>
-        <FaBoxOpen className='w-7 h-7'/>
-        <p>Products</p>
-      </button>
-
-      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('usersTab')}>
-        <AiOutlineUser className='w-7 h-7'/>
-        <p>Customers</p>
-      </button>
-
-      <button className='flex gap-1 items-center' onClick={()=>handleTabClick('paymentTab')}>
-        <MdOutlinePayment className='w-7 h-7'/>
-        <p>Payments</p>
-      </button>
-
-      {/* <button className='flex gap-1 items-center'>
-        <MdOutlineEvent className='w-7 h-7'/>
-        <p>Events</p>
-      </button> */}
-
-      <button className='flex gap-1 items-center'>
-        <AiOutlineOrderedList className='w-7 h-7'/>
-        <p>Constants</p>
-      </button>
-
-      <button className='flex gap-1 items-center'>
-        <MdOutlineLogout className='w-7 h-7'/>
-        <p>Logout</p>
-      </button>
-
-    </div>
-  )
+import Link from 'next/link';
+import { FiGrid, FiShoppingBag, FiBox, FiUsers, FiCreditCard, FiArrowUpRight } from 'react-icons/fi';
+export const adminSections = [
+ {id:'dashboard',label:'Overview',description:'A clear view of your store, all in one place.',icon:FiGrid},
+ {id:'ordersTab',label:'Orders',description:'Follow every order from checkout to delivery.',icon:FiShoppingBag},
+ {id:'productsTab',label:'Products',description:'Manage your collection, pricing, and stock.',icon:FiBox},
+ {id:'usersTab',label:'Customers',description:'Your customer directory and contact details.',icon:FiUsers},
+ {id:'paymentTab',label:'Payments',description:'Payment information for your store.',icon:FiCreditCard},
+];
+export default function SellerSideBar({activeTab,onNavigate}:{activeTab:string,onNavigate:(id:string)=>void}) {
+ return <aside className="admin-sidebar"><Link href="/" className="admin-brand">MALOOKU<span>ADMIN WORKSPACE</span></Link><p className="admin-nav-caption">MANAGE STORE</p><nav aria-label="Admin navigation">{adminSections.map(({id,label,icon:Icon})=><button key={id} aria-current={activeTab===id?'page':undefined} onClick={()=>onNavigate(id)}><Icon aria-hidden="true"/>{label}</button>)}</nav><div className="admin-sidebar-footer"><span>Your store, thoughtfully managed.</span><Link href="/">View storefront <FiArrowUpRight/></Link></div></aside>;
 }
-
-export default sellerSideBar

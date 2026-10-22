@@ -1,71 +1,15 @@
-"use client";
-import React, { useState } from "react";
-import { AiOutlineComment, AiOutlineEdit, AiOutlineHeart, AiOutlineLock, AiOutlineNotification, AiOutlineProfile, AiOutlineSecurityScan, AiOutlineShopping, AiOutlineUser } from "react-icons/ai";
-import { FaComment } from "react-icons/fa";
-
-const AccountMenu = ({ clikedTab }: any) => {
-  const handleTabClick = (data: string) => {
-    clikedTab(data);
-  };
-
-  return (
-    <div className="flex flex-col gap-16 md:gap-5">
-      <div
-        onClick={() => handleTabClick("pending_review_tab")}
-        className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
-      >
-        <AiOutlineComment className="text-4xl"/>
-        <label className="font-semibold hidden md:flex">Reviews</label>
-      </div>
-
-      <div
-        onClick={() => handleTabClick("ordersTab")}
-        className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
-      >
-        <AiOutlineShopping className="text-4xl"/>
-        <label className="font-semibold hidden md:flex">Orders</label>
-      </div>
-
-      <div
-        onClick={() => handleTabClick("favouriteTab")}
-        className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
-      >
-        <AiOutlineHeart className="text-4xl"/>
-        <label className="font-semibold hidden md:flex">Favourite</label>
-      </div>
-
-      <div
-        className="flex items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300 justify-start"
-        onClick={() => handleTabClick("notifications_tab")}
-      >
-       <AiOutlineNotification className="text-4xl"/>
-        <label className="font-semibold hidden md:flex">Notifications</label>
-      </div>
-
-      <div className="md:flex items-center gap-1 w-full p-1 rounded-lg justify-start hidden">
-      <AiOutlineUser className="text-4xl"/>
-        <label className="font-semibold hidden md:flex">Profile</label>
-      </div>
-
-      <div className="flex flex-col md:ms-5 gap-10 md:gap-3">
-        <div
-          onClick={() => handleTabClick("edit_profile")}
-          className="flex justify-start items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300"
-        >
-          <AiOutlineEdit className="text-4xl"/>
-          <label className="font-semibold hidden md:flex">Edit</label>
-        </div>
-
-        <div
-          onClick={() => handleTabClick("security")}
-          className="flex justify-start items-center gap-1 w-full p-1 rounded-lg hover:bg-pink-300"
-        >
-          <AiOutlineLock className="text-4xl"/>
-          <label className="font-semibold hidden md:flex">Security</label>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default AccountMenu;
+'use client';
+import { FiUser, FiShoppingBag, FiHeart, FiMessageSquare, FiBell, FiLock, FiArrowUpRight } from 'react-icons/fi';
+import Link from 'next/link';
+const sections = [
+  { id: 'edit_profile', label: 'Personal information', icon: FiUser, tabs: ['edit_profile'] },
+  { id: 'ordersTab', label: 'My orders', icon: FiShoppingBag, tabs: ['ordersTab','viewOrderTab','trackorder','cancelled_orders_tab','refunds_tab','refund_form_tab','view_order_application'] },
+  { id: 'favouriteTab', label: 'Saved items', icon: FiHeart, tabs: ['favouriteTab'] },
+  { id: 'pending_review_tab', label: 'Reviews', icon: FiMessageSquare, tabs: ['pending_review_tab','reviewed_tab','review_tab','view_review_tab'] },
+  { id: 'notifications_tab', label: 'Notifications', icon: FiBell, tabs: ['notifications_tab'] },
+  { id: 'security', label: 'Security', icon: FiLock, tabs: ['security'] },
+];
+export default function AccountMenu({ clikedTab, activeTab }: { clikedTab: (tab: string) => void; activeTab: string }) {
+  const current = sections.find(section => section.tabs.includes(activeTab))?.id || 'edit_profile';
+  return <><div className="account-mobile-menu"><label htmlFor="account-section-select">Account section</label><select id="account-section-select" value={current} onChange={event => clikedTab(event.target.value)}>{sections.map(section => <option key={section.id} value={section.id}>{section.label}</option>)}</select></div><nav className="account-menu" aria-label="Account sections">{sections.map(({id,label,icon:Icon,tabs}) => <button key={id} onClick={() => clikedTab(id)} aria-current={tabs.includes(activeTab) ? 'page' : undefined}><Icon aria-hidden="true" /><span>{label}</span><span className="account-menu-arrow" aria-hidden="true">&rarr;</span></button>)}</nav><div className="account-help"><span className="eyebrow">HERE TO HELP</span><p>Need a hand with your order?</p><Link href="/#contact">Contact us <FiArrowUpRight aria-hidden="true" /></Link></div></>;
+}

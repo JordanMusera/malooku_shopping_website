@@ -1,5 +1,8 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
+import Topbar from '../components/Topbar'
+import Footer from '../components/Footer'
 import AccountMenu from '../components/AccountMenu'
 import AccountProfileContainer from '../components/EditProfileContainer'
 import AccountSecurityContainer from '../components/AccountSecurityContainer'
@@ -20,10 +23,10 @@ import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '@/store/store'
 import { setClickedTab } from '@/store/tabSlice'
 
-const page = () => {
+const AccountPage = () => {
     const [tab, setTab] = useState("edit_profile")
     const [orderObj, setOrderObj] = useState({});
-    const [minMenuVisibility, setMinMenuVisibility] = useState(false);
+
     const [orderId, setOrderId] = useState('');
     const [productId, setProductId] = useState('');
     const [CARorderDetails, setCARorderDetails] = useState({});
@@ -42,7 +45,7 @@ const page = () => {
 
     const handleTabClick = (data: string) => {
         setTab(data);
-        setMinMenuVisibility(false);
+
         dispatch(setClickedTab(data))
         console.log("Clicked_tab: " + data)
     }
@@ -57,9 +60,6 @@ const page = () => {
         setTab('viewOrderTab')
     }
 
-    const minMenuClick = () => {
-        setMinMenuVisibility(priv => (!priv))
-    }
 
     const handleClickedOrder = (id: string) => {
         setOrderId(id);
@@ -70,18 +70,45 @@ const page = () => {
     }
 
 
+    const titles: Record<string, string> = {
+        edit_profile: 'Personal information', security: 'Account security', favouriteTab: 'Saved items',
+        ordersTab: 'My orders', viewOrderTab: 'Order details', trackorder: 'Track your order',
+        cancelled_orders_tab: 'My orders', refunds_tab: 'My orders', refund_form_tab: 'Request a refund',
+        view_order_application: 'Refund details', notifications_tab: 'Notifications',
+        pending_review_tab: 'Your reviews', reviewed_tab: 'Your reviews', review_tab: 'Write a review', view_review_tab: 'Review details'
+    };
     return (
-        <div className='relative grid grid-cols-1 xl:grid-cols-6 h-screen w-screen'>
-            <div className='h-full col-span-1 justify-center items-center bg-pink-100 hidden xl:flex'>
-                <AccountMenu clikedTab={handleTabClick} />
-            </div>
-
-            <div className='flex w-full col-span-1 xl:col-span-4 h-full xl:p-10 overflow-auto bg-gray-100'>
-                <div className='w-16 h-screen bg-pink-100 flex flex-col items-center justify-center shadow-xl xl:hidden'>
-                    <AccountMenu clikedTab={handleTabClick} />
-                </div>
-
-                <div className='flex items-center justify-center h-full w-full'>
+        <div className="account-page">
+            <div className="store-header"><Topbar /></div>
+            <main className="shop-container">
+                <nav className="product-breadcrumb" aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><span aria-current="page">My account</span></nav>
+                <div className="account-heading"><div><h1>My account</h1><p>Your details, orders and saved items.</p></div><Link href="/#collection" className="account-back">Continue shopping <span aria-hidden="true">&rarr;</span></Link></div>
+                <div className="account-layout">
+                    <aside className="account-sidebar"><AccountMenu clikedTab={handleTabClick} activeTab={tab} /></aside>
+                    <section className="account-panel" aria-labelledby="account-section-title">
+                        <div className="account-panel-heading"><h2 id="account-section-title">{titles[tab] || 'My account'}</h2></div>
+                        <div className="account-panel-content">
+                            {['pending_review_tab', 'reviewed_tab'].includes(tab) && (
+                                <nav className="account-subtabs order-category-tabs review-category-tabs" aria-label="Review categories">
+                                    {[
+                                        { id: 'pending_review_tab', label: 'Pending' },
+                                        { id: 'reviewed_tab', label: 'Reviewed' },
+                                    ].map(category => (
+                                        <button key={category.id} aria-current={tab === category.id ? 'page' : undefined} onClick={() => handleTabClick(category.id)}>{category.label}</button>
+                                    ))}
+                                </nav>
+                            )}
+                            {['ordersTab', 'cancelled_orders_tab', 'refunds_tab'].includes(tab) && (
+                                <nav className="account-subtabs order-category-tabs" aria-label="Order categories">
+                                    {[
+                                        { id: 'ordersTab', label: 'All orders' },
+                                        { id: 'cancelled_orders_tab', label: 'Cancelled' },
+                                        { id: 'refunds_tab', label: 'Refunds' },
+                                    ].map(category => (
+                                        <button key={category.id} aria-current={tab === category.id ? 'page' : undefined} onClick={() => handleTabClick(category.id)}>{category.label}</button>
+                                    ))}
+                                </nav>
+                            )}
                     {tab === "ordersTab" && <OrdersContainer clickedOrder={handleOrderClick} clickedTab={handleTabClick} orderId={handleClickedOrder} />}
                     {tab === "edit_profile" && <AccountProfileContainer />}
                     {tab === "security" && <AccountSecurityContainer />}
@@ -97,15 +124,12 @@ const page = () => {
                     {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick} productId={setProductId} />}
                     {tab === 'review_tab' && <PostReviewContainer productId={productId} clickedTab={handleTabClick} />}
                     {tab === 'view_review_tab' && <ViewReviewContainer productId={productId} clickedTab={handleTabClick} />}
+                        </div>
+                    </section>
                 </div>
-            </div>
+            </main>
+            <Footer />
         </div>
-
-    )
-}
-
-export default page
-function dispatch() {
-    throw new Error('Function not implemented.')
-}
-
+    );
+};
+export default AccountPage;

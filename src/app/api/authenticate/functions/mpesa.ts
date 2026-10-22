@@ -1,105 +1,36 @@
-const consumerKey = process.env.MPESA_CONSUMER_KEY;
-const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
-const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
-
-export async function initiateMpesa(phone: number, price: number) {
-    let accessToken;
-    const shortcode = '174379';
-    const passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
-    const timestamp = await generateTimeStamp();
-    const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64');
-
-    const res1 = await fetch('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',{
-        headers:{
-            'Authorization': `Basic ${auth}`,
-        }
-    });
-    
-    const response = await res1.json();
-    accessToken=response.access_token;
-
-    const res2 = await fetch('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "BusinessShortCode": "174379",
-            "Password": password,
-            "Timestamp": timestamp,
-            "TransactionType": "CustomerPayBillOnline",
-            "Amount": 1,
-            "PartyA": phone,
-            "PartyB": "174379",
-            "PhoneNumber": phone,
-            "CallBackURL": "https://mydomain.com/pat",
-            "AccountReference": "Malooku Stores",
-            "TransactionDesc": "Purchase product(s)"
-        })
-    });
-
-    const response2 = await res2.json();
-
-    if(response2.errorMessage){
-        const b2 = {
-            processed:false,
-            ResultCode:'0',
-            ResultDesc:response2.errorMessage
-        }
-        return b2
-    }
-
-    console.log('Response body:', JSON.stringify(response2, null, 2));
-    console.log("Amount: "+price)
-
-    const body = await confirmPayment(accessToken,password,timestamp,response2.CheckoutRequestID);
-    const b2 = {
-        processed:true,
-        ResultCode:body.ResultCode,
-        ResultDesc:body.ResultDesc
-    }
-
-    return b2;
-    
-
+export class MpesaError extends Error {constructor(message:string,public uncertain=false){super(message);}}
+export function paymentSettings(){
+ const environment=process.env.MPESA_ENVIRONMENT||'sandbox';
+ const testAmount=environment==='sandbox'?Number(process.env.MPESA_TEST_AMOUNT||1):null;
+ if(!['sandbox','production'].includes(environment) || (testAmount!==null && (!Number.isInteger(testAmount)||testAmount<1)))throw new MpesaError('M-Pesa configuration is invalid.');
+ return {environment,testAmount};
 }
-
-const confirmPayment=async(accessToken:string,password:string,timestamp:string,CheckoutRequestID:string)=>{
-    const res = await fetch('https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query',{
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body:JSON.stringify({
-            "BusinessShortCode":"174379",    
-            "Password": password,    
-            "Timestamp":timestamp,    
-            "CheckoutRequestID": CheckoutRequestID,  
-        })
-    })
-
-    const response = await res.json();
-    if(response.ResponseCode){
-        return response;
-    }else{
-        return await confirmPayment(accessToken,password,timestamp,CheckoutRequestID)
-    }
-    
+export function mpesaConfig(){
+ const {environment,testAmount}=paymentSettings();
+ const shortcode=process.env.MPESA_SHORTCODE;
+ const passkey=process.env.MPESA_PASSKEY;
+ const callback=process.env.MPESA_CALLBACK_URL;
+ if(!process.env.MPESA_CONSUMER_KEY || !process.env.MPESA_CONSUMER_SECRET || !shortcode || !passkey || !callback)throw new MpesaError('M-Pesa is not fully configured. Please contact the store.');
+ try{const url=new URL(callback);if(url.protocol!=='https:'||['localhost','127.0.0.1'].includes(url.hostname))throw Error();}catch{throw new MpesaError('M-Pesa needs a public HTTPS callback URL.');}
+ return {environment,testAmount,shortcode,passkey,callback,base:environment==='production'?'https://api.safaricom.co.ke':'https://sandbox.safaricom.co.ke'};
 }
-
-const generateTimeStamp=()=>{
-const now = new Date();
-const year = now.getFullYear();
-const month = String(now.getMonth() + 1).padStart(2, '0');
-const day = String(now.getDate()).padStart(2, '0');
-const hours = String(now.getHours()).padStart(2, '0');
-const minutes = String(now.getMinutes()).padStart(2, '0');
-const seconds = String(now.getSeconds()).padStart(2, '0');
-
-const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}`;
-
-console.log('Timestamp:', timestamp);
-return timestamp;
+export function normalizePhone(value:unknown){let phone=String(value??'').replace(/[\s+-]/g,'');if(/^0[17]\d{8}$/.test(phone))phone='254'+phone.slice(1);if(/^[17]\d{8}$/.test(phone))phone='254'+phone;if(!/^254[17]\d{8}$/.test(phone))throw new MpesaError('Enter a valid Kenyan M-Pesa number.');return phone;}
+function credentials(config:ReturnType<typeof mpesaConfig>){const timestamp=new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Nairobi',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date());const part=(type:string)=>timestamp.find(p=>p.type===type)!.value;const time=['year','month','day','hour','minute','second'].map(part).join('');return {BusinessShortCode:config.shortcode,Password:Buffer.from(config.shortcode+config.passkey+time).toString('base64'),Timestamp:time};}
+async function accessToken(config:ReturnType<typeof mpesaConfig>){
+ try{const response=await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{headers:{Authorization:'Basic '+Buffer.from(process.env.MPESA_CONSUMER_KEY+':'+process.env.MPESA_CONSUMER_SECRET).toString('base64')},cache:'no-store',signal:AbortSignal.timeout(15000)});const data=await response.json();if(!response.ok||!data.access_token)throw Error();return data.access_token as string;}catch{throw new MpesaError('Unable to authenticate with M-Pesa. Please try again shortly.');}
+}
+export async function startMpesa(phone:string,amount:number){
+ const config=mpesaConfig();const token=await accessToken(config);
+ let response:Response;
+ try{response=await fetch(config.base+'/mpesa/stkpush/v1/processrequest',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...credentials(config),TransactionType:process.env.MPESA_TRANSACTION_TYPE||'CustomerPayBillOnline',Amount:amount,PartyA:phone,PartyB:config.shortcode,PhoneNumber:phone,CallBackURL:config.callback,AccountReference:'Malooku',TransactionDesc:'Store purchase'}),signal:AbortSignal.timeout(15000)});}catch{throw new MpesaError('M-Pesa has not confirmed whether the request was sent. Do not pay again; contact the store if a prompt arrives.',true);}
+ let data;try{data=await response.json();}catch{throw new MpesaError('M-Pesa returned an unreadable response. Do not retry payment yet.',true);}
+ if(!response.ok || String(data.ResponseCode)!=='0' || !data.CheckoutRequestID)throw new MpesaError(data.errorMessage||data.ResponseDescription||'M-Pesa could not send the request. Please try again.');
+ return data.CheckoutRequestID as string;
+}
+export async function queryMpesa(checkoutId:string){
+ const config=mpesaConfig();const token=await accessToken(config);
+ try{const response=await fetch(config.base+'/mpesa/stkpushquery/v1/query',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...credentials(config),CheckoutRequestID:checkoutId}),signal:AbortSignal.timeout(15000)});const data=await response.json();
+ if(response.ok && data.ResultCode!==undefined && data.ResultCode!==null){const code=String(data.ResultCode);return {state:code==='0'?'paid':'failed',message:data.ResultDesc||'Payment was not completed.'} as const;}
+ return {state:'pending',message:'Waiting for M-Pesa to confirm your payment.'} as const;
+ }catch{return {state:'pending',message:'Payment confirmation is delayed. Do not pay again.'} as const;}
 }

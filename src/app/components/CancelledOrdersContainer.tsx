@@ -46,35 +46,15 @@ const CancelledOrdersContainer = ({ clickedTab }:any) => {
     const fetchCancelledOrders = async () => {
       const res = await fetch("/api/orders/cancelledOrder");
       const response = await res.json();
-      setCancelledOrders(response);
+      setCancelledOrders(Array.isArray(response) ? response : []);
     };
     fetchCancelledOrders();
   }, []);
 
   return (
-    <div className="gap-2 flex flex-col w-full h-full p-3 md:p-5 relative">
-      <div className="top-0 w-full md:w-max h-10 justify-between flex md:px-5 gap-2">
-        <button
-          className="text-md w-full text-black font-semibold bg-white border-pink-300 rounded-md px-2"
-          onClick={() => handleClickedTab("ordersTab")}
-        >
-          Orders
-        </button>
-        <button
-          className="text-md w-full text-black font-semibold border border-pink-300 bg-pink-300 rounded-md px-2"
-          onClick={() => handleClickedTab("cancelled_orders_tab")}
-        >
-          Cancelled
-        </button>
-        <button
-          className="text-md w-full text-black font-semibold border border-pink-300 bg-white rounded-md px-2"
-          onClick={() => handleClickedTab("refunds_tab")}
-        >
-          Refunds
-        </button>
-      </div>
-
+    <div className="account-orders">
       <div className="flex flex-col gap-2 overflow-auto">
+        {cancelledOrders.length === 0 && <div className="account-empty"><h3>No cancelled orders.</h3><p>Any orders you cancel will appear here.</p></div>}
         {cancelledOrders &&
           cancelledOrders.map((item, index) => (
             <div

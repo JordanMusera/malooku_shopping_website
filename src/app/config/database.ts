@@ -1,10 +1,22 @@
 import mongoose from "mongoose";
 
-const dbConnect=()=>{
-    mongoose.connect('mongodb+srv://jordanmusera:SO0seG9aQHoTM2zN@cluster0.evxfehv.mongodb.net/malooku_db?retryWrites=true&w=majority&appName=Cluster0'
-).then(()=>{
-    console.log("db connection successful");
-})
-}
+let connectionPromise: ReturnType<typeof mongoose.connect> | null = null;
+
+const dbConnect = async () => {
+    if (mongoose.connection.readyState === 1) return mongoose;
+
+    const uri = process.env.MONGODB_URI;
+    if (!uri) throw new Error("MONGODB_URI is not configured");
+
+    if (!connectionPromise) {
+        connectionPromise = mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 })
+            .catch((error) => {
+                connectionPromise = null;
+                throw error;
+            });
+    }
+
+    return connectionPromise;
+};
 
 export default dbConnect;

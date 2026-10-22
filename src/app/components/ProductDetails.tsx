@@ -1,9 +1,12 @@
-import Image from "next/image";
+'use client';
+import { FiHeart, FiMinus, FiPlus, FiShoppingBag } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/ReactToastify.css";
 import CustomerReviewsContainer from "./CustomerReviewsContainer";
-import { message, Table } from "antd";
+import { message } from "antd";
+import { useDispatch } from "react-redux";
+import { setCart, waitForCartWrites } from "@/store/cartSlice";
 
 interface Product {
   _id: string;
@@ -25,12 +28,14 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product }:any) => {
+  const dispatch = useDispatch();
+  const [adding,setAdding]=useState(false);
   const [isWish, setIsWish] = useState(false);
   const [qty, setQty] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<{
     [key: string]: string;
   }>({});
-  const [selectedProductPrice,setSelectedProductPrice] = useState('')
+  const [selectedProductPrice,setSelectedProductPrice] = useState<number>(product.price)
 
   const handleSelection = (variantType: string, variant: any) => {
     setSelectedVariants((prev) => ({
@@ -48,25 +53,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }:any) => {
   }, [product]);
 
   const addToCartFunction = async () => {
-    const res = await fetch("/api/cart/user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        productId: product._id,
-        orderedQty: qty,
-        selectedProductVariants:selectedVariants,
-        selectedProductPrice:selectedProductPrice
-      }),
-    });
-
-    const response = await res.json();
-    if (response.success) {
-      toast.success(response.message);
-    } else {
-      toast.error(response.message);
-    }
+    if(adding)return;setAdding(true);
+    try {
+      await waitForCartWrites();
+      const res=await fetch('/api/cart/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({productId:product._id,orderedQty:qty,selectedProductVariants:selectedVariants,selectedProductPrice})});
+      const data=await res.json();if(!res.ok || !data.success)throw Error(data.message||'Unable to add this item. Please try again.');
+      dispatch(setCart(data));toast.success('Added to your bag');
+    }catch(error){toast.error(error instanceof Error?error.message:'Unable to add this item. Please try again.');}
+    finally{setAdding(false);}
   };
 
   const addToWishlistFunction = async () => {
@@ -118,126 +112,25 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }:any) => {
     }
   };
 
-  const specsColumns = [
-    {
-      title: "Specification",
-      dataIndex: "specification",
-      key: "specification",
-    },
-    {
-      title: "Description",
-      dataIndex: "specificationDescription",
-      key: "specificationDescription",
-    },
-  ];
-
   return (
-    <div className="h-full flex items-center justify-center">
-      {product ? (
-        <div className="flex flex-col p-5 w-full">
-          <p className="text-2xl font-bold">{product.title}</p>
-
-          <div className="flex my-3 text-pink-300">
-            <p className="text-4xl font-bold">Ksh.{selectedProductPrice}</p>
-          </div>
-
-          <p className="border border-pink-300 rounded-xl p-2 min-h-10">
-            {product.description}
-          </p>
-
-          <div className="w-full flex flex-col gap-2 mt-2">
-            <div className="flex justify-between">
-              <div className="flex gap-2 items-center p-1 rounded-md border border-pink-300 w-max">
-                <button
-                  className="w-10 h-10 text-2xl font-bold hover:text-red-500"
-                  onClick={() => handleQtyFunction("decrement")}
-                >
-                  -
-                </button>
-                <p className="text-xl font-bold">{qty}</p>
-                <button
-                  className="w-10 h-10 text-2xl font-bold hover:text-green-500"
-                  onClick={() => handleQtyFunction("increment")}
-                >
-                  +
-                </button>
-              </div>
-
-              <div>
-                {isWish ? (
-                  <img
-                    src="/favourite_active.png"
-                    width={40}
-                    height={40}
-                    alt=""
-                    onClick={() => removeFromWishlistFunction()}
-                  />
-                ) : (
-                  <img
-                    src="/favourite_inactive.png"
-                    width={40}
-                    height={40}
-                    alt=""
-                    onClick={() => addToWishlistFunction()}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div>
-              {product.variants && (
-                <div className="flex gap-10 flex-shrink">
-                {Object.entries(product.variants as Record<any,any[]>).map(([key, values], index) => (
-                  <div key={index}>
-                    <p className="text-sm font-semibold text-black my-2">
-                      {key}
-                    </p>
-                    <div className="flex gap-2 flex-wrap">
-                      {values.map((variant, idx) => (
-                        <button
-                          key={idx}
-                          className={`p-2 rounded-md flex items-center justify-center ${
-                            selectedVariants[key] === variant.value
-                              ? "bg-pink-300 text-white"
-                              : "bg-white border border-pink-300"
-                          }`}
-                          onClick={() => handleSelection(key, variant)}
-                        >
-                          {variant.value}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              )}
-            </div>
-
-            <div className="flex flex-col justify-center items-center w-full gap-2">
-              <button
-                onClick={() => addToCartFunction()}
-                className="text-xl font-bold px-6 py-2 rounded-md bg-pink-300 xl:bg-pink-200 text-white
-        hover:bg-pink-300 border border-pink-300 w-full"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
-
-          <div className="rounded-xl flex flex-col p-2 my-3">
-            <Table columns={specsColumns} dataSource={product.specifications} />
-          </div>
-
-          <CustomerReviewsContainer productId={product._id} />
-        </div>
-      ) : (
-        <div className="flex justify-center items-center">
-          <p>Loading...</p>
-        </div>
-      )}
-
-      <ToastContainer />
-    </div>
+    <section className="product-detail-panel">
+      <span className="eyebrow">{product.category || 'THE MALOOKU COLLECTION'}</span>
+      <h1>{product.title}</h1>
+      <p className="detail-price"><small>KSh </small>{Number(selectedProductPrice).toLocaleString('en-KE')}</p>
+      <p className="detail-description">{product.description}</p>
+      <div className="detail-variants">
+        {Object.entries((product.variants || {}) as Record<string, any[]>).map(([key, values]) => <div key={key}><p>{key}</p>{values.map((variant, index) => <button key={index} aria-pressed={selectedVariants[key] === variant.value} onClick={() => handleSelection(key, variant)}>{variant.value}</button>)}</div>)}
+      </div>
+      <div className="detail-quantity">
+        <div><p className="text-xs mb-3 text-stone-500">Quantity</p><div className="quantity-control"><button aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => handleQtyFunction('decrement')}><FiMinus /></button><span>{qty}</span><button aria-label="Increase quantity" onClick={() => handleQtyFunction('increment')}><FiPlus /></button></div></div>
+        <button className="nav-icon" aria-label={isWish ? 'Remove from wishlist' : 'Add to wishlist'} aria-pressed={isWish} onClick={() => isWish ? removeFromWishlistFunction() : addToWishlistFunction()}><FiHeart fill={isWish ? 'currentColor' : 'none'} /></button>
+      </div>
+      <button className="shop-button detail-add" disabled={adding} onClick={() => addToCartFunction()}><FiShoppingBag /> {adding ? "Adding..." : "Add to bag"} <span aria-hidden="true">↗</span></button>
+      <p className="detail-meta">A good find for your everyday. Make it yours.</p>
+      {product.specifications?.length > 0 && <section className="detail-specs"><h2>The details</h2><dl>{product.specifications.map((spec: { specification: string; specificationDescription: string }, index: number) => <div key={index}><dt>{spec.specification}</dt><dd>{spec.specificationDescription}</dd></div>)}</dl></section>}
+      <CustomerReviewsContainer productId={product._id} />
+      <ToastContainer position="bottom-right" />
+    </section>
   );
 };
 

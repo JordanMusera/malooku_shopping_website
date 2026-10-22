@@ -1,26 +1,14 @@
-import React from 'react';
-
-const HomeTopBar = () => {
+import { FiArrowRight } from 'react-icons/fi';
+export default function HomeTopBar() {
   return (
-    <div className='bg-pink-300 w-full h-full rounded-2xl px-3 relative flex items-center justify-between'>
-      <div className='mx-8'>
-        <p>
-          <span className='text-black font-extrabold text-3xl'>SHOP ONLINE!</span>
-           <br />
-           <span className='text-gray-800 font-semibold text-xl'>
-            Get 30% discount
-           </span>
-           
-        </p>
+    <section className="shop-hero">
+      <div className="hero-copy">
+        <span className="eyebrow">MALOOKU / THE EVERYDAY EDIT</span>
+        <h1>Objects for<br />everyday living.</h1>
+        <p>Simple pieces. Lasting appeal.<br />Discover essentials for your own kind of everyday.</p>
+        <a href="#collection" className="shop-button">Explore the collection <FiArrowRight aria-hidden="true" /></a>
       </div>
-      
-      <div className='h-full'>
-        <img className='h-full object-contain'
-        src='/shopping_girl.png' sizes='full' alt='Shopping Girl' />
-      </div>
-      
-    </div>
+      <div className="hero-art"><img src="/sample-products/wireless-headphones.jpg" alt="Minimal over-ear headphones" fetchPriority="high" /><span className="hero-image-label">01 / SOUND &amp; STYLE</span></div>
+    </section>
   );
 }
-
-export default HomeTopBar;

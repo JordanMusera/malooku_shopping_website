@@ -4,6 +4,8 @@ const orderSchema = new Schema({
     userId:String,
     products:Array,
     totalCost:Number,
+    paymentAmount:Number,
+    paymentEnvironment:String,
     orderDate:{type:Date,default:Date.now},
     status: { type: String, enum: ['pending', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
     shippingAddress:{

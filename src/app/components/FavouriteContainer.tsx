@@ -1,66 +1,25 @@
-'use client'
-import { useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
-import Wishlist from '../models/wishlist'
-
-interface Product {
-  _id: string,
-  id: number,
-  title: string,
-  price: number,
-  description: string,
-  category: string,
-  image: string,
-  rating: {
-    rate: number,
-    count: number
-  },
-  images:any
-
-}
-
-
-const favouriteContainer = () => {
+'use client';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { FiHeart } from 'react-icons/fi';
+interface Product { _id: string; title: string; price: number; category: string; image?: string; images?: { imageUrl: string }[] }
+export default function FavouriteContainer() {
   const [products, setProducts] = useState<Product[]>([]);
-
-  const router = useRouter();
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await fetch('/api/wishlist');
-      const response = await res.json();
-      setProducts(response.wishlist);
-    }
-    fetchData();
-  }, []);
-
-  const productClicked = (product: Product) => {
-    router.push(`/viewProduct/${product._id}`);
-  };
-
-  return (
-    <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 w-full justify-center px-3'>
-      {products?.map(product => (
-        <div
-          key={product.id}
-          className='flex flex-col justify-between items-center rounded-xl bg-white border hover:border-pink-300 p-1 cursor-pointer'
-          onClick={() => productClicked(product)}
-        >
-          <div className='h-48 w-full flex'>
-            <img
-              className='rounded w-full h-full object-contain' // Use object-contain to fit the image
-              src={product.images[0].imageUrl}
-              alt={product.title}
-              sizes='(max-width: 640px) 100px, (max-width: 768px) 150px, (max-width: 1024px) 200px, 300px'
-            />
-          </div>
-
-          <p className='text-sm font-semibold px-2'>{product.title.length > 20 ? product.title.slice(0, 40) + "..." : product.title}</p>
-          <p className='text-xl w-full px-2 font-medium text-pink-400'>${product.price}</p>
-        </div>
-      ))}
-    </div>
-  )
+    const controller = new AbortController();
+    setLoading(true); setError(false);
+    fetch('/api/wishlist', { signal: controller.signal, cache: 'no-store' })
+      .then(async res => { if (!res.ok) throw new Error(); const data = await res.json(); if (!data.success && data.message !== 'Wishlist is empty') throw new Error(); return data.wishlist || []; })
+      .then(setProducts)
+      .catch(error => { if (error.name !== 'AbortError') setError(true); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [attempt]);
+  if (loading) return <p className="account-loading" role="status">Loading your saved items...</p>;
+  if (error) return <div className="account-empty" role="alert"><h3>Unable to load saved items.</h3><p>Please give it another try.</p><button className="shop-button" onClick={() => setAttempt(n => n + 1)}>Try again</button></div>;
+  if (!products.length) return <div className="account-empty"><FiHeart /><h3>A place for your favourites.</h3><p>Tap the heart on a product to save it here for later.</p><Link className="shop-button" href="/#collection">Explore the collection</Link></div>;
+  return <div className="account-saved-grid">{products.map(product => <Link key={product._id} href={`/viewProduct/${product._id}`} className="product-card"><div className="product-visual"><img src={product.images?.[0]?.imageUrl || product.image} alt={product.title} loading="lazy" /></div><div className="product-info"><p>{product.category}</p><h3>{product.title}</h3><span className="product-price"><small>KSh </small>{product.price.toLocaleString('en-KE')}</span></div></Link>)}</div>;
 }
-
-export default favouriteContainer

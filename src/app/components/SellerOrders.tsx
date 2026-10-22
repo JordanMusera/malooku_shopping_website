@@ -63,16 +63,16 @@ const SellerOrders = () => {
     );
 
     const orderColumns = [
-        { title: 'Order ID', dataIndex: '_id', key: '_id' },
-        { title: 'User ID', dataIndex: 'userId', key: 'userId' },
+        { title: 'Order', dataIndex: '_id', key: '_id', render:(id:string)=>'#'+id.slice(-8).toUpperCase() },
+
         {
             title: 'Shipping Address',
             key: 'shippingAddress',
             render: (_:any, record:any) => (
-                `${record.shippingAddress.street}, ${record.shippingAddress.city}, ${record.shippingAddress.county}, ${record.shippingAddress.postalCode}`
+                `${record.shippingAddress?.street ?? ""}, ${record.shippingAddress?.city ?? ""}, ${record.shippingAddress?.county ?? ""}, ${record.shippingAddress?.postalCode ?? ""}`
             ),
         },
-        { title: 'Total Cost', dataIndex: 'totalCost', key: 'totalCost' },
+        { title: 'Total', dataIndex: 'totalCost', key: 'totalCost', render:(n:number)=>'KSh '+Number(n||0).toLocaleString() },
         {
             title: 'Status',
             key: 'status',
@@ -84,7 +84,7 @@ const SellerOrders = () => {
                 </Dropdown>
             ),
         },
-        { title: 'Order Date', dataIndex: 'orderDate', key: 'orderDate' },
+        { title: 'Date', dataIndex: 'orderDate', key: 'orderDate', render:(value:string)=>value?new Date(value).toLocaleDateString('en-GB'):'—' },
     ];
 
     const productColumns = [
@@ -93,7 +93,7 @@ const SellerOrders = () => {
                 <div>
                     <Image src={url} alt='image' width={100} height={100} className='w-10 h-10 object-contain'/>
                 </div>
-                
+
             )
         },
         { title: 'Product ID', dataIndex: ['product', '_id'], key: '_id' },
@@ -107,6 +107,7 @@ const SellerOrders = () => {
     const expandedRowRender = (record:any) => {
         return (
             <Table
+                scroll={{x:720}}
                 columns={productColumns}
                 dataSource={record.products}
                 pagination={false}
@@ -116,17 +117,16 @@ const SellerOrders = () => {
     };
 
     return (
-        <div className="w-full h-full p-10">
+        <div className="admin-card admin-data-section">
+            <div className="admin-card-heading"><div><h2>All orders</h2><p>Manage fulfilment and delivery status</p></div></div>
             <Table
+                scroll={{x:960}}
                 columns={orderColumns}
                 dataSource={ordersArr}
                 expandable={{
                     expandedRowRender,
                     rowExpandable: () => true,
                 }}
-                rowClassName={(record) =>
-                    record.status === 'pending' ? 'bg-orange-100' : record.status == 'delivered' ? 'bg-green-100':'bg-pink-100'
-                }
                 rowKey="_id"
             />
         </div>

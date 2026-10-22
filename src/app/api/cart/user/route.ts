@@ -15,97 +15,59 @@ interface ProductItem{
     quantity:number
 }
 
-export async function GET(request:NextRequest,{params}:Params){
-    await dbConnect();
-
-    //const {id} = params;
-    const userToken = request.cookies.get('authToken')?.value||'';
-    if(!userToken){
-        return NextResponse.json({success:false,message:'Sign in to continue'})
-    }
-    const tokenObject = await verifyToken(userToken);
-    const userId = tokenObject.userId;
-
-    console.log('TOKEN_VALIDITY:'+ userId);
-
-    const cart = await Cart.findOne({userId:userId});
-    const cartProductIds = cart.products;
-
-    const productsData = [];
-    let totalCost = 0;
-
-    for(let i=0;i<cartProductIds.length;i++){
-        const productId = cartProductIds[i].productId;
-        const productQty = cartProductIds[i].quantity;
-
-        const product = await Product.findOne({_id:productId});
-        const totalProductsPrice = product.price*productQty;
-        totalCost += totalProductsPrice;
-
-        const newProductDetails={
-            ...product.toObject(),
-            orderedQty:productQty,
-            productQtyPrice:totalProductsPrice
-        };
-
-        productsData.push(newProductDetails);
+export async function GET(request: NextRequest) {
+    const headers = { 'Cache-Control': 'private, no-store' };
+    const token = request.cookies.get('authToken')?.value;
+    const session = token ? await verifyToken(token).catch(() => null) : null;
+    if (!session) {
+        return NextResponse.json(
+            { success: false, message: 'Sign in to view your bag.' },
+            { status: 401, headers }
+        );
     }
 
-    console.log("$"+totalCost);
-
-    const resData = {
-        cartData:productsData,
-        totalCartCost:totalCost
+    try {
+        await dbConnect();
+        const cart = await Cart.findOne({ userId: session.userId });
+        const productsData = [];
+        let totalCost = 0;
+        for (const item of cart?.products ?? []) {
+            const product = await Product.findById(item.productId);
+            if (!product) continue;
+            const totalProductsPrice = product.price * item.quantity;
+            totalCost += totalProductsPrice;
+            productsData.push({
+                ...product.toObject(),
+                orderedQty: item.quantity,
+                productQtyPrice: totalProductsPrice,
+            });
+        }
+        return NextResponse.json(
+            { cartData: productsData, totalCartCost: totalCost },
+            { headers }
+        );
+    } catch (error) {
+        console.error('Unable to load cart:', error);
+        return NextResponse.json(
+            { success: false, message: 'Unable to load your bag. Please try again.' },
+            { status: 500, headers }
+        );
     }
-
-    return NextResponse.json(resData);
 }
-
 export async function POST(request:NextRequest){
-    await dbConnect();
-    //const {id} = params;
-    const {productId,orderedQty,selectedProductVariants,selectedProductPrice} = await request.json();
-
-    const userToken = request.cookies.get('authToken')?.value||'';
-
-    if(!userToken){
-        return NextResponse.json({success:false,message:'Sign in to continue'})
-    }
-    const decodedToken = await verifyToken(userToken);
-    const userId = decodedToken.userId;
-    console.log("IDD: "+ JSON.stringify(selectedProductVariants));
-
-    const cart = await Cart.findOne({userId:userId});
-
-    if(cart){
-        const productIndex = cart.products.findIndex((product: ProductItem) => product.productId === productId);
-        
-        if(productIndex!==-1){
-            return NextResponse.json({"success":false,"message":"Product already in cart"})
-        }
-        
-
-        cart.products.push({ productId:productId, quantity: orderedQty ,selectedProductVariants:selectedProductVariants,selectedProductPrice:selectedProductPrice});
-        console.log(cart)
-
-        await cart.save();
-        return NextResponse.json({"success":true,"message":"Product added to cart"})
-        
-    }else{
-         const newCart = new Cart({
-            userId: userId,
-            products: [{ productId, quantity: orderedQty,selectedProductVariants:selectedProductVariants,selectedProductPrice:selectedProductPrice }],
-            date: new Date()
-        });
-
-        try {
-            await newCart.save();
-            return NextResponse.json({ success: true, message: "Cart created successfully" });
-        } catch (error) {
-            console.error("Error creating cart:", error);
-            return NextResponse.json({ success: false, message: "Error creating cart" }, { status: 500 });
-        }
-    }
-
-   
+ const token=request.cookies.get('authToken')?.value;
+ const session=token?await verifyToken(token).catch(()=>null):null;
+ if(!session)return NextResponse.json({success:false,message:'Sign in to add items to your bag.'},{status:401});
+ try {
+  await dbConnect();const {productId,orderedQty,selectedProductVariants}=await request.json();
+  if(typeof productId!=='string' || !/^[a-f0-9]{24}$/i.test(productId) || !Number.isInteger(orderedQty) || orderedQty<1 || orderedQty>99)return NextResponse.json({success:false,message:'Choose a valid product and quantity.'},{status:400});
+  if(!await Product.exists({_id:productId}))return NextResponse.json({success:false,message:'This product is no longer available.'},{status:404});
+  let cart=await Cart.findOne({userId:session.userId});
+  if(!cart)cart=new Cart({userId:session.userId,products:[],date:new Date()});
+  const existing=cart.products.find((item:any)=>item.productId===productId);
+  if(existing)existing.quantity+=orderedQty;else cart.products.push({productId,quantity:orderedQty,selectedProductVariants:selectedProductVariants||{}});
+  await cart.save();
+  const response=await GET(request);if(!response.ok)return response;
+  return NextResponse.json({success:true,message:'Added to your bag',...await response.json()},{headers:{'Cache-Control':'no-store'}});
+ }catch{return NextResponse.json({success:false,message:'Unable to add this item. Please try again.'},{status:500});}
 }

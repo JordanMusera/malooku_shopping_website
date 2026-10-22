@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 
         const productReviews = await ProductReview.findOne({ productId: productId });
         const responseObj = {
-            productReviews: productReviews.comments
+            productReviews: productReviews?.comments ?? []
         }
         return NextResponse.json({ success: true, message: 'Comments fetched', content: responseObj });
 

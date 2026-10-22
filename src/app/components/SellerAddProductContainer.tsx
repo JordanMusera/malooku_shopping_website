@@ -336,7 +336,7 @@ const SellerAddProductContainer = ({
   return (
     <form
       onSubmit={handleFormSubmit}
-      className="w-1/2 h-1/2 bg-white shadow-2xl p-10 rounded-xl border border-pink-300 gap-3 flex flex-col"
+      className="admin-product-form gap-3 flex flex-col"
     >
       <h1 className="text-black font-semibold text-sm">
         Upload product images -
@@ -563,6 +563,7 @@ const SellerAddProductContainer = ({
         <div className="flex gap-3 mt-2 text-black font-semibold text-md">
           <button
             className="w-full p-1 border border-pink-300 rounded-md hover:shadow-2xl hover:shadow-red-300"
+            type="button"
             onClick={() => setAddProductVisibility(false)}
           >
             Cancel

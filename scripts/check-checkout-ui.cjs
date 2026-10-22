@@ -1,0 +1,70 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const mongoose=require('mongoose'),bcrypt=require('bcrypt');
+require('@next/env').loadEnvConfig(process.cwd());
+async function main(){
+ assert.ok(process.env.MONGODB_URI?.startsWith('mongodb://127.0.0.1:27017/'));
+ await mongoose.connect(process.env.MONGODB_URI);
+ const userId=new mongoose.Types.ObjectId(),email=`checkout-${crypto.randomUUID()}@example.test`,password=crypto.randomBytes(24).toString('hex');
+ let send,ws;
+ try{
+  await mongoose.connection.collection('users').insertOne({_id:userId,username:'Checkout Demo',email,password:await bcrypt.hash(password,10),role:'user',shippingAddress:[],paymentMethods:[]});
+  const products=await mongoose.connection.collection('products').find({}).limit(2).toArray();
+  assert.equal(products.length,2);
+  await mongoose.connection.collection('carts').insertOne({userId:String(userId),products:products.map(p=>({productId:String(p._id),quantity:1}))});
+  const login=await fetch('http://localhost:3000/api/authenticate/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userEmail:email,userPassword:password})});
+  assert.equal((await login.json()).success,true);
+  const token=login.headers.get('set-cookie').split(';')[0].slice(10);
+  let targets;for(let n=0;n<50;n++){try{targets=await(await fetch('http://127.0.0.1:9239/json')).json();break;}catch{await new Promise(r=>setTimeout(r,100));}}
+  ws=new WebSocket(targets.find(t=>t.type==='page').webSocketDebuggerUrl);await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+  let id=0;const pending=new Map();ws.addEventListener('message',e=>{const d=JSON.parse(e.data);if(d.id){const p=pending.get(d.id);pending.delete(d.id);d.error?p.reject(d.error):p.resolve(d.result);}});
+  send=(method,params={})=>new Promise((resolve,reject)=>{const key=++id;pending.set(key,{resolve,reject});ws.send(JSON.stringify({id:key,method,params}));});
+  const evaluate=async expression=>(await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true})).result.value;
+  const until=async expression=>{for(let n=0;n<200;n++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,100));}throw new Error('UI check timed out: '+expression);};
+  const fill=async(selector,value)=>evaluate(`(()=>{const input=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  const screenshot=async name=>fs.writeFileSync(path.join(process.env.TEMP,'malooku-ui-review',name),Buffer.from((await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false})).data,'base64'));
+  await send('Network.setCookie',{name:'authToken',value:token,url:'http://localhost:3000',path:'/',httpOnly:true,sameSite:'Strict'});
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+  await send('Page.navigate',{url:'http://localhost:3000/placeOrder'});
+  await until('document.querySelectorAll(".checkout-summary-item").length===2');
+  assert.equal(await evaluate('document.querySelector(".checkout-pay").textContent.includes("Enter delivery address")'),true);
+  assert.equal(await evaluate('document.querySelectorAll(".checkout-inline-form").length'),2);
+  await screenshot('checkout-guidance-desktop.png');
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:1100,deviceScaleFactor:1,mobile:true});
+  assert.equal(await evaluate('document.documentElement.scrollWidth'),390);
+  await screenshot('checkout-guidance-mobile.png');
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+  await evaluate('document.querySelector(".checkout-pay").click()');
+  assert.equal(await evaluate('document.activeElement.id'),'checkout-county');
+  await fill('#checkout-county','Nairobi');await fill('#checkout-city','Nairobi');await fill('#checkout-street','Demo Avenue');await fill('#checkout-postalCode','00100');
+  await evaluate('document.querySelector(".checkout-inline-form button[type=submit]").click()');
+  await until('document.querySelectorAll("input[name=checkout-address]").length===1 && !document.querySelector("#checkout-address-form")');
+  assert.equal(await evaluate('document.querySelector(".checkout-pay").textContent.includes("Enter M-Pesa number")'),true);
+  await until('document.activeElement.id === "checkout-payment-name"');
+  await fill('#checkout-payment-name','Checkout Demo');await fill('#checkout-payment-phone','0712 345 678');
+  await evaluate('document.querySelector(".checkout-inline-form button[type=submit]").click()');
+  await until('document.querySelectorAll("input[name=checkout-payment]").length===1 && !document.querySelector(".checkout-pay").disabled');
+  const user=await mongoose.connection.collection('users').findOne({_id:userId});
+  assert.equal(user.shippingAddress.length,1);assert.equal(user.paymentMethods[0].accNumber,254712345678);
+  assert.equal(await evaluate('document.querySelectorAll(".checkout-choice.selected").length'),2);
+  console.log('PASS: address and M-Pesa forms save and select details; both forms open automatically and the button guides the next required step.');
+  assert.equal(await evaluate('document.querySelector(".checkout-totals").textContent.includes("'+products.reduce((sum,p)=>sum+p.price,0).toLocaleString('en-KE')+'")'),true);
+  await evaluate('window.scrollTo({top:0,behavior:"instant"})');
+  await screenshot('checkout-desktop.png');
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:1100,deviceScaleFactor:1,mobile:true});
+  assert.equal(await evaluate('document.documentElement.scrollWidth'),390);
+  await screenshot('checkout-mobile.png');
+  await evaluate('document.querySelector(".checkout-summary").scrollIntoView({behavior:"instant"})');
+  await screenshot('checkout-mobile-summary.png');
+  console.log('PASS: mobile viewport has no horizontal overflow; summary totals match the cart.');
+  await evaluate('document.querySelector(".choice-remove").click()');
+  await until('document.querySelectorAll("input[name=checkout-address]").length===0');
+  assert.equal(await evaluate('document.querySelector(".checkout-pay").textContent.includes("Enter delivery address")'),true);
+  assert.equal((await mongoose.connection.collection('users').findOne({_id:userId})).shippingAddress.length,0);
+  console.log('PASS: removing the selected address clears checkout selection. No payment submitted.');
+ }finally{
+  if(send)await send('Browser.close').catch(()=>{});ws?.close();
+  await mongoose.connection.collection('carts').deleteMany({userId:String(userId)});
+  await mongoose.connection.collection('users').deleteOne({_id:userId});await mongoose.disconnect();
+ }
+}
+main().catch(e=>{console.error(e);process.exitCode=1});

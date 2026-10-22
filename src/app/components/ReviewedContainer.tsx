@@ -27,22 +27,9 @@ const ReviewedContainer = ({ clickedTab, productId }:any) => {
   }
 
   return (
-    <div className='gap-2 flex flex-col w-full h-full p-3 md:p-5'>
-      <div className="top-0 w-full md:w-max h-9 justify-between flex gap-3">
-        <button
-          className="w-full text-md text-black font-semibold border border-pink-300 bg-white rounded-md px-2"
-          onClick={() => handleClickedTab("pending_review_tab")}
-        >
-          Pending
-        </button>
-        <button
-          className="w-full text-md text-black font-semibold border border-pink-300 bg-pink-300 rounded-md px-2"
-          onClick={() => handleClickedTab("reviewed_tab")}
-        >
-          Reviewed
-        </button>
-      </div>
-      <div className='flex flex-col gap-2 overflow-auto pt-5'>
+    <div className="account-reviews">
+
+      <div className='flex flex-col gap-2 overflow-auto'>
       {pendingReviewObj &&
           pendingReviewObj.map((item:any, index:any) => (
             <div

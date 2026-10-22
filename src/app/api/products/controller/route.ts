@@ -1,3 +1,4 @@
+import { requireAdmin } from '@/app/lib/admin-auth';
 import dbConnect from "@/app/config/database";
 import Product from "@/app/models/product";
 import { NextRequest, NextResponse } from "next/server";
@@ -20,6 +21,7 @@ export async function GET(request:NextRequest){
 
 export async function POST(request:NextRequest){
     try {
+        const denied = await requireAdmin(request); if (denied) return denied;
         await dbConnect();
 
         const data = await request.formData();
@@ -77,6 +79,7 @@ export async function POST(request:NextRequest){
 
 export async function PUT(request:NextRequest){
     try {
+        const denied = await requireAdmin(request); if (denied) return denied;
         await dbConnect();
 
         const data = await request.formData();
@@ -142,6 +145,7 @@ export async function PUT(request:NextRequest){
 
 export async function DELETE(request: NextRequest) {
     try {
+        const denied = await requireAdmin(request); if (denied) return denied;
         await dbConnect();
 
         const url = new URL(request.url);

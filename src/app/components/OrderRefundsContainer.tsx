@@ -51,7 +51,7 @@ const OrderRefundsContainer = ({clickedTab,refundObj}:any) => {
            const res = await fetch('/api/orders/refundedOrder');
         const response = await res.json();
         if(response){
-          setRefundedOrders(response.content);
+          setRefundedOrders(Array.isArray(response.content) ? response.content : []);
         }
         } catch (error) {
           toast.error('Some error occurred!');
@@ -65,17 +65,9 @@ const OrderRefundsContainer = ({clickedTab,refundObj}:any) => {
       refundObj(item);
     }
   return (
-    <div className='gap-2 flex flex-col w-full h-full p-3 md:p-5 relative'>
-             <div className='top-0 w-full md:w-max h-10 justify-between flex md:px-5 gap-2'>
-                <button className='text-md w-full text-black font-semibold bg-white border border-pink-300 rounded-md px-2'
-                onClick={()=>handleClickedTab('ordersTab')}>Orders</button>
-                <button className='text-md w-full text-black font-semibold border border-pink-300 bg-white rounded-md px-2'
-                onClick={()=>handleClickedTab('cancelled_orders_tab')}>Cancelled</button>
-                <button className='text-md w-full text-black font-semibold border border-pink-300 bg-pink-300 rounded-md px-2'
-                onClick={()=>handleClickedTab('refunds_tab')}>Refunds</button>
-            </div>
-
+    <div className='account-orders'>
             <div className='flex flex-col-reverse gap-2'>
+              {refundedOrders.length === 0 && <div className="account-empty"><h3>No refund requests.</h3><p>Your refund requests and their status will appear here.</p></div>}
               {refundedOrders.map((item,index)=>(
                 <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
                 <div className='flex gap-2 justify-between items-center md:w-1/2'>

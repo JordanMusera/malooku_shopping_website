@@ -33,9 +33,7 @@ const SellerUsersContainer = () => {
             title:'Full Name',
             key:'_id',
             render: (_:any,record:any)=>(
-                record.name
-                ?<p>{record.name.firstname}  {record.name.lastname}</p>
-                :<p>Null</p>
+                <span>{record.fullname || (record.name ? [record.name.firstname, record.name.lastname].filter(Boolean).join(' ') : '—')}</span>
             )
         },
         {
@@ -44,7 +42,7 @@ const SellerUsersContainer = () => {
             render:(record:any)=>(
                 record.phone
                 ?<p>{record.phone}</p>
-                :<p>Null</p>
+                :<p>—</p>
             )
         },
         {
@@ -64,8 +62,8 @@ const SellerUsersContainer = () => {
 
     ]
   return (
-    <div className='p-10 w-full'>
-      <Table columns={columns} dataSource={users}/>
+    <div className='admin-card admin-data-section'>
+      <div className="admin-card-heading"><div><h2>Customer directory</h2><p>{users.length} registered accounts</p></div></div><Table columns={columns} dataSource={users} rowKey="_id" scroll={{x:850}}/>
     </div>
   )
 }

@@ -1,115 +1,51 @@
-'use client'
-import Link from 'next/link';
-import React, { useEffect, useState } from 'react'
-import { ToastContainer,toast } from 'react-toastify';
-import 'react-toastify/ReactToastify.css'
-
-const AccountProfileContainer = () => {
-  const[fullName,setFullName] = useState("");
-  const[email,setEmail] = useState("");
-  const[phone,setPhone] = useState("");
-  const[county,setCounty] = useState("");
-  const[city,setCity] = useState("");
-  const[street,setStreet] = useState("");
-
-  useEffect(()=>{
-    const fetchDetails=async()=>{
-      const res = await fetch('/api/users');
-      const response = await res.json();
-
-      if(response.success){
-       const user = response.user;
-
-       setFullName(user.username);
-       setEmail(user.email);
-       setPhone(user.phone);
-      
-       if(user.address){
-         setCounty(user.address.county);
-         setCity(user.address.city);
-       setStreet(user.address.street);
-       }
-       
-      }
-    }
-    fetchDetails();
-  },[])
-
-  const updateDetails=async(e: { preventDefault: () => void; })=>{
-    e.preventDefault();
-    const res = await fetch('api/users',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        county,
-        city,
-        street,
-        fullName,
-        email,
-        phone
-      })
-    });
-
-    const response = await res.json();
-    if(response.success){
-      toast.success("Information Updated!");
-      console.log('Update Success!!');
-    }else{
-      toast.error(response.message);
-    }
+'use client';
+import { FormEvent, useEffect, useState } from 'react';
+import { FiCheck, FiUser } from 'react-icons/fi';
+const empty = { fullName: '', email: '', phone: '', county: '', city: '', street: '' };
+export default function AccountProfileContainer() {
+  const [details, setDetails] = useState(empty);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true); setError('');
+    fetch('/api/users', { cache: 'no-store', signal: controller.signal })
+      .then(async res => { if (!res.ok) throw new Error('Unable to load your profile. Please try again.'); const data = await res.json(); if (!data.success) throw new Error(data.message || 'Unable to load your profile.'); return data.user; })
+      .then(user => setDetails({ fullName: user.fullname || user.username || '', email: user.email || '', phone: user.phone == null ? '' : String(user.phone), county: user.address?.county || '', city: user.address?.city || '', street: user.address?.street || '' }))
+      .catch(error => { if (error.name !== 'AbortError') setError(error.message); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [attempt]);
+  function update(field: keyof typeof empty, value: string) { setDetails(current => ({...current, [field]: value})); setSaved(false); }
+  async function save(event: FormEvent) {
+    event.preventDefault(); setSaving(true); setError(''); setSaved(false);
+    try {
+      const res = await fetch('/api/users', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(details) });
+      if (!res.ok) throw new Error('Unable to save your changes. Please try again.');
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Unable to save your changes.');
+      setSaved(true);
+    } catch (error) { setError(error instanceof Error ? error.message : 'Unable to save your changes.'); }
+    finally { setSaving(false); }
   }
-
-
-  return (
-    <form className='w-full h-max flex flex-col items-center md:p-5' onSubmit={updateDetails}>
-      <div className='w-32 h-32'>
-        <img src='user_icon.png' alt='' sizes='full' className='rounded-full bg-gray-200 p-2 border border-pink-300' />
-      </div>
-
-      <div className='w-full p-3 md:w-3/4 flex flex-col gap-2'>
-        <div className='w-full'>
-          <label>Full Name</label>
-          <input type='text' value={fullName} placeholder='Full Name' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setFullName(e.target.value)}/>
-        </div>
-
-        <div className='w-full'>
-          <label>Email</label>
-          <input type='email' value={email} placeholder='Email' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setEmail(e.target.value)}/>
-        </div>
-
-        <div className='w-full'>
-          <label>Phone Number</label>
-          <input type='number' value={phone} placeholder='Phone Number' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setPhone(e.target.value)}/>
-        </div>
-
-        <div className='grid grid-cols-2 gap-4'>
-        <div className='w-full col-span-1'>
-          <label>City</label>
-          <input type='text' value={city} placeholder='City' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setCity(e.target.value)}/>
-        </div>
-        <div className='w-full col-span-1'>
-          <label>Street</label>
-          <input type='text' value={street} placeholder='Street' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setStreet(e.target.value)}/>
-        </div>
-        </div>
-
-        <div className='w-full'>
-          <label>County</label>
-          <input type='text' value={county} placeholder='County' className='w-full h-10 px-3 rounded-md bg-white' onChange={e=>setCounty(e.target.value)}/>
-        </div>
-
-        <div className='flex gap-5 justify-end mb-5'>
-          <Link href='/' className='w-max p-2 border border-pink-300 rounded-md bg-white'>Back To Home</Link>
-          <button className='w-max p-2 border border-pink-300 rounded-md bg-pink-200 hover:bg-pink-300' type='submit'>Save Changes</button>
-        </div>
-
-      </div>
-
-<ToastContainer/>
-    </form>
-  )
+  if (loading) return <div className="account-loading" role="status">Loading your details...</div>;
+  if (!details.email && error) return <div className="account-empty" role="alert"><h3>We couldn’t load your profile.</h3><p>{error}</p><button className="shop-button" onClick={() => setAttempt(n => n + 1)}>Try again</button></div>;
+  return <form className="account-profile-form" onSubmit={save}>
+    <div className="profile-summary"><div className="profile-avatar" aria-hidden="true">{details.fullName ? details.fullName.split(' ').filter(Boolean).slice(0,2).map(name => name[0]).join('').toUpperCase() : <FiUser />}</div><div><h3>{details.fullName || 'Your profile'}</h3><p>{details.email}</p></div></div>
+    <fieldset disabled={saving}><legend>Contact details</legend><div className="account-form-grid">
+      <div className="account-field"><label htmlFor="profile-name">Full name</label><input id="profile-name" autoComplete="name" value={details.fullName} onChange={e => update('fullName', e.target.value)} placeholder="Your full name" /></div>
+      <div className="account-field"><label htmlFor="profile-email">Email address</label><input id="profile-email" type="email" autoComplete="email" required value={details.email} onChange={e => update('email', e.target.value)} /></div>
+      <div className="account-field"><label htmlFor="profile-phone">Phone number <span>(optional)</span></label><input id="profile-phone" type="tel" autoComplete="tel" value={details.phone} onChange={e => update('phone', e.target.value)} placeholder="254 7XX XXX XXX" /></div>
+    </div></fieldset>
+    <fieldset disabled={saving}><legend>Your address</legend><div className="account-form-grid">
+      <div className="account-field"><label htmlFor="profile-county">County</label><input id="profile-county" autoComplete="address-level1" value={details.county} onChange={e => update('county', e.target.value)} placeholder="e.g. Nairobi" /></div>
+      <div className="account-field"><label htmlFor="profile-city">City or town</label><input id="profile-city" autoComplete="address-level2" value={details.city} onChange={e => update('city', e.target.value)} placeholder="City or town" /></div>
+      <div className="account-field account-field-wide"><label htmlFor="profile-street">Street address</label><input id="profile-street" autoComplete="street-address" value={details.street} onChange={e => update('street', e.target.value)} placeholder="Street, building or apartment" /></div>
+    </div></fieldset>
+    {error && <p className="account-form-error" role="alert">{error}</p>}
+    <div className="account-form-actions"><p role="status">{saved ? <><FiCheck /> Your changes have been saved.</> : 'Your details are only updated when you save.'}</p><button className="shop-button" disabled={saving} type="submit">{saving ? 'Saving...' : 'Save changes'}</button></div>
+  </form>;
 }
-
-export default AccountProfileContainer

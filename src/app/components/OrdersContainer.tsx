@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { FiShoppingBag } from 'react-icons/fi';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
@@ -49,23 +51,30 @@ interface Order {
 
 const OrdersContainer = ({ clickedOrder, clickedTab, orderId }:any) => {
     const [userOrders, setUserOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [attempt, setAttempt] = useState(0);
     useEffect(() => {
         const fetchOrders = async () => {
+            setLoading(true); setError(false);
             try {
                 const res = await fetch('/api/orders');
+                if (!res.ok) throw new Error();
                 const response = await res.json();
                 if (response.success) {
                     setUserOrders(response.content);
                 } else {
-                    console.error('Failed to fetch orders:', response.error);
+                    setError(true);
                 }
             } catch (error) {
-                console.error('Error fetching orders:', error);
+                setError(true);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchOrders();
-    }, []);
+    }, [attempt]);
 
     const handleClickedViewTab = (order: Order) => {
         clickedOrder(order);
@@ -81,66 +90,9 @@ const OrdersContainer = ({ clickedOrder, clickedTab, orderId }:any) => {
     }
 
     return (
-        <div className='gap-2 flex flex-col w-full h-full p-3 md:p-5 relative'>
-            <div className='top-0 w-full md:w-max h-10 justify-between flex md:px-5 gap-2'>
-                <button className='text-md w-full text-black font-semibold bg-pink-300 border border-pink-300 rounded-md px-2'
-                onClick={()=>handleClickedTab('ordersTab')}>Orders</button>
-                <button className='text-md w-full text-black font-semibold border border-pink-300 bg-white rounded-md px-2'
-                onClick={()=>handleClickedTab('cancelled_orders_tab')}>Cancelled</button>
-                <button className='text-md w-full text-black font-semibold border border-pink-300 bg-white rounded-md px-2'
-                onClick={()=>handleClickedTab('refunds_tab')}>Refunds</button>
-            </div>
-
-            <div className='gap-2 flex flex-col w-full md:px-5 md:p-0 overflow-auto items-center justify-start max-h-[calc(100vh-100px)]'>
-                {userOrders.length > 0 ? (
-                    userOrders.map((item, index) => (
-                        <div key={index} className='w-full h-max bg-white rounded-lg p-5 relative flex flex-col md:flex-row justify-between items-center gap-2 shadow-lg'>
-                            <div className='h-32 w-full justify-center flex'>
-                                {item.products.map((item2, index) => (
-                                    <div key={index} className={`h-32 z-${index} hover:z-40 cursor-pointer`} style={{ left: `${index * 20}px` }}>
-                                        <Image
-                                            src={item2.product.images[0].imageUrl}
-                                            alt='Product Image'
-                                            width={50}
-                                            height={50}
-                                            className='rounded-md shadow-lg w-max h-32 object-cover'
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                            <div className='w-full flex md:flex-col gap-3'>
-                                <p className='text-black px-[5px] bg-orange-300 rounded-md w-max h-max'>{item.status}</p>
-                                <p className='text-sm w-max'>{item.orderDate}</p>
-                            </div>
-
-                            
-
-
-
-                            <div className='flex flex-col items-center w-full justify-center'>
-                                <p className="text-gray-700 text-sm font-medium w-full"><span>Id:</span><span>{item._id}</span></p>
-                                <p className="text-green-500 text-xl font-semi-bold w-max">${item.totalCost}</p>
-                            </div>
-
-                            <div className='flex flex-col gap-2 w-full md:justify-end'>
-                                <button className='w-full h-max rounded-md p-1 bg-pink-300 font-serif text-white'
-                                    onClick={() => handleTrackOrder('trackorder', item._id)}>Track Order</button>
-                                <button className='w-full h-max rounded-md p-1 bg-white border border-pink-300 font-serif text-black'
-                                    onClick={() => handleClickedViewTab(item)}>View Order</button>
-                            </div>
-
-                        </div>
-                    ))
-                ) : (
-                    <div className='w-full h-full flex justify-center items-center'>
-                        <p className='w-full'>No orders found</p>
-                    </div>
-
-                )}
-            </div>
-
-        </div>
+      <div className="account-orders">
+        {loading ? <p className="account-loading" role="status">Loading your orders...</p> : error ? <div className="account-empty" role="alert"><h3>Unable to load orders.</h3><p>Please give it another try.</p><button className="shop-button" onClick={() => setAttempt(n => n + 1)}>Try again</button></div> : userOrders.length === 0 ? <div className="account-empty"><FiShoppingBag /><h3>Your next find starts here.</h3><p>You haven’t placed an order yet. Explore the collection and find something for your everyday.</p><Link className="shop-button" href="/#collection">Explore the collection</Link></div> : userOrders.map(item => <article className="account-order" key={item._id}><div className="account-order-top"><span>Order #{item._id.slice(-8).toUpperCase()}</span><span>{item.orderDate}</span></div><div className="account-order-body"><div className="account-order-images">{item.products.slice(0,3).map((entry,index) => <img key={index} src={entry.product.images?.[0]?.imageUrl || entry.product.image} alt={entry.product.title} />)}</div><div><p>{item.status}</p><p>{item.products.length} {item.products.length === 1 ? 'item' : 'items'}</p><strong>KSh {item.totalCost.toLocaleString('en-KE')}</strong></div></div><div className="account-order-actions"><button onClick={() => handleClickedViewTab(item)}>View order</button><button onClick={() => handleTrackOrder('trackorder',item._id)}>Track order</button></div></article>)}
+      </div>
     );
 };
-
 export default OrdersContainer;

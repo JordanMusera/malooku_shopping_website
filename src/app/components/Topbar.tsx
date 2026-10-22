@@ -1,325 +1,102 @@
-'use client'
-import Image from 'next/image';
-import Link from 'next/link'
-import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setCart, addItem, minusItem, deleteItem } from '@/store/cartSlice';
+'use client';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector, useStore } from 'react-redux';
+import { addItem, deleteItem, minusItem, setCart, hydrateCart, waitForCartWrites } from '@/store/cartSlice';
 import { RootState } from '@/store/store';
-import { StaticImport } from 'next/dist/shared/lib/get-img-props';
-import { useRouter } from 'next/navigation';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/ReactToastify.css';
-import { FaChevronDown } from 'react-icons/fa';
+import { FiSearch, FiShoppingBag, FiUser, FiX, FiMinus, FiPlus, FiTrash2 } from 'react-icons/fi';
 
-
-interface Cart {
-  cartData: CartItem[],
-  totalCartCost: number
-};
-
-interface CartItem {
-  rating: {
-    rate: number,
-    count: number
-  },
-  _id: string,
-  id: number,
-  title: string,
-  price: number,
-  description: string,
-  category: string,
-  image: string,
-  orderedQty: number,
-  productQtyPrice: number,
-  images:any
-}
-
-interface UserItem {
-  username: string,
-  email: string,
-  role: string
-}
-
-const Topbar = () => {
-  const [cartDetails, setCartDetails] = useState<Cart>({ cartData: [], totalCartCost: 0 });
-  const [isCartActive, setIsCartActive] = useState(false);
-  const [userItem, setUserItem] = useState<UserItem | null>(null);
-  const [minmenu, setMinmenu] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [cartState,setCartState] = useState('Loading...')
-
-  const router = useRouter();
-
-
+interface SearchProduct { _id: string; title: string; price: number; images?: { imageUrl: string }[] }
+export default function Topbar() {
   const dispatch = useDispatch();
-
+  const store = useStore<RootState>();
+  const { cartItems, totalAmount } = useSelector((state: RootState) => state.cart);
+  const itemCount = cartItems.reduce((total,item)=>total+item.orderedQty,0);
+  useEffect(()=>{const controller=new AbortController();const expectedRevision=store.getState().cart.revision;fetch("/api/cart/user",{cache:"no-store",signal:controller.signal}).then(async res=>{if(res.status===401)return {cartData:[]};if(!res.ok)throw Error();return res.json();}).then(data=>{if(Array.isArray(data.cartData))dispatch(hydrateCart({...data,expectedRevision}));}).catch(()=>{});return ()=>controller.abort();},[dispatch,store]);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchProduct[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartMessage, setCartMessage] = useState('');
+  const [cartStatus, setCartStatus] = useState<'loading' | 'ready' | 'unauthorized' | 'error'>('loading');
+  const searchRef = useRef<HTMLFormElement>(null);
+  const cartRef = useRef<HTMLElement>(null);
+  const cartTrigger = useRef<HTMLButtonElement>(null);
+  const closeCart = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    const fetchUser = async () => {
-      const res = await fetch('/api/users');
-  
-      if (res.ok) {
-        const response = await res.json();
-        if (response.success) {
-          setUserItem(response.user);
-          console.log(response.user);
-        }
+    const controller = new AbortController();
+    if (!query.trim()) { setResults([]); setSearching(false); return; }
+    setSearching(true);
+    setSearchError(false);
+    const timer = setTimeout(() => {
+      fetch(`/api/products/search/${encodeURIComponent(query.trim())}`, { signal: controller.signal })
+        .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+        .then(setResults)
+        .catch(error => { if (error.name !== 'AbortError') { setSearchError(true); setResults([]); } })
+        .finally(() => { if (!controller.signal.aborted) setSearching(false); });
+    }, 250);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [query]);
+  useEffect(() => {
+    function dismiss(event: MouseEvent) { if (!searchRef.current?.contains(event.target as Node)) setSearchOpen(false); }
+    document.addEventListener('mousedown', dismiss);
+    return () => document.removeEventListener('mousedown', dismiss);
+  }, []);
+  useEffect(() => {
+    if (!cartOpen) return;
+    closeCart.current?.focus();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    function keyboard(event: KeyboardEvent) {
+      if (event.key === 'Escape') setCartOpen(false);
+      if (event.key === 'Tab') {
+        const elements = cartRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]');
+        if (!elements?.length) return;
+        const first = elements[0], last = elements[elements.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
       }
-    };
-  
-    fetchUser();
-
-    if (searchText.length > 0) {
-      const delayDebounce = setTimeout(() => {
-        searchItem(searchText);
-      }, 500);
-      return () => clearTimeout(delayDebounce);
     }
-  }, [searchText]);
-  
-  const fetchCartData = async () => {
-    setCartState("Loading...");
-  
+    document.addEventListener('keydown', keyboard);
+    return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', keyboard); cartTrigger.current?.focus(); };
+  }, [cartOpen]);
+  async function openCart() {
+    setCartOpen(true);
+    setCartStatus('loading');
+    setCartMessage('Loading your bag...');
     try {
-      const res = await fetch('/api/cart/user');
-  
-      if (res.ok) {
-        const data: Cart = await res.json();
-        
-        if (data.cartData.length === 0) {
-          setCartState("Cart is Empty");
-          dispatch(setCart(data));
-        } else {
-          setCartState("");
-          dispatch(setCart(data));
-        }
-      } else {
-        setCartState("Cart is Empty");
+      await waitForCartWrites();
+      const response = await fetch('/api/cart/user', { cache: 'no-store', credentials: 'same-origin' });
+      if (response.status === 401) {
+        dispatch(setCart({ cartData: [], totalCartCost: 0 }));
+        setCartStatus('unauthorized');
+        setCartMessage('Sign in to view your saved bag.');
+        return;
       }
-    } catch (error) {
-      console.log("Login first!");
-      setCartState("Cart is Empty");
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      if (!Array.isArray(data.cartData)) throw new Error();
+      dispatch(setCart(data));
+      setCartStatus('ready');
+      setCartMessage('Your bag is empty. Explore the collection to add your first item.');
+    } catch {
+      setCartStatus('error');
+      setCartMessage('Unable to load your bag. Please try again.');
     }
-  };
-  
-  const toggleCartVisibility = () => {
-    setIsCartActive((prevValue) => {
-      const newValue = !prevValue;
-      if (newValue) {
-        fetchCartData();
-      }
-      return newValue;
-    });
-  };
-
-  const navigatePlaceOrdersPage = () => {
-    if (cartItems.length != 0) {
-      router.push('/placeOrder');
-    } else {
-      toast.error('Cart is empty!')
-    }
-
   }
-
-  const navigateHomePage = () => {
-    router.push('/');
-    setMinmenu(false);
-  }
-
-  const navigateAccountPage = () => {
-    router.push('/account');
-    setMinmenu(false);
-  }
-
-  const navigateAboutUs = () => {
-    router.push('/aboutus');
-    setMinmenu(false);
-  }
-
-  const showCart = () => {
-    setIsCartActive(true);
-    setMinmenu(false);
-    setCartState('Loading...')
-    fetchCartData();
-  }
-
-  const { cartItems, loading, totalAmount } = useSelector(
-    (state: RootState) => state.cart
-  );
-
-  const handleAddToCart = (cartItem: CartItem) => {
-    dispatch(addItem(cartItem));
-  };
-
-  const handleMinusFromCart = (cartItem: CartItem) => {
-    dispatch(minusItem(cartItem));
-  };
-
-  const handleDeleteFromCart = (cartItem: CartItem) => {
-    dispatch(deleteItem(cartItem));
-  };
-
-  const handleMenuClick = () => {
-    setMinmenu((prev) => !prev);
-    setIsCartActive(false)
-  }
-
-  const searchItem = async (search: string) => {
-    const res = await fetch(`/api/products/search/${search}`)
-
-
-    if (res.ok) {
-      const data = await res.json();
-      console.log(data);
-      setSearchResults(data);
-    }
-
-  }
-
-  const selectSearchItem = async (item:any)=>{
-    router.push(`/viewProduct/${item._id}`)
-  }
-
-
   return (
-    <div className='bg-slate-100 py-2 md:px-6 flex justify-between items-center z-100'>
-
-      <div className='md:hidden flex ps-2' onClick={() => handleMenuClick()}>
-        <img src='/menu_icon.png' alt='' width={40} height={40} />
-      </div>
-
-      <label className='font-extrabold text-2xl text-pink-300 hidden md:flex'>MALOOKU</label>
-
-      <Link href='/' className='text-md h-full font-semibold hover:text-pink-300 group hidden md:flex'>
-        <span className='flex flex-col items-center'>
-          Home
-        </span>
-      </Link>
-
-      <Link href='/' className='text-md font-semibold hover:text-pink-300 group hidden md:flex'>
-        <span className='flex flex-col items-center'>
-          About us
-        </span>
-      </Link>
-
-
-      <form className='w-2/3 md:w-1/3 h-full flex border rounded-2xl border-pink-300 relative'>
-        <input type='text' placeholder='Search here' className='w-full rounded-s-2xl p-2' onChange={e => setSearchText(e.target.value)} />
-        <button title='h-full' type='submit' onClick={()=>searchItem(searchText)}>
-          <img src='/search_icon.png' alt='' width={30} height={30} />
-        </button>
-
-        {searchResults.length > 0 && searchText.length > 0 && (
-          <div className='w-full h-max max-h-56 mt-12 bg-white border border-pink-300 shadow-2xl rounded-md flex absolute flex-col p-2 overflow-y-auto'>
-            {searchResults.map((item: any, index) => (
-              <div key={index} className='m-2 text-black font-serif hover:text-pink-400 cursor-pointer' onClick={()=>selectSearchItem(item)}>
-                <p>{item.title}</p>
-                <hr />
-              </div>
-            ))}
-          </div>
-        )}
-
-</form>
-
-        <div className='relative' onClick={() => toggleCartVisibility()}>
-          <Link href='' className='text-md font-semibold hover:text-pink-300 md:group flex items-center px-3'>
-            <div>
-              <img src='/basket_icon.png' alt='' width={30} height={30} />
-            </div>
-            <span className='flex-col items-center hidden md:flex'>
-              Cart
-              <hr
-                className={`h-1 w-10 rounded-sm transition-colors duration-300 ${isCartActive ? 'bg-pink-300' : 'bg-gray-500'
-                  }`}
-              />
-            </span>
-          </Link>
-        </div>
-
-        {isCartActive && (
-          <div className='absolute w-screen p-5 xl:w-1/3 sm:bottom-0 h-[calc(100vh-37px)] mt-3 xl:mr-2 md:w-max md:h-max md:max-h-[500px] bg-gray-100 top-[40px] md:top-[50px] z-10 right-0 md:rounded-md md:border border-pink-300 overflow-auto'>
-            <p className='text-lg font-bold m-1 flex justify-center'>My Cart</p>
-            <hr className='h-[2px] bg-pink-300' />
-
-            {cartItems.length === 0 ? (
-              <div className='w-full h-1/2 xl:h-20 flex justify-center items-center'>
-                <p className='text-xl font-semi-bold text-red-500'>{cartState}</p>
-              </div>
-            ) : (
-              <div>
-                {cartItems.map((product) => (
-                  <div key={product.id} className='flex items-center gap-2 p-2'>
-                    <div className='flex flex-col justify-center items-center'>
-                      <button className='bg-pink-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleAddToCart(product)}>+</button>
-                      <p className='font-bold'>{product.orderedQty}</p>
-                      <button className='bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center font-bold' onClick={() => handleMinusFromCart(product)}>-</button>
-                    </div>
-                    <div className='w-full border border-gray-100 flex items-center gap-3'>
-                      <Image src={product.images[0].imageUrl} alt="" width={80} height={80} className='rounded-md' />
-                      <div>
-                        <p className='text-sm font-semibold text-black'>{product.title.length>50 ? product.title.slice(0,50)+'...' : product.title}</p>
-                        <div className='flex flex-col'>
-                          <p className='text-sm font-bold text-gray-600'>Price: Ksh.{product.price}</p>
-                          <p className='text-sm font-bold text-green-500'><span className='text-gray-600'>T.Cost:</span> Ksh.{product.productQtyPrice}</p>
-                        </div>
-                      </div>
-
-                    </div>
-
-                    <div className='w-8 h-8 hover:h-10 hover:w-10 cursor-pointer' onClick={() => handleDeleteFromCart(product)}>
-                      <img src='/delete_icon.png' alt='' sizes='full' />
-                    </div>
-
-
-                  </div>
-                ))}
-
-              </div>
-            )
-
-            }
-
-
-
-            <hr className='h-[2px] bg-pink-300' />
-
-            <div className='flex justify-between items-center px-4 py-2'>
-              <div className='flex flex-col items-center justify-center'>
-                <p className='text-sm font-bold m-1 text-gray-600'>Total Cost</p>
-                <p className='text-lg font-bold m-1 text-black'>Ksh.{totalAmount}</p>
-              </div>
-              <button className='border-[2px] border-pink-300 rounded-xl bg-gray-300 h-8 w-20 flex items-center justify-center hover:bg-pink-300'
-                onClick={() => navigatePlaceOrdersPage()}>Checkout</button>
-              <ToastContainer />
-            </div>
-
-
-          </div>
-        )}
-
-
-        <Link href='/account' className='flex gap-2 items-center justify-end me-3'>
-          <div className='h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center'>
-            <img src="/user_icon.png" alt="" width={30} height={30} className='object-contain' />
-          </div>
-          <div className='text-start text-sm hidden md:flex md:flex-col'>
-            <p className='text-gray-600'>{userItem?.role}</p>
-            <p className='text-black'>{userItem?.email}</p>
-          </div>
-          <FaChevronDown className='hidden md:flex' />
-        </Link>
-
-        {minmenu && (
-          <div className='absolute bg-gray-300 h-screen md:hidden top-[55px] w-full flex flex-col items-center justify-center gap-20 z-20'>
-            <button onClick={() => navigateHomePage()} className='w-max text-pink-400 text-2xl font-serif font-bold'>Home</button>
-            <button onClick={() => showCart()} className='w-max text-pink-400 text-2xl font-serif font-bold'>Cart</button>
-            <button onClick={() => navigateAccountPage()} className='w-max text-pink-400 text-2xl font-serif font-bold'>Account</button>
-            <button onClick={() => navigateAboutUs()} className='w-max text-pink-400 text-2xl font-serif font-bold'>About us</button>
-          </div>
-        )}
-      </div>
-      )
+    <header className="shop-nav">
+      <Link href="/" className="brand" aria-label="Malooku home">MALOOKU<span>®</span></Link>
+      <nav className="main-links" aria-label="Main navigation"><Link href="/#collection">The collection</Link><Link href="/#contact">Contact</Link></nav>
+      <form ref={searchRef} role="search" className="shop-search" onSubmit={e => { e.preventDefault(); setSearchOpen(true); }} onKeyDown={e => { if (e.key === 'Escape') setSearchOpen(false); }}>
+        <FiSearch aria-hidden="true" /><input aria-label="Search products" placeholder="Search the collection…" value={query} onFocus={() => setSearchOpen(true)} onChange={e => { setQuery(e.target.value); setSearchOpen(true); }} />
+        {query && <button type="button" aria-label="Clear search" onClick={() => { setQuery(''); setSearchOpen(false); }}><FiX /></button>}
+        {searchOpen && query.trim() && <div className="search-results" aria-live="polite">{searching ? <p>Looking for your next find…</p> : searchError ? <p>Search is unavailable. Please try again.</p> : results.length === 0 ? <p>No finds for “{query}”. Try another search.</p> : results.map(item => <Link href={`/viewProduct/${item._id}`} key={item._id} onClick={() => { setQuery(''); setSearchOpen(false); }}><img src={item.images?.[0]?.imageUrl || '/shopping_girl.png'} alt="" /><span>{item.title}<small>KSh {item.price.toLocaleString('en-KE')}</small></span></Link>)}</div>}
+      </form>
+      <div className="nav-actions"><Link href="/account" className="nav-icon" aria-label="My account"><FiUser /></Link><button ref={cartTrigger} type="button" className="nav-bag" onClick={openCart} aria-label={`Shopping bag, ${itemCount} items`} aria-expanded={cartOpen}><FiShoppingBag /><span className="bag-label">Bag</span><span className="bag-count" aria-live="polite" aria-atomic="true">{itemCount}</span></button></div>
+      {cartOpen && <div className="cart-overlay" onClick={() => setCartOpen(false)}><aside ref={cartRef} role="dialog" aria-modal="true" aria-labelledby="bag-title" className="cart-drawer" onClick={e => e.stopPropagation()}><div className="cart-heading"><h2 id="bag-title">Your bag<span> ({itemCount})</span></h2><button ref={closeCart} className="nav-icon" aria-label="Close bag" onClick={() => setCartOpen(false)}><FiX /></button></div>{cartStatus !== 'ready' || cartItems.length === 0 ? <div className="bag-empty"><FiShoppingBag /><h3>{cartStatus === 'loading' ? 'Loading your bag' : cartStatus === 'unauthorized' ? 'Your shopping bag' : cartStatus === 'error' ? 'Something went wrong' : 'Your bag is empty'}</h3><p role="status">{cartMessage}</p>{cartStatus === 'unauthorized' && <Link href="/login" className="shop-button" onClick={() => setCartOpen(false)}>Sign in</Link>}{cartStatus === 'error' && <button className="shop-button" onClick={openCart}>Try again</button>}<button className="text-link" onClick={() => setCartOpen(false)}>Keep exploring ↗</button></div> : <><div className="cart-lines">{cartItems.map(item => <div className="cart-line" key={item._id}><img src={item.images?.[0]?.imageUrl || item.image} alt={item.title} /><div><Link href={`/viewProduct/${item._id}`} onClick={() => setCartOpen(false)}>{item.title}</Link><p>KSh {item.productQtyPrice.toLocaleString('en-KE')}</p><div className="cart-quantity"><button aria-label={`Decrease ${item.title} quantity`} disabled={item.orderedQty <= 1} onClick={() => dispatch(minusItem(item))}><FiMinus /></button><span>{item.orderedQty}</span><button aria-label={`Increase ${item.title} quantity`} onClick={() => dispatch(addItem(item))}><FiPlus /></button></div></div><button className="remove-item" aria-label={`Remove ${item.title}`} onClick={() => dispatch(deleteItem(item))}><FiTrash2 /></button></div>)}</div><div className="cart-total"><p><span>Subtotal</span><strong>KSh {totalAmount.toLocaleString('en-KE')}</strong></p><Link className="shop-button" href="/placeOrder" onClick={() => setCartOpen(false)}>Continue to checkout ↗</Link></div></>}</aside></div>}
+    </header>
+  );
 }
-
-      export default Topbar

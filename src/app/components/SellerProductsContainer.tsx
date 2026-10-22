@@ -1,4 +1,4 @@
-import { message, Table } from "antd";
+import { message, Table, Modal, Popconfirm } from "antd";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { AiOutlineEdit } from "react-icons/ai";
@@ -44,20 +44,16 @@ const SellerProductsContainer = () => {
       ),
     },
     { title: "Title", dataIndex: "title", key: "_id" },
-    { title: "Product id", dataIndex: "_id", key: "_id" },
+
     { title: "Category", dataIndex: "category", key: "_id" },
-    { title: "Price", dataIndex: "price", key: "_id" },
-    { title: "Stock", dataIndex: "stock", key: "_id" },
+    { title: "Price", dataIndex: "price", key: "price", render: (value:number) => `KSh ${Number(value || 0).toLocaleString()}` },
+    { title: "Stock", dataIndex: "qty", key: "_id" },
     {
       title: "Edit",
       key: "_id",
       render: (record: any) => (
         <div>
-          <AiOutlineEdit
-            className="hover:w-7 hover:h-7 hover:text-pink-300"
-            style={{ fontSize: "25px", cursor: "pointer" }}
-            onClick={() => setClickedProduct(record)}
-          />
+          <button className="admin-text-button" aria-label={`Edit ${record.title}`} onClick={()=>setClickedProduct(record)}><AiOutlineEdit/> Edit</button>
         </div>
       ),
     },
@@ -66,9 +62,7 @@ const SellerProductsContainer = () => {
       key: "_id",
       render: (record:any) => (
         <div className="flex items-center">
-          <button className="bg-orange-300 p-1 rounded-lg hover:bg-red-400 text-white text-sm font-semibold" onClick={()=>deleteProduct(record._id)}>
-            Delete
-          </button>
+          <Popconfirm title="Delete this product?" description="This removes the product from your store." onConfirm={()=>deleteProduct(record._id)} okText="Delete" cancelText="Keep product"><button className="admin-delete">Delete</button></Popconfirm>
         </div>
       ),
     },
@@ -109,38 +103,12 @@ const SellerProductsContainer = () => {
     }
   }
 
-  return (
-    <div className="h-full p-10 flex gap-4 relative">
-      <div className="h-full w-3/4">
-        <Table
-          columns={productColumns}
-          dataSource={products}
-          scroll={{ y: 500 }}
-          className="w-full"
-        />
-      </div>
-
-      <div className="w-1/4 rounded-lg bg-white p-2">
-        <div
-          className="text-md text-black font-semibold bg-pink-200 rounded-lg w-max p-2 hover:cursor-pointer"
-          onClick={() => addProductVisibilityFn(true)}
-        >
-          <FaPlus />
-          <p>Add Product</p>
-        </div>
-        <hr className="h-2 shadow-xl m-2" />
-      </div>
-      {(addProductVisibility || clickedProduct) && (
-        <div className="absolute top-0 left-0 bg-green w-full h-max items-center justify-center m-4">
-          <SellerAddProductContainer
-            setAddProductVisibility={addProductVisibilityFn}
-            clickedProduct={clickedProduct}
-            updatedProducts={updateProductList}
-          />
-        </div>
-      )}
-    </div>
-  );
+  return <section className="admin-card admin-data-section">
+    <div className="admin-card-heading"><div><h2>Product collection</h2><p>{products.length} products in your store</p></div><button className="admin-primary" onClick={()=>addProductVisibilityFn(true)}><FaPlus/> Add product</button></div>
+    <Table columns={productColumns} dataSource={products} rowKey="_id" scroll={{x:780}} pagination={{pageSize:8,showSizeChanger:false}}/>
+    <Modal title={clickedProduct?'Edit product':'Add product'} open={addProductVisibility || !!clickedProduct} onCancel={()=>addProductVisibilityFn(false)} footer={null} width={760} destroyOnClose className="admin-product-modal">
+      <SellerAddProductContainer setAddProductVisibility={addProductVisibilityFn} clickedProduct={clickedProduct} updatedProducts={updateProductList}/>
+    </Modal>
+  </section>;
 };
-
 export default SellerProductsContainer;

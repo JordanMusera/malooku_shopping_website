@@ -1,9 +1,11 @@
+import { requireAdmin } from '@/app/lib/admin-auth';
 import dbConnect from "@/app/config/database";
 import Order from "@/app/models/order";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request:NextRequest){
     try {
+        const denied = await requireAdmin(request); if (denied) return denied;
      await dbConnect();
 
     const orders = await Order.find({});
@@ -19,6 +21,7 @@ export async function GET(request:NextRequest){
 
 export async function POST(request: NextRequest) {
     try {
+        const denied = await requireAdmin(request); if (denied) return denied;
         await dbConnect();
         const { orderId, orderStatus } = await request.json();
       

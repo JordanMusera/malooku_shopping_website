@@ -1,17 +1,5 @@
-import Link from 'next/link'
-import React from 'react'
-
-const AccountSecurityContainer = () => {
-  return (
-    <div className='h-full w-full flex flex-col justify-center items-center gap-5'>
-    <div className='w-32 h-32'>
-        <img src='user_icon.png' alt='' sizes='full' className='rounded-full bg-gray-200 p-2 border border-pink-300' />
-      </div>
-        <p>Manage and change your password</p>
-
-        <Link href='/resetPassword' className='bg-pink-300 p-2 rounded-md'>Change Password</Link>
-    </div>
-  )
+import Link from 'next/link';
+import { FiLock, FiArrowUpRight } from 'react-icons/fi';
+export default function AccountSecurityContainer() {
+  return <div className="account-security"><div className="account-feature-icon"><FiLock /></div><h3>Password &amp; access</h3><p>Keep your account protected with a unique password. Use the password reset process to choose a new one.</p><div className="security-setting"><div><h4>Password</h4><span>Reset your password using your account email.</span></div><Link href="/resetPassword" className="shop-button">Change password <FiArrowUpRight /></Link></div></div>;
 }
-
-export default AccountSecurityContainer

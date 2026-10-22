@@ -22,13 +22,15 @@ interface CartItem {
 interface CartState {
     cartItems: CartItem[],
     loading: boolean,
-    totalAmount: number
+    totalAmount: number,
+    revision: number
 }
 
 const initialState: CartState = {
     cartItems: [],
     loading: false,
-    totalAmount: 0
+    totalAmount: 0,
+    revision: 0
 }
 
 const cartSlice = createSlice({
@@ -81,6 +83,11 @@ const cartSlice = createSlice({
             updateCartData(state);
         },
 
+        hydrateCart(state, action) {
+            if(state.revision !== action.payload.expectedRevision) return;
+            state.cartItems = action.payload.cartData;
+            calculateTotalPrice(state);
+        },
         setCart(state, action) {
             state.cartItems = action.payload.cartData;
             console.log("CART DATA SET: "+state.cartItems)
@@ -91,7 +98,7 @@ const cartSlice = createSlice({
 })
 
 const calculateTotalPrice=(state: WritableDraft<CartState>)=>{
-    console.log('function reached')
+    state.revision++;
     let totalPrice = 0;
     for(let i=0;i<state.cartItems.length;i++){
         totalPrice += state.cartItems[i].productQtyPrice;
@@ -99,6 +106,8 @@ const calculateTotalPrice=(state: WritableDraft<CartState>)=>{
     state.totalAmount=parseFloat(totalPrice.toFixed(2));
 }
 
+let cartWriteQueue: Promise<void> = Promise.resolve();
+export const waitForCartWrites = () => cartWriteQueue;
 const updateCartData=async(state: WritableDraft<CartState>)=>{
     const cart=[];
     for(let i=0;i<state.cartItems.length;i++){
@@ -111,18 +120,15 @@ const updateCartData=async(state: WritableDraft<CartState>)=>{
         })
     }
 
-    const res = await fetch('/api/cart/updateCart',{
-        method:'POST',
-        headers:{
-            'Content-Type':'application/json'
-        },
-        body:JSON.stringify({
-            cart:cart
-        })
+    // Capture the draft before awaiting and persist rapid quantity changes in order.
+    const body = JSON.stringify({cart});
+    cartWriteQueue = cartWriteQueue.catch(()=>{}).then(async()=>{
+        const res=await fetch('/api/cart/updateCart',{method:'POST',headers:{'Content-Type':'application/json'},body});
+        const data=await res.json();
+        if(!res.ok || !data.success)throw Error('Unable to save bag changes. Please refresh and try again.');
     });
-
-    console.log('Updated cart: '+res);
+    await cartWriteQueue.catch(()=>{});
 }
 
-export const { addItem,setCart,minusItem,deleteItem } = cartSlice.actions;
+export const { addItem,setCart,hydrateCart,minusItem,deleteItem } = cartSlice.actions;
 export default cartSlice.reducer;
