@@ -1,3 +1,4 @@
+import {recordPayment} from '@/app/models/payments';
 import PaymentAttempt from '@/app/models/payment_attempt';
 import Order from '@/app/models/order';
 import Cart from '@/app/models/cart';
@@ -5,6 +6,7 @@ import OrderProgress from '@/app/models/orderprogress';
 import PurchasedProduct from '@/app/models/purchased_product';
 import {queryMpesa,isProcessingResult} from '@/app/api/authenticate/functions/mpesa';
 export async function checkPayment(attempt:any){
+ await recordPayment(attempt);
  if(attempt.state==='paid')return {success:true,orderId:String(attempt._id)};
  if(attempt.state==='failed' && !isProcessingResult(attempt.lastResultCode,attempt.message))return {success:false,pending:false,message:attempt.message};
  if(!attempt.checkoutId)return {success:false,pending:true,paymentId:String(attempt._id),message:attempt.message||'Waiting for M-Pesa to acknowledge the request. Do not send another payment.'};
