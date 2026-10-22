@@ -1,4 +1,3 @@
-import {randomBytes,createHash} from 'node:crypto';
 import {NextRequest,NextResponse} from 'next/server';
 import mongoose from 'mongoose';
 import dbConnect from '@/app/config/database';
@@ -36,13 +35,10 @@ export async function POST(request:NextRequest){
   for(const line of cart.products){const product:any=byId.get(String(line.productId));if(!product || !Number.isInteger(line.quantity)||line.quantity<1) return reply({success:false,message:'Your bag contains an unavailable item. Please review it before paying.'},400);const cost=Number(product.price)*line.quantity;if(!Number.isFinite(cost)||cost<=0)throw new MpesaError('A product price is invalid. Please contact the store.');total+=cost;products.push({product,quantity:line.quantity,productQtyPrice:cost,status:'pending',purchaseId:new mongoose.Types.ObjectId()});}
   const history=await PurchasedProduct.findOne({userId:auth.userId}).select('_id');
   const amount=config.testAmount??Math.ceil(total);
-  const callbackToken=randomBytes(32).toString('hex');
-  const callbackTokenHash=createHash('sha256').update(callbackToken).digest('hex');
   mark('save-attempt');
-  attempt=await PaymentAttempt.create({callbackTokenHash,userId:auth.userId,activeKey:auth.userId,amount,environment:config.environment,cartId:cart._id,cartProducts:cart.products.toObject(),order:{userId:auth.userId,products,totalCost:total,shippingAddress,paymentMethod:{...paymentMethod,accNumber:Number(phone)},deliveryInfo:{deliveryType:'pickup-station',pickupStation:'station1'},purchaseHistoryId:history?._id||new mongoose.Types.ObjectId()}});
+  attempt=await PaymentAttempt.create({userId:auth.userId,activeKey:auth.userId,amount,environment:config.environment,cartId:cart._id,cartProducts:cart.products.toObject(),order:{userId:auth.userId,products,totalCost:total,shippingAddress,paymentMethod:{...paymentMethod,accNumber:Number(phone)},deliveryInfo:{deliveryType:'pickup-station',pickupStation:'station1'},purchaseHistoryId:history?._id||new mongoose.Types.ObjectId()}});
   mark('mpesa-request');
-  const callbackUrl=new URL(config.callback);callbackUrl.pathname='/api/payments/callback/'+attempt._id+'/'+callbackToken;callbackUrl.search='';callbackUrl.hash='';
-  const submitted=await startMpesa(phone,amount,callbackUrl.toString());
+  const submitted=await startMpesa(phone,amount);
   mark('save-checkout-reference');
   await PaymentAttempt.updateOne({_id:attempt._id,state:{$ne:'paid'},'confirmation.state':{$ne:'paid'}},{$set:{checkoutId:submitted.checkoutId,merchantRequestId:submitted.merchantRequestId,state:'pending'}});
   mark('respond');
