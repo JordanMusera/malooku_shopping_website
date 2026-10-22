@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {pollPaymentStatus} from '@/app/lib/poll-payment';
 import {readPaymentResponse} from '@/app/lib/payment-response';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,11 +11,11 @@ export default function CheckoutCartContainer({ busy, onBusy }: {busy:boolean;on
   const dispatch = useDispatch();
   const {cartItems,totalAmount} = useSelector((state:RootState) => state.cart);
   const {shippingAddress2,paymentMethod} = useSelector((state:RootState) => state.order);
+  const [paymentId,setPaymentId]=useState('');
   const [settings,setSettings]=useState<{environment:string;testAmount:number|null}|null>(null);
   useEffect(()=>{fetch('/api/payments/config',{cache:'no-store'}).then(res=>{if(!res.ok)throw Error();return res.json();}).then(setSettings).catch(()=>setError('Unable to load payment settings. Please refresh.'));},[]);
   const [paying,setPaying] = useState(false);
   const [complete,setComplete] = useState(false);
-  const [awaitingConfirmation,setAwaitingConfirmation] = useState(false);
   const [error,setError] = useState('');
   const [paymentNotice,setPaymentNotice] = useState('');
   const pending = useRef(false);
@@ -26,18 +27,43 @@ export default function CheckoutCartContainer({ busy, onBusy }: {busy:boolean;on
     section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     section?.querySelector<HTMLInputElement>('input:not(:disabled)')?.focus({ preventScroll: true });
   }
+  const onBusyRef=useRef(onBusy);
+  onBusyRef.current=onBusy;
+  useEffect(()=>{
+    const controller=new AbortController();
+    fetch('/api/orders?active=1',{cache:'no-store',signal:controller.signal})
+      .then(readPaymentResponse).then(data=>{if(!controller.signal.aborted && data.paymentId)setPaymentId(data.paymentId);}).catch(()=>{});
+    return ()=>controller.abort();
+  },[]);
+  useEffect(()=>{
+    if(!paymentId)return;
+    const controller=new AbortController();
+    pending.current=true;setPaying(true);onBusyRef.current(true);setError('');
+    pollPaymentStatus(paymentId,{signal:controller.signal,onPending:setPaymentNotice}).then(async data=>{
+      if(controller.signal.aborted)return;
+      if(data.success){
+        setComplete(true);setPaymentId('');
+        try{const cart=await fetch('/api/cart/user',{cache:'no-store'});if(cart.ok)dispatch(setCart(await cart.json()));}catch{}
+      }else{
+        if(!data.pending)setPaymentId('');
+        setError(data.message||'Payment was not completed.');
+      }
+    }).catch(error=>{if(!controller.signal.aborted)setError(error instanceof Error?error.message:'Unable to confirm payment.');})
+      .finally(()=>{if(!controller.signal.aborted){pending.current=false;setPaying(false);onBusyRef.current(false);}});
+    return ()=>{controller.abort();pending.current=false;setPaying(false);onBusyRef.current(false);};
+  },[paymentId,dispatch]);
   async function pay() {
-    if (!ready || busy || pending.current || !settings) return;
+    if (!ready || busy || pending.current || !settings || paymentId) return;
     pending.current=true;setPaying(true);onBusy(true);setError('');setPaymentNotice('Check your phone and confirm the M-Pesa request.');
     try{
-      const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shippingAddress:shippingAddress2,paymentMethod}),cache:'no-store'});
+      const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shippingAddress:shippingAddress2,paymentMethod})});
       const data=await readPaymentResponse(response);
-      if(data.pending){setAwaitingConfirmation(true);setError(data.message);return;}
-      if(!data.success)throw Error(data.message||'Payment was not completed.');
-      setComplete(true);
-      try{const cart=await fetch('/api/cart/user',{cache:'no-store'});if(cart.ok)dispatch(setCart(await cart.json()));}catch{}
-    }catch(error){setError(error instanceof Error?error.message:'Unable to complete payment.');}
-    finally{pending.current=false;setPaying(false);onBusy(false);}
+      if(!data.pending || !data.paymentId)throw Error(data.message||'Unable to send the payment request.');
+      setPaymentId(data.paymentId);
+    }catch(error){
+      try{const recovered=await readPaymentResponse(await fetch('/api/orders?active=1',{cache:'no-store'}));if(recovered.paymentId)setPaymentId(recovered.paymentId);}catch{}
+      setError(error instanceof Error?error.message:'Unable to start payment.');
+    }finally{pending.current=false;setPaying(false);onBusy(false);}
   }
-  return <aside className="checkout-summary" aria-labelledby="summary-title"><div className="checkout-summary-heading"><h2 id="summary-title">Order summary</h2><span>{cartItems.reduce((total,item)=>total+item.orderedQty,0)} items</span></div>{complete ? <div className="checkout-summary-empty" role="status"><h3>Thank you for your order.</h3><p>{settings?.testAmount ? 'Your KSh '+settings.testAmount+' sandbox test payment was confirmed.' : 'Your payment was confirmed.'} You can find your order in your account.</p><Link className="shop-button" href="/account">View my account <FiArrowRight /></Link></div> : !cartItems.length ? <div className="checkout-summary-empty"><FiShoppingBag /><h3>Your bag is empty.</h3><p>Add something from the collection to get started.</p><Link className="shop-button" href="/#collection">Explore the collection</Link></div> : <><div className="checkout-summary-items">{cartItems.map(item => <div className="checkout-summary-item" key={item._id}><Link href={`/viewProduct/${item._id}`}><img src={item.images?.[0]?.imageUrl || item.image} alt={item.title} /></Link><div><Link href={`/viewProduct/${item._id}`}>{item.title}</Link><span>Quantity: {item.orderedQty}</span><strong>KSh {item.productQtyPrice.toLocaleString('en-KE')}</strong></div></div>)}</div><div className="checkout-totals"><p><span>Items subtotal</span><span>KSh {totalAmount.toLocaleString('en-KE')}</span></p><div><span>{settings?.testAmount ? "Cart total" : "Total payable"}</span><strong><small>KSh </small>{totalAmount.toLocaleString('en-KE')}</strong></div></div>{settings?.testAmount && <p className="checkout-notice" role="note">Sandbox testing: only KSh {settings.testAmount} will be requested on your phone. The full cart total is shown above.</p>}<button className="shop-button checkout-pay" disabled={busy || complete || awaitingConfirmation || !settings} onClick={nextStep}>{awaitingConfirmation ? 'Awaiting confirmation' : paying ? 'Waiting for payment...' : !shippingAddress2.city || !shippingAddress2.county ? 'Enter delivery address' : !paymentMethod.accNumber || paymentMethod.accType !== 'mpesa' ? 'Enter M-Pesa number' : settings?.testAmount ? `Send KSh ${settings.testAmount} test payment` : `Pay KSh ${Math.ceil(totalAmount).toLocaleString('en-KE')} with M-Pesa`}{!paying && <FiArrowRight />}</button>{!ready && <p className="checkout-summary-note">Complete the required details first. This button takes you to the next step.</p>}{paying && <p role="status" className="checkout-summary-note">{paymentNotice}</p>}{error && <p role="alert" className="account-form-error">{error}</p>}<p className="checkout-summary-note">Review your items and details before confirming payment.</p></>}</aside>;
+  return <aside className="checkout-summary" aria-labelledby="summary-title"><div className="checkout-summary-heading"><h2 id="summary-title">Order summary</h2><span>{cartItems.reduce((total,item)=>total+item.orderedQty,0)} items</span></div>{complete ? <div className="checkout-summary-empty" role="status"><h3>Thank you for your order.</h3><p>{settings?.testAmount ? 'Your KSh '+settings.testAmount+' sandbox test payment was confirmed.' : 'Your payment was confirmed.'} You can find your order in your account.</p><Link className="shop-button" href="/account">View my account <FiArrowRight /></Link></div> : !cartItems.length ? <div className="checkout-summary-empty"><FiShoppingBag /><h3>Your bag is empty.</h3><p>Add something from the collection to get started.</p><Link className="shop-button" href="/#collection">Explore the collection</Link></div> : <><div className="checkout-summary-items">{cartItems.map(item => <div className="checkout-summary-item" key={item._id}><Link href={`/viewProduct/${item._id}`}><img src={item.images?.[0]?.imageUrl || item.image} alt={item.title} /></Link><div><Link href={`/viewProduct/${item._id}`}>{item.title}</Link><span>Quantity: {item.orderedQty}</span><strong>KSh {item.productQtyPrice.toLocaleString('en-KE')}</strong></div></div>)}</div><div className="checkout-totals"><p><span>Items subtotal</span><span>KSh {totalAmount.toLocaleString('en-KE')}</span></p><div><span>{settings?.testAmount ? "Cart total" : "Total payable"}</span><strong><small>KSh </small>{totalAmount.toLocaleString('en-KE')}</strong></div></div>{settings?.testAmount && <p className="checkout-notice" role="note">Sandbox testing: only KSh {settings.testAmount} will be requested on your phone. The full cart total is shown above.</p>}<button className="shop-button checkout-pay" disabled={busy || complete || !!paymentId || !settings} onClick={nextStep}>{paying ? 'Waiting for payment...' : paymentId ? 'Payment awaiting confirmation' : !shippingAddress2.city || !shippingAddress2.county ? 'Enter delivery address' : !paymentMethod.accNumber || paymentMethod.accType !== 'mpesa' ? 'Enter M-Pesa number' : settings?.testAmount ? `Send KSh ${settings.testAmount} test payment` : `Pay KSh ${Math.ceil(totalAmount).toLocaleString('en-KE')} with M-Pesa`}{!paying && <FiArrowRight />}</button>{!ready && <p className="checkout-summary-note">Complete the required details first. This button takes you to the next step.</p>}{paying && <p role="status" className="checkout-summary-note">{paymentNotice}</p>}{error && <p role="alert" className="account-form-error">{error}</p>}<p className="checkout-summary-note">Review your items and details before confirming payment.</p></>}</aside>;
 }

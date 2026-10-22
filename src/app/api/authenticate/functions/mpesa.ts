@@ -19,6 +19,14 @@ function credentials(config:ReturnType<typeof mpesaConfig>){const timestamp=new 
 async function accessToken(config:ReturnType<typeof mpesaConfig>){
  try{const response=await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{headers:{Authorization:'Basic '+Buffer.from(process.env.MPESA_CONSUMER_KEY+':'+process.env.MPESA_CONSUMER_SECRET).toString('base64')},cache:'no-store',signal:AbortSignal.timeout(8000)});const data=await response.json();if(!response.ok||!data.access_token)throw Error();return data.access_token as string;}catch{throw new MpesaError('Unable to authenticate with M-Pesa. Please try again shortly.');}
 }
+export async function startMpesa(phone:string,amount:number){
+ const config=mpesaConfig();const token=await accessToken(config);
+ let response:Response;
+ try{response=await fetch(config.base+'/mpesa/stkpush/v1/processrequest',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...credentials(config),TransactionType:process.env.MPESA_TRANSACTION_TYPE||'CustomerPayBillOnline',Amount:amount,PartyA:phone,PartyB:config.shortcode,PhoneNumber:phone,CallBackURL:config.callback,AccountReference:'Malooku',TransactionDesc:'Store purchase'}),signal:AbortSignal.timeout(12000)});}catch{throw new MpesaError('M-Pesa has not confirmed whether the request was sent. Do not pay again; contact the store if a prompt arrives.',true);}
+ let data;try{data=await response.json();}catch{throw new MpesaError('M-Pesa returned an unreadable response. Do not retry payment yet.',true);}
+ if(!response.ok || String(data.ResponseCode)!=='0' || !data.CheckoutRequestID)throw new MpesaError(data.errorMessage||data.ResponseDescription||'M-Pesa could not send the request. Please try again.');
+ return data.CheckoutRequestID as string;
+}
 // STK query may report an in-progress transaction with a non-zero result code.
 export const processingDescription = /still (?:under )?processing|being processed|processing in progress/i;
 export function isProcessingResult(code: unknown, description: unknown) {
@@ -41,97 +49,4 @@ export async function queryMpesa(checkoutId:string){
   // An unsuccessful status lookup is not proof that the payment failed.
   return {state:'pending',code:String(data.errorCode||response.status),message:'Waiting for M-Pesa to confirm your payment. Do not pay again.'} as const;
  }catch{return {state:'pending',code:'unavailable',message:'Payment confirmation is delayed. Do not pay again.'} as const;}
-}
-
-// Original send-and-confirm flow used by checkout.
-export async function initiateMpesa(phone: number, price: number) {
-    const config = mpesaConfig();
-    phone = Number(normalizePhone(phone));
-    const auth = Buffer.from(process.env.MPESA_CONSUMER_KEY + ':' + process.env.MPESA_CONSUMER_SECRET).toString('base64');
-    let accessToken;
-    const shortcode = config.shortcode;
-    const passkey = config.passkey;
-    const timestamp = credentials(config).Timestamp;
-    const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64');
-
-    const res1 = await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{
-        signal: AbortSignal.timeout(5000),
-        headers:{
-            'Authorization': `Basic ${auth}`,
-        }
-    });
-
-    const response = await res1.json();
-    accessToken=response.access_token;
-
-    const res2 = await fetch(config.base+'/mpesa/stkpush/v1/processrequest', {
-        method: 'POST',
-        signal: AbortSignal.timeout(10000),
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "BusinessShortCode": config.shortcode,
-            "Password": password,
-            "Timestamp": timestamp,
-            "TransactionType": "CustomerPayBillOnline",
-            "Amount": config.testAmount ?? price,
-            "PartyA": phone,
-            "PartyB": config.shortcode,
-            "PhoneNumber": phone,
-            "CallBackURL": config.callback,
-            "AccountReference": "Malooku Stores",
-            "TransactionDesc": "Purchase product(s)"
-        })
-    });
-
-    const response2 = await res2.json();
-
-    if(response2.errorMessage){
-        const b2 = {
-            processed:false,
-            ResultCode:'0',
-            ResultDesc:response2.errorMessage
-        }
-        return b2
-    }
-
-
-    if(!res2.ok || String(response2.ResponseCode)!=='0' || !response2.CheckoutRequestID)throw new MpesaError(response2.ResponseDescription||'M-Pesa did not accept the request.');
-    console.info('mpesa_checkout_accepted',{checkoutId:response2.CheckoutRequestID});
-    const body = await confirmPayment(accessToken,password,timestamp,response2.CheckoutRequestID);
-    const b2 = {
-        processed:!body.pending,
-        pending:body.pending,
-        ResultCode:body.ResultCode,
-        ResultDesc:body.ResultDesc
-    }
-
-    return b2;
-
-
-}
-
-// ResponseCode acknowledges the lookup; ResultCode describes the payment.
-// Keep querying the same checkout ID when the payment is still processing.
-export async function confirmPayment(accessToken:string,password:string,timestamp:string,CheckoutRequestID:string){
-    const deadline=Date.now()+25000;
-    for(let attempt=0;attempt<8 && Date.now()<deadline;attempt++){
-        try{
-            const res=await fetch(mpesaConfig().base+'/mpesa/stkpushquery/v1/query',{
-                method:'POST',cache:'no-store',
-                signal:AbortSignal.timeout(Math.max(1,Math.min(5000,deadline-Date.now()))),
-                headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
-                body:JSON.stringify({BusinessShortCode:mpesaConfig().shortcode,Password:password,Timestamp:timestamp,CheckoutRequestID})
-            });
-            const response=await res.json();
-            if(res.ok && response.ResultCode!==undefined && response.ResultCode!==null && !isProcessingResult(response.ResultCode,response.ResultDesc)){
-                return {pending:false,ResultCode:String(response.ResultCode),ResultDesc:response.ResultDesc};
-            }
-        }catch{ /* A failed lookup does not mean the payment failed. */ }
-        if(attempt<7 && Date.now()+3000<deadline)await new Promise(resolve=>setTimeout(resolve,3000));
-    }
-    console.warn('mpesa_confirmation_delayed',{checkoutId:CheckoutRequestID});
-    return {pending:true,ResultCode:'4999',ResultDesc:'M-Pesa has not confirmed the final result yet. Do not pay again. Contact the store with your M-Pesa receipt if money was deducted.'};
 }
