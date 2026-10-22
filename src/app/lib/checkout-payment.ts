@@ -17,10 +17,10 @@ export async function checkPayment(attempt:any):Promise<any>{
  if(!confirmation && !attempt.checkoutId)return {success:false,pending:true,paymentId:String(attempt._id),nextCheckMs:15000,message:attempt.message||'Waiting for M-Pesa to acknowledge the request. Do not send another payment.'};
  const result=confirmation||await queryMpesa(attempt.checkoutId);
  if(result.state==='pending' || result.state==='failed'){
-  await PaymentAttempt.updateOne({_id:attempt._id,state:{$ne:'paid'},'confirmation.state':{$ne:'paid'}},
+  await PaymentAttempt.updateOne({_id:attempt._id,state:{$nin:['paid','review']},'confirmation.state':{$ne:'paid'}},
    {$set:{state:result.state,message:result.message,lastResultCode:result.code},...(result.state==='failed'?{$unset:{activeKey:1}}:{})});
   const latest=await PaymentAttempt.findById(attempt._id);
-  if(latest?.state==='paid' || latest?.confirmation?.state==='paid')return checkPayment(latest);
+  if(latest?.state==='paid' || latest?.state==='review' || latest?.confirmation?.state==='paid')return checkPayment(latest);
   return {success:false,pending:result.state==='pending',paymentId:String(attempt._id),nextCheckMs:result.retryAfterMs||5000,message:result.message};
  }
  if(!confirmation)await PaymentAttempt.updateOne({_id:attempt._id,'confirmation.state':{$ne:'paid'}},{$set:{confirmation:{state:'paid',code:'0',message:result.message,source:'query'}}});

@@ -68,6 +68,10 @@ let earlyStart;try{earlyStart=await json(await orders.POST(request('/api/orders'
 assert.equal((await Attempt.findById(earlyStart.body.paymentId)).state,'paid');assert.equal(await Order.countDocuments(),5);
 console.log('PASS: callbacks arriving before the STK response is saved are processed and never reset to pending.');
 
+const reviewed=await Attempt.create({userId:String(userId),checkoutId:'review-test',state:'pending',environment:'sandbox',amount:1});const originalFetch=global.fetch;
+global.fetch=async(url,options)=>{if(String(url).includes('/query')){await Attempt.updateOne({_id:reviewed._id},{$set:{state:'review',message:'Sandbox review'},$unset:{activeKey:1}});return Response.json({ResponseCode:'0',ResultCode:4999,ResultDesc:'The transaction is still under processing'});}return originalFetch(url,options);};
+try{const result=await load(root+'/src/app/lib/checkout-payment').checkPayment(reviewed);assert.equal(result.requiresReview,true);assert.equal((await Attempt.findById(reviewed._id)).state,'review');}finally{global.fetch=originalFetch;}
+console.log('PASS: an in-flight pending query cannot overwrite a reviewed sandbox request.');
 const poll=load(root+'/src/app/lib/poll-payment').pollPaymentStatus;let polls=0;
 const completed=await poll('saved-reference',{signal:new AbortController().signal,intervalMs:0,onPending:()=>{},fetcher:async(url,options)=>{
  assert.equal(url,'/api/orders?paymentId=saved-reference');assert.equal(options.method,undefined);polls++;
