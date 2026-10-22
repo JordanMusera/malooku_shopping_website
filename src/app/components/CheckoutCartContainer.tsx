@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {readPaymentResponse} from '@/app/lib/payment-response';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
@@ -30,11 +31,11 @@ export default function CheckoutCartContainer({ busy, onBusy }: {busy:boolean;on
     pending.current=true;setPaying(true);onBusy(true);setError('');setPaymentNotice('Check your phone and confirm the M-Pesa request.');
     let id=paymentId;
     try{
-      if(!id){const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shippingAddress:shippingAddress2,paymentMethod})});const data=await response.json();if(!data.pending || !data.paymentId)throw Error(data.message||'Unable to send the payment request.');id=data.paymentId;setPaymentId(id);}
+      if(!id){const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shippingAddress:shippingAddress2,paymentMethod})});const data=await readPaymentResponse(response);if(!data.pending || !data.paymentId)throw Error(data.message||'Unable to send the payment request.');id=data.paymentId;setPaymentId(id);}
       for(let count=0;count<8;count++){
         await new Promise(resolve=>setTimeout(resolve,15000));
-        const response=await fetch('/api/orders?paymentId='+encodeURIComponent(id),{cache:'no-store'});const data=await response.json();
-        if(response.ok && data.success){setComplete(true);setPaymentId('');const cart=await fetch('/api/cart/user',{cache:'no-store'});if(cart.ok)dispatch(setCart(await cart.json()));return;}
+        const response=await fetch('/api/orders?paymentId='+encodeURIComponent(id),{cache:'no-store'});const data=await readPaymentResponse(response);
+        if(response.ok && data.success){setComplete(true);setPaymentId('');try{const cart=await fetch('/api/cart/user',{cache:'no-store'});if(cart.ok)dispatch(setCart(await cart.json()));}catch{ /* Payment is confirmed even if refreshing the bag fails. */ }return;}
         if(data.pending && data.message)setPaymentNotice(data.message);
         if(response.ok && !data.pending){setPaymentId('');throw Error(data.message||'Payment was not completed.');}
       }
