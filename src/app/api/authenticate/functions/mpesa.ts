@@ -27,10 +27,26 @@ export async function startMpesa(phone:string,amount:number){
  if(!response.ok || String(data.ResponseCode)!=='0' || !data.CheckoutRequestID)throw new MpesaError(data.errorMessage||data.ResponseDescription||'M-Pesa could not send the request. Please try again.');
  return data.CheckoutRequestID as string;
 }
+// STK query may report an in-progress transaction with a non-zero result code.
+export const processingDescription = /still (?:under )?processing|being processed|processing in progress/i;
+export function isProcessingResult(code: unknown, description: unknown) {
+ return String(code) === '4999' || (typeof description === 'string' && processingDescription.test(description));
+}
 export async function queryMpesa(checkoutId:string){
  const config=mpesaConfig();const token=await accessToken(config);
- try{const response=await fetch(config.base+'/mpesa/stkpushquery/v1/query',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...credentials(config),CheckoutRequestID:checkoutId}),signal:AbortSignal.timeout(15000)});const data=await response.json();
- if(response.ok && data.ResultCode!==undefined && data.ResultCode!==null){const code=String(data.ResultCode);return {state:code==='0'?'paid':'failed',message:data.ResultDesc||'Payment was not completed.'} as const;}
- return {state:'pending',message:'Waiting for M-Pesa to confirm your payment.'} as const;
- }catch{return {state:'pending',message:'Payment confirmation is delayed. Do not pay again.'} as const;}
+ try{
+  const response=await fetch(config.base+'/mpesa/stkpushquery/v1/query',{
+   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({...credentials(config),CheckoutRequestID:checkoutId}),
+   cache:'no-store',signal:AbortSignal.timeout(15000)
+  });
+  const data=await response.json();
+  if(response.ok && data.ResultCode!==undefined && data.ResultCode!==null){
+   const code=String(data.ResultCode);
+   if(isProcessingResult(code,data.ResultDesc))return {state:'pending',code,message:'M-Pesa is still processing your payment. We will keep checking; do not pay again.'} as const;
+   return {state:code==='0'?'paid':'failed',code,message:data.ResultDesc||'Payment was not completed.'} as const;
+  }
+  // An unsuccessful status lookup is not proof that the payment failed.
+  return {state:'pending',code:String(data.errorCode||response.status),message:'Waiting for M-Pesa to confirm your payment. Do not pay again.'} as const;
+ }catch{return {state:'pending',code:'unavailable',message:'Payment confirmation is delayed. Do not pay again.'} as const;}
 }

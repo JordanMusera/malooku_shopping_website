@@ -2,8 +2,9 @@ import {NextRequest,NextResponse} from 'next/server';
 import mongoose from 'mongoose';
 import dbConnect from '@/app/config/database';
 import {verifyToken} from '../authenticate/functions/auth';
-import {MpesaError,mpesaConfig,normalizePhone,startMpesa} from '../authenticate/functions/mpesa';
+import {MpesaError,mpesaConfig,normalizePhone,startMpesa,processingDescription} from '../authenticate/functions/mpesa';
 import Cart from '@/app/models/cart';import Product from '@/app/models/product';import Order from '@/app/models/order';import PurchasedProduct from '@/app/models/purchased_product';import PaymentAttempt from '@/app/models/payment_attempt';import {checkPayment} from '@/app/lib/checkout-payment';
+export const dynamic='force-dynamic';
 const reply=(body:any,status=200)=>NextResponse.json(body,{status,headers:{'Cache-Control':'private, no-store'}});
 async function session(request:NextRequest){const token=request.cookies.get('authToken')?.value;return token?verifyToken(token).catch(()=>null):null;}
 export async function POST(request:NextRequest){
@@ -11,7 +12,13 @@ export async function POST(request:NextRequest){
  let attempt:any;
  try{
   await dbConnect();await PaymentAttempt.init();
-  const active=await PaymentAttempt.findOne({activeKey:auth.userId});if(active)return reply({success:false,pending:true,paymentId:String(active._id),message:'An existing payment is awaiting confirmation. Checking its status.'},202);
+  let active=await PaymentAttempt.findOne({activeKey:auth.userId});
+  if(!active){
+   // Recover requests incorrectly marked failed by the old processing-code handler.
+   const recoverable=await PaymentAttempt.findOne({userId:auth.userId,checkoutId:{$exists:true},$or:[{state:'pending'},{state:'failed',message:processingDescription}]}).sort({createdAt:-1});
+   if(recoverable)active=await PaymentAttempt.findOneAndUpdate({_id:recoverable._id,state:{$in:['pending','failed']}},{$set:{state:'pending',activeKey:auth.userId}},{new:true});
+  }
+  if(active)return reply({success:false,pending:true,paymentId:String(active._id),message:'An existing payment is awaiting confirmation. Checking its status.'},202);
   const {shippingAddress,paymentMethod}=await request.json();
   if(!shippingAddress?.street?.trim()||!shippingAddress?.city?.trim()||!shippingAddress?.county?.trim()||paymentMethod?.accType!=='mpesa')return reply({success:false,message:'Select your delivery address and M-Pesa number first.'},400);
   const phone=normalizePhone(paymentMethod.accNumber);const config=mpesaConfig();
