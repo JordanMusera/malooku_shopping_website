@@ -19,14 +19,6 @@ function credentials(config:ReturnType<typeof mpesaConfig>){const timestamp=new 
 async function accessToken(config:ReturnType<typeof mpesaConfig>){
  try{const response=await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{headers:{Authorization:'Basic '+Buffer.from(process.env.MPESA_CONSUMER_KEY+':'+process.env.MPESA_CONSUMER_SECRET).toString('base64')},cache:'no-store',signal:AbortSignal.timeout(8000)});const data=await response.json();if(!response.ok||!data.access_token)throw Error();return data.access_token as string;}catch{throw new MpesaError('Unable to authenticate with M-Pesa. Please try again shortly.');}
 }
-export async function startMpesa(phone:string,amount:number){
- const config=mpesaConfig();const token=await accessToken(config);
- let response:Response;
- try{response=await fetch(config.base+'/mpesa/stkpush/v1/processrequest',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({...credentials(config),TransactionType:process.env.MPESA_TRANSACTION_TYPE||'CustomerPayBillOnline',Amount:amount,PartyA:phone,PartyB:config.shortcode,PhoneNumber:phone,CallBackURL:config.callback,AccountReference:'Malooku',TransactionDesc:'Store purchase'}),signal:AbortSignal.timeout(12000)});}catch{throw new MpesaError('M-Pesa has not confirmed whether the request was sent. Do not pay again; contact the store if a prompt arrives.',true);}
- let data;try{data=await response.json();}catch{throw new MpesaError('M-Pesa returned an unreadable response. Do not retry payment yet.',true);}
- if(!response.ok || String(data.ResponseCode)!=='0' || !data.CheckoutRequestID)throw new MpesaError(data.errorMessage||data.ResponseDescription||'M-Pesa could not send the request. Please try again.');
- return data.CheckoutRequestID as string;
-}
 // STK query may report an in-progress transaction with a non-zero result code.
 export const processingDescription = /still (?:under )?processing|being processed|processing in progress/i;
 export function isProcessingResult(code: unknown, description: unknown) {
@@ -49,4 +41,108 @@ export async function queryMpesa(checkoutId:string){
   // An unsuccessful status lookup is not proof that the payment failed.
   return {state:'pending',code:String(data.errorCode||response.status),message:'Waiting for M-Pesa to confirm your payment. Do not pay again.'} as const;
  }catch{return {state:'pending',code:'unavailable',message:'Payment confirmation is delayed. Do not pay again.'} as const;}
+}
+
+// Original send-and-confirm flow used by checkout.
+export async function initiateMpesa(phone: number, price: number) {
+    const config = mpesaConfig();
+    phone = Number(normalizePhone(phone));
+    const auth = Buffer.from(process.env.MPESA_CONSUMER_KEY + ':' + process.env.MPESA_CONSUMER_SECRET).toString('base64');
+    let accessToken;
+    const shortcode = config.shortcode;
+    const passkey = config.passkey;
+    const timestamp = await generateTimeStamp();
+    const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64');
+
+    const res1 = await fetch(config.base+'/oauth/v1/generate?grant_type=client_credentials',{
+        headers:{
+            'Authorization': `Basic ${auth}`,
+        }
+    });
+
+    const response = await res1.json();
+    accessToken=response.access_token;
+
+    const res2 = await fetch(config.base+'/mpesa/stkpush/v1/processrequest', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "BusinessShortCode": config.shortcode,
+            "Password": password,
+            "Timestamp": timestamp,
+            "TransactionType": "CustomerPayBillOnline",
+            "Amount": config.testAmount ?? price,
+            "PartyA": phone,
+            "PartyB": config.shortcode,
+            "PhoneNumber": phone,
+            "CallBackURL": config.callback,
+            "AccountReference": "Malooku Stores",
+            "TransactionDesc": "Purchase product(s)"
+        })
+    });
+
+    const response2 = await res2.json();
+
+    if(response2.errorMessage){
+        const b2 = {
+            processed:false,
+            ResultCode:'0',
+            ResultDesc:response2.errorMessage
+        }
+        return b2
+    }
+
+
+    const body = await confirmPayment(accessToken,password,timestamp,response2.CheckoutRequestID);
+    const b2 = {
+        processed:true,
+        ResultCode:body.ResultCode,
+        ResultDesc:body.ResultDesc
+    }
+
+    return b2;
+
+
+}
+
+const confirmPayment=async(accessToken:string,password:string,timestamp:string,CheckoutRequestID:string)=>{
+    const res = await fetch(mpesaConfig().base+'/mpesa/stkpushquery/v1/query',{
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify({
+            "BusinessShortCode":mpesaConfig().shortcode,
+            "Password": password,
+            "Timestamp":timestamp,
+            "CheckoutRequestID": CheckoutRequestID,
+        })
+    })
+
+    const response = await res.json();
+    if(response.ResponseCode){
+        return response;
+    }else{
+        return await confirmPayment(accessToken,password,timestamp,CheckoutRequestID)
+    }
+
+}
+
+const generateTimeStamp=()=>{
+const now = new Date();
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, '0');
+const day = String(now.getDate()).padStart(2, '0');
+const hours = String(now.getHours()).padStart(2, '0');
+const minutes = String(now.getMinutes()).padStart(2, '0');
+const seconds = String(now.getSeconds()).padStart(2, '0');
+
+const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}`;
+
+
+return timestamp;
 }
