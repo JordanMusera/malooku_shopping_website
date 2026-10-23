@@ -1,157 +1,39 @@
-'use client'
-import React, { useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/ReactToastify.css'
-
-interface CARDetails {
-  product: {
-    product: {
-      _id: string;
-      title: string;
-      price: number;
-      description: string;
-      category: string;
-      image: string;
-    };
-    status: string;
-    quantity: number;
-    productQtyPrice: number;
+'use client';
+import React, { useEffect, useState } from 'react';
+import { AccountOrderProduct, OrderBack, OrderProductSummary, OrderUnavailable } from './AccountOrderUI';
+interface RefundDetails { orderId?: string; product?: AccountOrderProduct; }
+export default function RefundFormContainer({ orderDetails, clickedTab }: { orderDetails: RefundDetails; clickedTab: (tab: string) => void }) {
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [reason, setReason] = useState('');
+  const [details, setDetails] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  useEffect(() => {
+    const urls = files.map(file => URL.createObjectURL(file)); setPreviews(urls);
+    return () => urls.forEach(url => URL.revokeObjectURL(url));
+  }, [files]);
+  if (!orderDetails.product || !orderDetails.orderId) return <OrderUnavailable onBack={() => clickedTab('ordersTab')} />;
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); if (busy) return; setBusy(true); setError('');
+    const data = new FormData(); files.forEach(file => data.append('images', file));
+    data.append('selectedReason', reason); data.append('providedReason', details);
+    data.append('orderId', orderDetails.orderId!); data.append('productId', orderDetails.product!.product._id);
+    try {
+      const res = await fetch('/api/orders/refundedOrder/refundApplication', { method: 'POST', body: data });
+      const result = await res.json(); if (!res.ok || !result.success) throw new Error(result.message || 'Unable to submit your request. Please try again.'); setSubmitted(true);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to submit your request. Please try again.'); } finally { setBusy(false); }
   };
-  orderId: string;
-}
-
-const RefundFormContainer = ({ orderDetails }: { orderDetails: any }) => {
-  const [image, setImage] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [selectedReason, setSelectedReason] = useState('');
-  const [providedReason, setProvidedReason] = useState('');
-  const [imageArray, setImageArray] = useState<string[]>([]);
-  const [imageFileArray, setImageFileArray] = useState<File[]>([]);
-
-
-  const submitRefundForm = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    const formData = new FormData();
-
-    if (imageFileArray.length !== 0) {
-      imageFileArray.forEach((file) => {
-        formData.append('images', file);
-      });
-    }
-
-    formData.append('selectedReason', selectedReason);
-    formData.append('providedReason', providedReason);
-    formData.append('orderId', orderDetails.orderId);
-    formData.append('productId', orderDetails.product.product._id);
-
-    const res = await fetch('api/orders/refundedOrder/refundApplication', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const response = await res.json();
-    if (response.success) {
-      toast.success(response.message);
-    } else {
-      toast.error(response.message);
-    }
-  };
-
-  const handleImageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const files: File[] = Array.from(e.target.files || []);
-    for (const file of files) {
-      setImageFile(file);
-      setImageFileArray((prev) => [...prev, file]);
-      const newImage = URL.createObjectURL(file);
-      setImage(newImage);
-      setImageArray((prevArray) => [...prevArray, newImage]);
-    }
-  };
-
-  return (
-    <div className='w-full h-full overflow-auto p-2 flex items-center'>
-      <form className='w-full flex flex-col gap-2' onSubmit={submitRefundForm}>
-      <p className='text-md text-pink-300 font-semibold'>*Apply for Refund</p>
-      <p className='text-sm text-red-500 font-semibold bg-red-200 rounded-lg p-1'>*Please provide reasons why you want to refund this product.</p>
-        <div className='flex items-center gap-4'>
-          <div className='flex gap-3 items-center rounded-lg w-max p-5'>
-            <img src={orderDetails.product.product.images[0].imageUrl} alt="" width={100} height={100} />
-            <div>
-              <p className='text-sm font-semibold'>{orderDetails.product.product.title}</p>
-              <div className='flex gap-4 text-lg'>
-                <p>{orderDetails.product.quantity}</p>
-                <p>*</p>
-                <p>{orderDetails.product.product.price}</p>
-              </div>
-              <p className='text-2xl text-pink-300 font-bold'>${orderDetails.product.productQtyPrice}</p>
-            </div>
-          </div>
-          <p className='bg-orange-300 rounded-lg p-1 text-white text-sm font-semibold'>{orderDetails.product.status}</p>
-        </div>
-
-        <div className='flex flex-col w-2/3 gap-2'>
-          <label htmlFor='delivery-options' className='font-semibold'>Select Reason</label>
-          <select
-            id='reason-options'
-            required
-            className='text-md font-semibold ms-5 rounded-md p-1'
-            onChange={(e) => setSelectedReason(e.target.value)}
-          >
-            <option value='option1'>option 1</option>
-            <option value='option2'>option 2</option>
-            <option value='option3'>option 3</option>
-            <option value='option4'>option 4</option>
-          </select>
-        </div>
-
-        <label className='font-semibold'>Attach Images (Optional)</label>
-        <div className='flex gap-3 h-max items-center overflow-x-auto overflow-y-hidden'>
-          {imageArray.map((image, index) => (
-            <div key={index}>
-              <div className='w-40 h-40 rounded-md bg-white'>
-                <img src={image} alt='' sizes='full' className='rounded-md contain-content w-full h-full' />
-              </div>
-            </div>
-          ))}
-          <div>
-            <input
-              type='file'
-              id='file_upload'
-              multiple
-              required
-              placeholder='+Add image'
-              title='Add image'
-              className='rounded-2xl p-1 hidden'
-              onChange={handleImageInput}
-            />
-            <label htmlFor="file_upload" className='bg-pink-200 border border-pink-300 hover:bg-pink-300 text-sm font-bold text-white rounded-full w-max h-8 flex items-center justify-center p-1 ms-5'>Add Image</label>
-          </div>
-
-        </div>
-
-        <label htmlFor='' className='font-semibold'>Provide Reason</label>
-        <input
-          type='text'
-          maxLength={500}
-          placeholder='Provide reason for refund'
-          className='h-40 w-full justify-center items-center text-center rounded-lg ms-5'
-          onChange={(e) => setProvidedReason(e.target.value)}
-        />
-
-        <div className='w-full flex items-center justify-end text-black font-semibold'>
-          <button
-            type='submit'
-            className='bg-pink-200 border border-pink-300 hover:bg-pink-300 p-2 rounded-lg w-max'
-          >
-            Submit Application
-          </button>
-        </div>
-        <ToastContainer />
+  return <div className="account-order-view"><OrderBack onClick={() => clickedTab(submitted ? 'refunds_tab' : 'viewOrderTab')}>{submitted ? 'Back to refunds' : 'Back to order'}</OrderBack>
+    {submitted ? <div className="account-empty" role="status"><h3>Refund request submitted.</h3><p>Follow its progress in the Refunds tab.</p><button className="shop-button" onClick={() => clickedTab('refunds_tab')}>View refunds</button></div> : <>
+      <p className="account-order-muted">Tell us what went wrong so we can review your request.</p><div className="account-order-card"><OrderProductSummary item={orderDetails.product} /></div>
+      <form className="account-refund-form" onSubmit={submit}><div className="account-field"><label htmlFor="refund-reason">Reason for return</label><select id="refund-reason" value={reason} onChange={e => setReason(e.target.value)} required><option value="" disabled>Select a reason</option>{['Damaged or defective item', 'Wrong item received', 'Item differs from description', 'Other'].map(value => <option key={value}>{value}</option>)}</select></div>
+        <div className="account-field"><label htmlFor="refund-details">Additional details</label><textarea id="refund-details" value={details} onChange={e => setDetails(e.target.value)} maxLength={500} rows={5} placeholder="Describe the issue with your item" /><p className="account-order-muted">{details.length}/500 characters</p></div>
+        <div className="account-field"><label htmlFor="refund-photos">Attach photos <span>(optional)</span></label><input id="refund-photos" type="file" accept="image/*" multiple onChange={e => setFiles(Array.from(e.target.files || []))} /><p className="account-order-muted">Add clear photos to help us review the issue.</p></div>
+        {!!previews.length && <div className="account-refund-photos">{previews.map((src, index) => <div key={src}><img src={src} alt={'Selected photo ' + (index + 1)} /><button type="button" className="account-order-button" onClick={() => setFiles(previous => previous.filter((_, i) => i !== index))}>Remove photo {index + 1}</button></div>)}</div>}
+        {error && <p className="account-form-error" role="alert">{error}</p>}<div className="account-line-actions"><button className="account-order-button account-order-button-primary" type="submit" disabled={busy}>{busy ? 'Submitting…' : 'Submit refund request'}</button></div>
       </form>
-    </div>
-
-  );
-};
-
-export default RefundFormContainer;
+    </>}
+  </div>;
+}

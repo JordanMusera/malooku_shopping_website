@@ -1,116 +1,37 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import { FaArrowLeft } from 'react-icons/fa'
-
-interface OrderProgress {
-    orderStatus: string,
-    date: string,
-    description: string
+'use client';
+import React, { useEffect, useState } from 'react';
+import { FiCheck } from 'react-icons/fi';
+import { money, orderDate, OrderBack, OrderInfo } from './AccountOrderUI';
+interface Progress {
+  orderProgress: { orderStatus: string; date: string; description: string }[];
+  totalCost: number;
+  shippingAddress?: { postalCode?: string; street?: string; city?: string; county?: string };
+  deliveryInfo?: { deliveryType?: string; pickupStation?: string };
 }
-
-interface ShippingAddress {
-    postalCode: string,
-    street: string,
-    city: string,
-    county: string
+export default function TrackOrderContainer({ orderId, clickedTab }: { orderId: string; clickedTab: (tab: string) => void }) {
+  const [data, setData] = useState<Progress | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true); setError(false);
+    (async () => {
+      try {
+        if (!orderId) { setData(null); return; }
+        const res = await fetch('/api/orders/orderProgress/' + orderId, { signal: controller.signal });
+        if (!res.ok) throw new Error('Unable to load tracking');
+        const response = await res.json(); setData(response.content || null);
+      } catch { if (!controller.signal.aborted) setError(true); }
+      finally { if (!controller.signal.aborted) setLoading(false); }
+    })();
+    return () => controller.abort();
+  }, [orderId, attempt]);
+  return <div className="account-order-view"><OrderBack onClick={() => clickedTab('ordersTab')} />
+    {loading ? <p className="account-loading" role="status">Loading order progress…</p> : error ? <div className="account-empty" role="alert"><h3>Unable to load tracking.</h3><button className="shop-button" onClick={() => setAttempt(n => n + 1)}>Try again</button></div> : !data ? <div className="account-empty"><h3>Tracking isn’t available yet.</h3><p>Check back here for updates as your order moves along.</p></div> : <>
+      <div className="account-order-overview"><div><p className="account-order-reference">Order #{orderId.slice(-8).toUpperCase()}</p><p className="account-order-muted">Follow your delivery</p></div><strong>{money(data.totalCost)}</strong></div>
+      {data.orderProgress?.length ? <ol className="account-order-timeline">{data.orderProgress.map((step, index) => <li key={index}><span className="account-timeline-marker" aria-hidden="true"><FiCheck /></span><div><h3>{step.orderStatus}</h3><p className="account-order-muted">{orderDate(step.date)}</p><p>{step.description}</p></div></li>)}</ol> : <p className="account-order-muted">Your next delivery update will appear here.</p>}
+      <div className="account-order-info-grid"><OrderInfo title="Delivery address"><p>{[data.shippingAddress?.street, data.shippingAddress?.city, data.shippingAddress?.county, data.shippingAddress?.postalCode].filter(Boolean).join(', ') || 'No delivery address available.'}</p></OrderInfo><OrderInfo title="Delivery method"><p>{data.deliveryInfo?.deliveryType || 'Standard delivery'}</p>{data.deliveryInfo?.pickupStation && <p>{data.deliveryInfo.pickupStation}</p>}</OrderInfo></div>
+    </>}
+  </div>;
 }
-interface DeliveryInfo {
-    deliveryType: string,
-    pickupStation: string
-}
-interface FetchedProgress {
-    _id: string,
-    orderId: string,
-    orderProgress: OrderProgress[],
-    totalCost: number,
-    shippingAddress: ShippingAddress,
-    deliveryInfo: DeliveryInfo
-}
-
-interface OrderId{
-    orderId:string
-}
-
-const TrackOrderContainer = ({orderId,clickedTab}:any) => {
-    const [fetchedTrack, setFetchedTrack] = useState<FetchedProgress | null>(null);
-
-    useEffect(() => {
-        const fetchOrderTrack = async () => {
-            const res = await fetch(`/api/orders/orderProgress/${orderId}`);
-            const response = await res.json();
-            setFetchedTrack(response.content);
-        }
-        fetchOrderTrack();
-    }, [orderId])
-    return (
-        <div className='w-full h-full flex flex-col p-5'>
-              <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
-          clickedTab('ordersTab')
-        }}/>
-
-        <div className='flex items-center justify-center w-full h-full overflow-auto'>
-        {fetchedTrack ?(
-                <div className='w-full'>
-                    <p className='text-xl text-pink-300 font-semibold'>Track Order</p>
-            <div className='flex flex-col md:flex-row gap-2 justify-between'>
-                <div className='text-md font-semibold text-gray-700 gap-2'>
-                    <p>{fetchedTrack && fetchedTrack.orderProgress[0].date}</p>
-                    <p>{fetchedTrack?._id}</p>
-                </div>
-                <p className='text-green-500 text-2xl font-semibold'>${fetchedTrack?.totalCost}</p>
-            </div>
-
-            <div className='w-full mt-10'>
-                {fetchedTrack && fetchedTrack.orderProgress.map((item) => (
-                    <div>
-                        <div className='flex w-full gap-1 mt-2'>
-                            <div className='flex flex-col items-center justify-center w-max gap-1'>
-                                <div className='w-5 h-5 rounded-full bg-pink-300 shadow-xl' />
-                                {item.orderStatus != 'delivered' ? (
-                                    <hr className='w-[2px] h-20 bg-pink-200 shadow-xl' />
-                                ) : (
-                                    <hr className='w-[10px] h-14 bg-green-400 rounded-lg shadow-xl' />
-                                )}
-
-                            </div>
-
-                            <div className='flex'>
-                                <div>
-                                    <div className='flex flex-col gap-2'>
-                                        <p className='text-md font-semibold text-black'>{item.orderStatus}</p>
-                                        <p className='text-sm font-semibold text-gray-700'>{item.date}</p>
-                                    </div>
-                                    <p>{item.description}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-
-            </div>
-
-            <div className='w-full h-max bg-white shadow-xl mt-10 rounded-lg p-5 flex flex-col md:flex-row items-center gap-2 justify-between'>
-                <img src="/delivery_icon.svg" alt="" width={100} height={100} />
-                <div className='text-md text-black font-semibold'>
-                    {`${fetchedTrack?.shippingAddress.postalCode}, ${fetchedTrack?.shippingAddress.street}, ${fetchedTrack?.shippingAddress.city}, ${fetchedTrack?.shippingAddress.county}`}
-                </div>
-                <div className='flex text-green-500 font-bold text-md gap-2'>
-                    <p className='text-gray-700'>{fetchedTrack?.deliveryInfo.deliveryType}: </p>
-                    {`${fetchedTrack?.deliveryInfo.pickupStation}`}
-                </div>
-            </div>
-                </div>
-            ):(
-                <div className='w-full h-full flex items-center justify-center'>
-                    <p>Progress not available at the moment!</p>
-                </div>
-            )}
-            
-
-        </div>
-            
-        </div>
-    )
-}
-
-export default TrackOrderContainer

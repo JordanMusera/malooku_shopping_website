@@ -1,125 +1,26 @@
-import Image from 'next/image';
-import React, { useEffect, useState } from 'react'
-import { ToastContainer,toast } from 'react-toastify';
-import 'react-toastify/ReactToastify.css'
-
-interface Image{
-  url:string,
-  publicId:string,
-  assetId:string
+'use client';
+import React, { useEffect, useState } from 'react';
+import { AccountOrderProduct, orderDate, OrderProductSummary, OrderStatus } from './AccountOrderUI';
+export interface AccountRefund {
+  _id: string; orderId: string; productId: string; status: string; order: AccountOrderProduct;
+  selectedReason: string; providedReason: string; images?: { url: string }[];
+  messages?: { message: string }[]; applicationDate: string;
 }
-
-interface RefundOrder{
-  _id:string,
-  userId:string,
-  orderId:string,
-  productId:string,
-  status:string,
-  order:{
-    product:{
-      rating:{
-        rate:number,
-        count:number
-      },
-      _id:string,
-      title:string,
-      price:number,
-      description:string,
-      category:string,
-      image:string,
-      images:any
-    },
-    quantity:number,
-    productQtyPrice:number
-  },
-  selectedReason:string,
-  providedReason:string,
-  images:Image[],
-  applicationDate:string
+export default function OrderRefundsContainer({ clickedTab, refundObj }: { clickedTab: (tab: string) => void; refundObj: (item: AccountRefund) => void }) {
+  const [items, setItems] = useState<AccountRefund[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController(); setLoading(true); setError(false);
+    (async () => { try {
+      const res = await fetch('/api/orders/refundedOrder', { signal: controller.signal });
+      if (!res.ok) throw new Error();
+      const response = await res.json(); if (!Array.isArray(response.content)) throw new Error(); setItems(response.content);
+    } catch { if (!controller.signal.aborted) setError(true); } finally { if (!controller.signal.aborted) setLoading(false); } })();
+    return () => controller.abort();
+  }, [attempt]);
+  return <div className="account-orders">{loading ? <p className="account-loading" role="status">Loading refund requests…</p> : error ? <div className="account-empty" role="alert"><h3>Unable to load refund requests.</h3><button className="shop-button" onClick={() => setAttempt(n => n + 1)}>Try again</button></div> : !items.length ? <div className="account-empty"><h3>No refund requests.</h3><p>Your refund requests and their status will appear here.</p></div> : <div className="account-order-list">{items.map(item => <article className="account-order-card" key={item._id}>
+    <div className="account-order-card-heading"><span>Requested {orderDate(item.applicationDate)}</span><OrderStatus status={item.status} /></div><OrderProductSummary item={item.order} /><div className="account-line-actions"><button className="account-order-button" onClick={() => { refundObj(item); clickedTab('view_order_application'); }}>View refund details</button></div>
+  </article>)}</div>}</div>;
 }
-
-const OrderRefundsContainer = ({clickedTab,refundObj}:any) => {
-  const[refundedOrders,setRefundedOrders] = useState<RefundOrder[]>([]);
-
-    const handleClickedTab = (tab:string)=>{
-        clickedTab(tab)
-    }
-
-    useEffect(()=>{
-      const fetchRefunds=async()=>{
-        try {
-           const res = await fetch('/api/orders/refundedOrder');
-        const response = await res.json();
-        if(response){
-          setRefundedOrders(Array.isArray(response.content) ? response.content : []);
-        }
-        } catch (error) {
-          toast.error('Some error occurred!');
-        }
-      }
-      fetchRefunds();
-    },[]);
-
-    const handleViewApplicationClick=(item:RefundOrder)=>{
-      clickedTab('view_order_application');
-      refundObj(item);
-    }
-  return (
-    <div className='account-orders'>
-            <div className='flex flex-col-reverse gap-2'>
-              {refundedOrders.length === 0 && <div className="account-empty"><h3>No refund requests.</h3><p>Your refund requests and their status will appear here.</p></div>}
-              {refundedOrders.map((item,index)=>(
-                <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex flex-col md:flex-row items-center justify-between md:gap-6'>
-                <div className='flex gap-2 justify-between items-center md:w-1/2'>
-                  <Image src={item.order.product.images[0].imageUrl} alt='' width={100} height={100}/>
-                <div className='flex flex-col gap-2 relative'>
-                  <div className='flex justify-end md:justify-start'>
-                    <p className='px-1 bg-orange-300 rounded-md w-max'>{item.status}</p>
-                  </div>
-                  <p className='text-black font-semibold text-sm'>{item.order.product.title}</p>
-                  <p className='text-gray-700 text-sm'>{item.applicationDate}</p>
-                </div>
-                </div>
-                
-                <div className='flex gap-2 justify-between items-center md:w-1/2'>
-                  <div className='flex flex-col gap-3 justify-center'>
-                  <p className='text-black text-sm font-medium'>{item.order.product.price} * {item.order.quantity}</p>
-                  <p className='text-green-500 text-xl font-semibold'>${item.order.productQtyPrice}</p>
-                </div>
-                <div className='flex flex-col w-max gap-4'>
-                  <p className='text-gray-700 text-sm font-semibold'>Id: {item.productId}</p>
-                  <button className='border border-pink-300 rounded-lg w-full text-black p-1'
-                  onClick={ ()=>handleViewApplicationClick(item)}>View Application</button>
-                </div>
-                </div>
-                
-              </div>
-
-
-
-              //   <div key={index} className='bg-white h-max w-full rounded-lg shadow-lg p-5 flex items-center justify-between'>
-              //   <Image src={item.order.product.image} alt='' width={100} height={100}/>
-              //   <div className='flex flex-col gap-2'>
-              //     <p className='px-1 bg-orange-300 rounded-md w-max'>{item.status}</p>
-              //     <p className='text-gray-700 text-sm'>{item.applicationDate}</p>
-              //   </div>
-              //   <div className='flex flex-col gap-3 justify-center'>
-              //     <p className='text-black text-sm font-medium'>{item.order.product.price} * {item.order.quantity}</p>
-              //     <p className='text-green-500 text-xl font-semibold'>${item.order.productQtyPrice}</p>
-              //   </div>
-              //   <div className='flex flex-col w-max gap-4'>
-              //     <p className='text-gray-700 text-sm font-semibold'>Id: {item._id}</p>
-              //     <button className='border border-pink-300 rounded-lg w-full text-black p-1'
-              //     onClick={()=>handleViewApplicationClick(item)}>View Application</button>
-              //   </div>
-              // </div>
-              ))}
-            </div>
-
-
-            <ToastContainer/>
-    </div>
-  )
-}
-
-export default OrderRefundsContainer

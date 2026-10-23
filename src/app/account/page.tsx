@@ -38,7 +38,9 @@ const AccountPage = () => {
     );
 
     useEffect(() => {
-        setTab(clickedTab);
+        // A detail view needs the selected order held in this page's state.
+        const detailParents: Record<string, string> = { viewOrderTab: 'ordersTab', trackorder: 'ordersTab', refund_form_tab: 'refunds_tab', view_order_application: 'refunds_tab', review_tab: 'pending_review_tab', view_review_tab: 'reviewed_tab' };
+        setTab(detailParents[clickedTab] || clickedTab);
     }, []);
 
 
@@ -47,7 +49,7 @@ const AccountPage = () => {
         setTab(data);
 
         dispatch(setClickedTab(data))
-        console.log("Clicked_tab: " + data)
+
     }
 
     const handleCancelAndRefund = (data: any) => {
@@ -56,8 +58,7 @@ const AccountPage = () => {
 
     const handleOrderClick = (data: object) => {
         setOrderObj(data);
-        console.log("Clicked order: " + orderObj);
-        setTab('viewOrderTab')
+        handleTabClick('viewOrderTab')
     }
 
 
@@ -70,6 +71,8 @@ const AccountPage = () => {
     }
 
 
+    const orderTabs = ['ordersTab', 'cancelled_orders_tab', 'refunds_tab', 'viewOrderTab', 'trackorder', 'refund_form_tab', 'view_order_application'];
+    const orderCategory = ['refunds_tab', 'refund_form_tab', 'view_order_application'].includes(tab) ? 'refunds_tab' : tab === 'cancelled_orders_tab' ? tab : 'ordersTab';
     const titles: Record<string, string> = {
         edit_profile: 'Personal information', security: 'Account security', favouriteTab: 'Saved items',
         ordersTab: 'My orders', viewOrderTab: 'Order details', trackorder: 'Track your order',
@@ -98,14 +101,14 @@ const AccountPage = () => {
                                     ))}
                                 </nav>
                             )}
-                            {['ordersTab', 'cancelled_orders_tab', 'refunds_tab'].includes(tab) && (
+                            {orderTabs.includes(tab) && (
                                 <nav className="account-subtabs order-category-tabs" aria-label="Order categories">
                                     {[
                                         { id: 'ordersTab', label: 'All orders' },
                                         { id: 'cancelled_orders_tab', label: 'Cancelled' },
                                         { id: 'refunds_tab', label: 'Refunds' },
                                     ].map(category => (
-                                        <button key={category.id} aria-current={tab === category.id ? 'page' : undefined} onClick={() => handleTabClick(category.id)}>{category.label}</button>
+                                        <button key={category.id} aria-current={orderCategory === category.id ? 'page' : undefined} onClick={() => handleTabClick(category.id)}>{category.label}</button>
                                     ))}
                                 </nav>
                             )}
@@ -117,7 +120,7 @@ const AccountPage = () => {
                     {tab === "trackorder" && <TrackOrderContainer orderId={orderId} clickedTab={handleTabClick} />}
                     {tab === 'cancelled_orders_tab' && <CancelledOrdersContainer clickedTab={handleTabClick} />}
                     {tab === 'refunds_tab' && <OrderRefundsContainer clickedTab={handleTabClick} refundObj={setClickedRefundFn} />}
-                    {tab === 'refund_form_tab' && <RefundFormContainer orderDetails={CARorderDetails} />}
+                    {tab === 'refund_form_tab' && <RefundFormContainer orderDetails={CARorderDetails} clickedTab={handleTabClick} />}
                     {tab === 'view_order_application' && <ViewRefundApplicationContainer clickedRefund={clickedRefund} clickedTab={handleTabClick} />}
                     {tab === 'notifications_tab' && <NotificationsContainer />}
                     {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick} productId={setProductId} />}
