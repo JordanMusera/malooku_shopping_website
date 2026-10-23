@@ -1,40 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿MALOOKU SHOPPING WEBSITE
 
-## Getting Started
+PROJECT OVERVIEW
 
-First, run the development server:
+Malooku is an online shopping website. Customers can browse products, add items to their shopping bag, pay using M-Pesa, track orders, save favourites, and write product reviews. Customers can also manage their profile, addresses, orders, cancellations, and refund requests.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Store administrators can manage products, customers, orders, payments, and refunds. The first administrator account can be set up when the store does not yet have an administrator.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+TECHNOLOGIES AND LIBRARIES
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Next.js is used to build the website pages and server API. React and TypeScript are used to create the user interface and application code.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+MongoDB stores the application data. Mongoose connects the application to MongoDB and defines the data models.
 
-## Learn More
+Redux Toolkit and React Redux manage shared information such as the shopping bag and account state.
 
-To learn more about Next.js, take a look at the following resources:
+Safaricom Daraja is used for M-Pesa STK Push payments and payment callbacks. Nodemailer sends signup verification codes and password reset codes through an SMTP email account. Cloudinary stores product images.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Ant Design provides interface components. React Icons provides icons, and React Toastify displays notifications. Bcrypt hashes passwords. Jose and JsonWebToken handle signed login tokens.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+REQUIREMENTS
 
-## Deploy on Vercel
+The project requires Node.js version 20 or later, npm, and a MongoDB database. Email delivery requires an SMTP account. Product image uploads require Cloudinary credentials. M-Pesa payments require Safaricom Daraja credentials and a public HTTPS callback address.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+RUNNING THE PROJECT
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Install the project packages with the command: npm install
 
-## Email verification and password reset
+Copy the file named .env.example to a new file named .env.local. Add the correct values for your database and any services you use. Keep .env.local private and do not add it to source control.
 
-Verification and reset codes are sent through Nodemailer using SMTP. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and a long random `OTP_SECRET` in `.env.local` for local development and in the Vercel project environment for deployment. Gmail SMTP uses `smtp.gmail.com` on port `465` (secure) or port `587` (STARTTLS); use a Google app password for `SMTP_PASS`. Keep credentials in environment settings, never in source control. Codes expire after 10 minutes and can be resent after one minute.
+Start the development website with the command: npm run dev
+
+Open http://localhost:3000 in a browser.
+
+To create a production build, run npm run build. To start the production build, run npm run start. To run the configured lint command, run npm run lint.
+
+CONFIGURATION
+
+The .env.example file lists the settings used by the project. These include the MongoDB connection string, JWT signing secret, M-Pesa credentials, Cloudinary credentials, SMTP sender details, and the secret used to protect email verification codes.
+
+The example M-Pesa settings use sandbox mode and KSh 1 test payments. M-Pesa callbacks need a public HTTPS address. Gmail SMTP can use smtp.gmail.com on port 465 or port 587, with a Google app password as the SMTP password.
+
+Email verification and password reset codes expire after 10 minutes. A new code can be requested after one minute. Keep all database URLs, passwords, API keys, and signing secrets private.
+
+For a deployed website, configure the required settings in the hosting provider's environment settings. The production email and payment features will not work until their settings are configured.
+
+PROJECT FILES
+
+Website pages, components, API routes, database models, and shared application logic are in the src folder. Redux state files are in src/store. Local diagnostic scripts are in the scripts folder. The .env.example file is the configuration template.
+
+DEPLOYMENT
+
+The project can be deployed to Vercel. Configure the production environment settings before deployment. M-Pesa requires a public HTTPS callback address. Signup verification and password reset email require SMTP settings.
