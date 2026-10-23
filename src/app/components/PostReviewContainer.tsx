@@ -1,119 +1,37 @@
-'use client'
-import React, { useState } from 'react'
-import RatingComponent from './RatingComponent';
-import { ToastContainer,toast } from 'react-toastify';
-import 'react-toastify/ReactToastify.css'
-import { FaArrowLeft } from 'react-icons/fa';
-
-const PostReviewContainer = ({productId,clickedTab}:any) => {
-  const [images, setImages] = useState<string[]>([]);
-const [imageFiles, setImageFiles] = useState<File[]>([]);
-
-  const [rating,setRating] = useState(0);
-  const [review,setReview] = useState('');
-
-  const handleImageInput=(e:any)=>{
-    e.preventDefault();
-    const files:File[] = Array.from(e.target.files || []);
-
-    for(const file of files){
-      setImageFiles((prev)=>[...prev,file]);
-      const image = URL.createObjectURL(file);
-      setImages((prevArray)=>[...prevArray,image]);
-    }
-    
-  }
-
-  const setRatingValue=(value:number)=>{
-    setRating(value);
-    console.log(value)
-  }
-
-  const handleFormSubmit=async(e:any)=>{
-    e.preventDefault();
-
-    if(rating==0 || review==null){
-      return toast.error('Provide your rating and review!')
-    }
-    const formData = new FormData();
-    formData.append('rating',rating.toString());
-    formData.append('review',review);
-    formData.append('productId',productId)
-
-    if(imageFiles.length!==0){
-      imageFiles.forEach((file)=>{
-        formData.append('images',file);
-      })
-    }
-
-    const loadingToast = toast.loading('Posting review...');
-    const res = await fetch('/api/review/comment/user',{
-      method:'POST',
-      body:formData
-    });
-
-    toast.dismiss(loadingToast);
-    if(res.ok){
-      const response = await res.json();
-      if(response.success){
-        await toast.success(response.message);
-      }else{
-        await toast.error(response.message);
-      }
-    }
-
-    clickedTab('reviewed_tab');
-    
-  }
-
-  return (
-    <form className='w-full h-full flex flex-col gap-5 p-5' onSubmit={handleFormSubmit}>
-       <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
-          clickedTab('pending_review_tab')
-        }}/>
-      <div className='w-full h-full justify-center flex flex-col gap-3 bg-white p-10 rounded-lg'>
-      <div>
-        <p className='text-md text-black font-semibold'>Rate Product</p>
-        <RatingComponent setRatingValue={setRatingValue}/>
-      </div>
-
-      <div className='flex flex-col gap-3'>
-        <p className='text-md text-black font-semibold'>Upload Images - (Optional)</p>
-        <div className='h-max flex gap-3 items-center overflow-y-hidden overflow-x-auto'>
-          {images.map((item,index)=>(
-            <div>
-              <img src={item} alt="" width={100} height={100}
-          className='rounded-md'/>
-            </div>
-          ))}
-          <div className='w-max'>
-            <input type="file"
-            id='image_upload'
-            multiple
-            onChange={handleImageInput}
-            placeholder='Add images'
-            className='hidden' />
-            <label htmlFor="image_upload" className='bg-pink-300 rounded-full
-            p-2 w-8 h-20 text-md font-bold text-white'>Add</label>
-          </div>
-        </div>
-      </div>
-
-      <div className=''>
-        <p className='text-md text-black font-semibold'>Add Comment</p>
-        <input type='text' placeholder='Enter review here'
-        className='text-black text-sm font-medium text-center border border-pink-200
-        rounded-md h-max min-h-20 w-full'
-        onChange={(e)=>setReview(e.target.value)}/>
-      </div>
-
-      <div className='w-full flex justify-end'>
-        <button type='submit' className='w-max px-3 py-1 border border-pink-300 bg-pink-200 rounded-xl'>Submit</button>
-      </div>
-      </div>
-      <ToastContainer/>
-    </form>
-  )
+'use client';
+import React, { useEffect, useRef, useState } from 'react';
+import { FiStar } from 'react-icons/fi';
+import { OrderBack } from './AccountOrderUI';
+import { ReviewProduct, ReviewProductSummary } from './AccountReviewUI';
+export default function PostReviewContainer({ productId, product, clickedTab }: { productId: string; product?: ReviewProduct; clickedTab: (tab: string) => void }) {
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const saving = useRef(false);
+  useEffect(() => { const urls = files.map(file => URL.createObjectURL(file)); setPreviews(urls); return () => urls.forEach(url => URL.revokeObjectURL(url)); }, [files]);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); if (saving.current) return;
+    if (!productId || !rating || !review.trim()) { setError('Choose a star rating and write a short review.'); return; }
+    saving.current = true; setBusy(true); setError('');
+    const data = new FormData(); data.append('rating', String(rating)); data.append('review', review.trim()); data.append('productId', productId); files.forEach(file => data.append('images', file));
+    try {
+      const res = await fetch('/api/review/comment/user', { method: 'POST', body: data });
+      const response = await res.json(); if (!res.ok || !response.success) throw new Error(response.message || 'Unable to submit your review. Please try again.');
+      clickedTab('reviewed_tab');
+    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to submit your review. Please try again.'); }
+    finally { saving.current = false; setBusy(false); }
+  };
+  return <div className="account-review-view"><OrderBack onClick={() => clickedTab('pending_review_tab')}>Back to pending reviews</OrderBack>
+    {product && <div className="account-order-card"><ReviewProductSummary product={product} /></div>}
+    <p className="account-order-muted">Your experience helps other shoppers find the right product.</p>
+    <form className="account-review-form" onSubmit={submit}><fieldset disabled={busy} className="account-review-fields"><fieldset className="account-review-rating"><legend>How would you rate this product?</legend><div className="account-review-rating-options">{[1,2,3,4,5].map(star => <label className="account-review-star" key={star}><input type="radio" name="review-rating" value={star} checked={rating === star} onChange={() => setRating(star)} required /><span aria-hidden="true"><FiStar fill={star <= rating ? 'currentColor' : 'none'} /></span><span className="sr-only">{star} {star === 1 ? 'star' : 'stars'}</span></label>)}</div><output aria-live="polite">{rating ? rating + ' out of 5' : 'Select a star rating'}</output></fieldset>
+      <div className="account-field"><label htmlFor="review-comment">Your review</label><textarea id="review-comment" value={review} onChange={e => setReview(e.target.value)} required maxLength={2000} rows={5} placeholder="What did you like? What could be better?" /><p className="account-order-muted">{review.length}/2000 characters</p></div>
+      <div className="account-field"><label htmlFor="review-photos">Add photos <span>(optional)</span></label><input id="review-photos" type="file" accept="image/*" multiple onChange={e => setFiles(previous => [...previous, ...Array.from(e.target.files || [])])} /><p className="account-order-muted">Show other shoppers the details that matter to you.</p></div>
+      {!!previews.length && <div className="account-refund-photos">{previews.map((src, index) => <div key={src}><img src={src} alt={'Selected review photo ' + (index + 1)} /><button type="button" className="account-order-button" onClick={() => setFiles(previous => previous.filter((_, i) => i !== index))}>Remove photo {index + 1}</button></div>)}</div>}
+      <div className="account-line-actions"><button type="submit" className="account-order-button account-order-button-primary">{busy ? 'Submitting…' : 'Submit review'}</button></div>
+    </fieldset>{error && <p className="account-form-error" role="alert">{error}</p>}</form>
+  </div>;
 }
-
-export default PostReviewContainer

@@ -1,92 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import RatingComponent from './RatingComponent';
-import Image from 'next/image';
-import { FaStar,FaArrowLeft } from 'react-icons/fa';
-import { ToastContainer,toast } from 'react-toastify';
-import 'react-toastify/ReactToastify.css'
-
-const ViewReviewContainer = ({productId,clickedTab}:any) => {
-    const [fetchedReviews, setFetchedReviews] = useState([]);
-
-    useEffect(() => {
-        const fetchReview = async () => {
-            const res = await fetch(`/api/review/comment/user/${productId}`);
-            if (res.ok) {
-                const response = await res.json();
-                setFetchedReviews(response.content);
-            }
-        };
-        fetchReview();
-    }, []);
-
-    const deleteReview=async(reviewId:string)=>{
-        const res = await fetch(`/api/review/comment/user/${productId}/${reviewId}`,{
-            method:'DELETE'
-        })
-        
-        if(res.ok){
-            const response = await res.json();
-            console.log(response);
-            setFetchedReviews(response.content);
-
-            if(response.success){
-                toast.success(response.message)
-            }else{
-                toast.error(response.message);
-            }
-           
-        }
-    }
-
-    return (
-        <div className='w-full h-full overflow-auto p-5'>
-            <FaArrowLeft className='w-9 h-9 p-2 border border-pink-300 flex bg-white rounded-full fixed' onClick={e=>{
-          clickedTab('reviewed_tab')
-        }}/>
-            <div className='flex flex-col-reverse gap-3 pt-10'>
-                {fetchedReviews.map((item:any, index) => (
-                    <div key={index} className='w-full h-max bg-white rounded-lg flex  justify-between p-2'>
-                        <div className='w-1/3 p-2 flex gap-2 items-center justify-center'>
-                            {item.images.length!=0 ? (
-                                <div className='flex gap-2'>
-                                    {item.images.map((image:any, imgIndex:any) => (
-                                        <div key={imgIndex} className='flex h-20'>
-                                            <Image src={image.imageUrl} alt='Review Image' width={80} height={80} className='object-contain' />
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div>
-                                   <p className='text-md text-black font-semibold'>No images</p>
-                                </div>
-                            )}
-
-
-                        </div>
-                        <div className='w-1/3 p-2'>
-                            <div className='flex justify-end'>
-                                {
-                                    [...Array(5)].map((item2, index) => {
-                                        return <FaStar key={index}
-                                            color={index < item.rating ? "#ffc107" : "#e4e5e9"} />
-                                    })
-                                }
-                            </div>
-                            <div className='flex flex-col items-center justify-center'>
-                                <p className='w-full text-black text-sm font-semibold'>Review</p>
-                                <p className='w-full text-black'>{item.comment}</p>
-                            </div>
-                        </div>
-                        <div className='w-1/3 p-2 flex items-center justify-center'>
-                            <button className='bg-orange-400 border border-red-500 rounded-lg p-1 text-white font-semibold text-sm'
-                            onClick={()=>deleteReview(item._id)}>Delete Review</button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <ToastContainer/>
-        </div>
-    );
-};
-
-export default ViewReviewContainer;
+'use client';
+import React, { useEffect, useRef, useState } from 'react';
+import { OrderBack, orderDate } from './AccountOrderUI';
+import { ReviewProduct, ReviewProductSummary, ReviewStars } from './AccountReviewUI';
+interface Review { _id: string; rating: number; comment: string; date?: string; images?: { imageUrl: string }[]; }
+export default function ViewReviewContainer({ productId, product, clickedTab }: { productId: string; product?: ReviewProduct; clickedTab: (tab: string) => void }) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [error, setError] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const saving = useRef(false);
+  useEffect(() => {
+    const controller = new AbortController(); setLoading(true); setLoadError(false);
+    (async () => { try {
+      const res = await fetch('/api/review/comment/user/' + productId, { cache: 'no-store', signal: controller.signal });
+      const response = await res.json(); if (!res.ok || !response.success || !Array.isArray(response.content)) throw new Error();
+      setReviews(response.content);
+    } catch { if (!controller.signal.aborted) setLoadError(true); } finally { if (!controller.signal.aborted) setLoading(false); } })();
+    return () => controller.abort();
+  }, [productId, attempt]);
+  const remove = async (id: string) => {
+    if (saving.current) return; saving.current = true; setBusy(true); setError('');
+    try {
+      const res = await fetch('/api/review/comment/user/' + productId + '/' + id, { method: 'DELETE' });
+      const response = await res.json(); if (!res.ok || !response.success || !Array.isArray(response.content)) throw new Error(response.message || 'Unable to delete your review. Please try again.');
+      setReviews(response.content); setConfirmId(null); setDeleted(true);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to delete your review. Please try again.'); }
+    finally { saving.current = false; setBusy(false); }
+  };
+  return <div className="account-review-view"><OrderBack onClick={() => clickedTab('reviewed_tab')}>Back to reviewed products</OrderBack>
+    {product && <div className="account-order-card"><ReviewProductSummary product={product} /></div>}
+    {loading ? <p className="account-loading" role="status">Loading your review…</p> : loadError ? <div className="account-empty" role="alert"><h3>Unable to load your review.</h3><button className="account-order-button" onClick={() => setAttempt(n => n + 1)}>Try again</button></div> : !reviews.length ? <div className="account-empty" role="status"><h3>{deleted ? 'Your review has been deleted.' : 'No review to show.'}</h3><p>You can share your experience again at any time.</p><button className="account-order-button" onClick={() => clickedTab('review_tab')}>Write a review</button></div> : <div className="account-order-list">{reviews.map(item => <article className="account-order-card" key={item._id}><div className="account-review-meta"><ReviewStars rating={item.rating} />{item.date && <time dateTime={item.date}>{orderDate(item.date)}</time>}</div><p className="account-review-comment">{item.comment}</p>
+      {!!item.images?.length && <div className="account-refund-photos">{item.images.map((image, index) => <a key={index} href={image.imageUrl} target="_blank" rel="noreferrer"><img src={image.imageUrl} alt={'Your review photo ' + (index + 1)} /></a>)}</div>}
+      {confirmId === item._id ? <div className="account-review-confirm"><p>Delete this review?</p><div className="account-line-actions"><button className="account-order-button" disabled={busy} onClick={() => { setConfirmId(null); setError(''); }}>Keep review</button><button className="account-order-button account-review-delete" disabled={busy} onClick={() => remove(item._id)}>{busy ? 'Deleting…' : 'Confirm delete'}</button></div></div> : <div className="account-line-actions"><button className="account-order-button account-review-delete" disabled={busy} onClick={() => { setConfirmId(item._id); setError(''); }}>Delete review</button></div>}
+    </article>)}</div>}
+    {error && <p className="account-form-error" role="alert">{error}</p>}
+  </div>;
+}

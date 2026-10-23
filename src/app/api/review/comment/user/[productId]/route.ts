@@ -1,34 +1,18 @@
-import { verifyToken } from "@/app/api/authenticate/functions/auth";
-import dbConnect from "@/app/config/database";
-import ProductReview from "@/app/models/product_review";
-import User from "@/app/models/user";
-import { NextRequest, NextResponse } from "next/server";
-
-interface Params{
-    params:{
-        id:string
-    }
-}
-
-export async function GET(request:NextRequest,{params}:Params){
-    try {
-        await dbConnect();
-    const authToken = request.cookies.get('authToken')?.value||'';
-    const authObj = await verifyToken(authToken);
-    const userId = authObj.userId;
-
-    const productId = params.id;
-
-    const user = await User.findById(userId);
-    if(user){
-        const productReviews = await ProductReview.findOne({productId:productId});
-        const filteredProductReviews = productReviews.comments.filter((item:any)=>item.userId===userId);
-        return NextResponse.json({success:true,message:'Reviews fetched',content:filteredProductReviews});
-    }else{
-        return NextResponse.json({success:false,message:'User not authenicated'});
-    }
-    } catch (error) {
-        return NextResponse.json({success:false,message:'Some server error occurred!'});
-    }
-    
+import { verifyToken } from '@/app/api/authenticate/functions/auth';
+import dbConnect from '@/app/config/database';
+import ProductReview from '@/app/models/product_review';
+import mongoose from 'mongoose';
+import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
+const reply = (body: object, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } });
+export async function GET(request: NextRequest, { params }: { params: { productId: string } }) {
+  let userId: string;
+  try { userId = (await verifyToken(request.cookies.get('authToken')?.value || '')).userId; if (!userId) throw new Error(); }
+  catch { return reply({ success: false, message: 'Sign in to view your reviews.' }, 401); }
+  if (!mongoose.isValidObjectId(params.productId)) return reply({ success: false, message: 'Invalid product reference.' }, 400);
+  try {
+    await dbConnect();
+    const reviews = await ProductReview.findOne({ productId: params.productId });
+    return reply({ success: true, content: reviews?.comments.filter((item: { userId: string }) => item.userId === userId) || [] });
+  } catch { return reply({ success: false, message: 'Unable to load your reviews. Please try again.' }, 503); }
 }

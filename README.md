@@ -34,3 +34,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Email verification and password reset
+
+Verification and reset codes are sent through Nodemailer using SMTP. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and a long random `OTP_SECRET` in `.env.local` for local development and in the Vercel project environment for deployment. Gmail SMTP uses `smtp.gmail.com` on port `465` (secure) or port `587` (STARTTLS); use a Google app password for `SMTP_PASS`. Keep credentials in environment settings, never in source control. Codes expire after 10 minutes and can be resent after one minute.

@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Dropdown, Menu, Table, message } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import Image from 'next/image';
@@ -22,36 +22,28 @@ const SellerOrders = () => {
         fetchOrders();
     }, []);
 
-    const handleStatusChange = (status:any, record:any) => {
-        const updatedData = ordersArr.map((item:any) =>
-            item._id === record._id ? { ...item, status } : item
-        );
-        setOrdersArr(updatedData);
-        updateDbOrderStatus(status,record._id)
-        message.success(`Status updated to ${status}`);
-    };
-
-    const updateDbOrderStatus=async(orderStatus:any,orderId:any)=>{
-        const res = await fetch('/api/orders/controller',{
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json'
-            },
-            body:JSON.stringify({
-                orderStatus:orderStatus,
-                orderId:orderId
-            })
-        });
-
-        if(res.ok){
+    const [savingOrder, setSavingOrder] = useState<string | null>(null);
+    const savingRef = useRef(false);
+    const handleStatusChange = async (status: string, record: any) => {
+        if (savingRef.current || record.status === status) return;
+        savingRef.current = true;
+        setSavingOrder(record._id);
+        try {
+            const res = await fetch('/api/orders/controller', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderStatus: status, orderId: record._id }),
+            });
             const response = await res.json();
-            if(response.success){
-                message.success(response.message);
-            }else{
-                message.error(response.message);
-            }
+            if (!res.ok || !response.success || !response.content) throw new Error(response.message || 'Unable to save the status.');
+            setOrdersArr((orders: any[]) => orders.map(item => item._id === record._id ? response.content : item));
+            message.success(response.message);
+        } catch (error) {
+            message.error(error instanceof Error ? error.message : 'Unable to save the status. Please try again.');
+        } finally {
+            savingRef.current = false;
+            setSavingOrder(null);
         }
-    }
+    };
 
     const getStatusMenu = (record:any) => (
         <Menu onClick={({ key }) => handleStatusChange(key, record)}>
@@ -77,8 +69,8 @@ const SellerOrders = () => {
             title: 'Status',
             key: 'status',
             render: (_:any, record:any) => (
-                <Dropdown overlay={getStatusMenu(record)} trigger={['click']}>
-                    <Button>
+                <Dropdown overlay={getStatusMenu(record)} trigger={['click']} disabled={!!savingOrder}>
+                    <Button loading={savingOrder === record._id} disabled={!!savingOrder}>
                         {record.status} <DownOutlined />
                     </Button>
                 </Dropdown>

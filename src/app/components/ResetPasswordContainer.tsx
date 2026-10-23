@@ -1,125 +1,25 @@
-'use client'
-import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/ReactToastify.css'
-
-const ResetPasswordContainer = () => {
-    const [viewone, setViewOne] = useState(true);
-    const [viewtwo, setViewTwo] = useState(false);
-
-    const [email, setEmail] = useState("");
-    const [otpCode, setOtpCode] = useState('');
-    const [password, setPassword] = useState('');
-    const [password2, setPassword2] = useState('');
-
-    const router = useRouter();
-
-    const validateEmail = (email:string) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-      };
-
-    const requestOtp = async (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-
-        if(!validateEmail(email)){
-            return toast.error('Provide a valid email');
-        }
-
-        const loadingToast = toast.loading('Validating email...');
-        const res = await fetch('api/authenticate/resetPassword/request_otp', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: email
-            })
-        })
-
-        toast.dismiss(loadingToast);
-        const response = await res.json();
-        if (response.success) {
-            setViewOne(false);
-            setViewTwo(true);
-            toast.success(response.message);
-        } else {
-            toast.error(response.message);
-        }
-    }
-
-    const changePassword = async (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-        if(password!==password2){
-            return toast.error('Passwords do not match')
-        }
-
-        const loadingToast = toast.loading('Updating details');
-        const res = await fetch('api/authenticate/resetPassword/change_password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-                otpCode: otpCode
-            })
-        })
-
-        toast.dismiss(loadingToast);
-        const response = await res.json();
-        if (response.success) {
-            toast.success(response.message);
-            if (response.message === "Password updated") {
-                router.push('/login');
-            }
-        } else {
-            toast.error(response.message);
-        }
-    }
-
-    return (
-        <div className='w-full'>
-            {viewone && (
-                <div className='w-full h-full flex flex-col justify-center items-center'>
-                    <form className='w-2/3 flex flex-col gap-3' onSubmit={requestOtp}>
-                        <input className="w-full h-10 text-center rounded-md border border-pink-300" placeholder='Enter email' type='text'
-                            onChange={e => setEmail(e.target.value)} />
-                        <button className='w-full h-10 rounded-md bg-pink-300' type='submit'>SUBMIT</button>
-                    </form>
-                </div>
-            )}
-
-            {viewtwo && (
-                <div className='w-full h-full flex flex-col justify-center items-center'>
-                    <form className='w-2/3 flex flex-col gap-3' onSubmit={changePassword}>
-                        <p className='w-full h-max text-black font-semibold text-sm'>Enter OTP code sent to this email <span className='text-blue-500'>{email}</span> <span className='text-red-500'>
-                            <u onClick={e=>{
-                                setViewOne(true);
-                                setViewTwo(false);
-                            }}>change email</u></span> <span className='text-orange-500 ms-10'>
-                            <u onClick={requestOtp}>resend code</u></span>
-                            </p>
-                        <input value={otpCode} className="w-full h-10 text-center rounded-md border border-pink-300" placeholder='Enter otp' type='number' 
-                        onChange={e => {
-                            if (e.target.value.length <= 5) { // Limit to 5 characters
-                              setOtpCode(e.target.value);
-                            }
-                          }}/>
-                        <input className="w-full h-10 text-center rounded-md border border-pink-300" placeholder='Enter new password' type='password' onChange={e => setPassword(e.target.value)} />
-                        <input className="w-full h-10 text-center rounded-md border border-pink-300" placeholder='Re-enter password' type='password' onChange={e => setPassword2(e.target.value)} />
-                        <button className='w-full h-10 rounded-md bg-pink-300' type='submit'>SUBMIT</button>
-                    </form>
-                </div>
-            )}
-
-
-
-            <ToastContainer />
-        </div>
-    )
+'use client';
+import Link from 'next/link';
+import { useState } from 'react';
+import { FiArrowLeft, FiArrowRight, FiCheckCircle, FiLock } from 'react-icons/fi';
+import { AuthError, AuthHeading, authRequest, PasswordField, useAuthSubmit } from './AuthFormUI';
+export default function ResetPasswordContainer() {
+  const [step, setStep] = useState<'email' | 'password' | 'done'>('email');
+  const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [password, setPassword] = useState(''); const [confirmation, setConfirmation] = useState(''); const [notice, setNotice] = useState('');
+  const { busy, error, run, clearError } = useAuthSubmit();
+  const requestCode = () => run(async () => { const response = await authRequest('/api/authenticate/resetPassword/request_otp', { email: email.trim() }); setStep('password'); setCode(''); setNotice(response.message); });
+  if (step === 'done') return <><AuthHeading title="Password updated." icon={<FiCheckCircle />}><p>Your new password is ready. Sign in to get back to your account.</p></AuthHeading><Link href="/login" className="auth-submit">Continue to sign in <FiArrowRight /></Link></>;
+  return <><AuthHeading title={step === 'email' ? 'Letâ€™s get you back in.' : 'Choose a new password.'} icon={<FiLock />}><p>{step === 'email' ? 'Enter your account email to request a password reset code.' : 'Enter your five-digit code, then set a new password.'}</p></AuthHeading>
+    <ol className="auth-steps" aria-label="Password reset progress"><li aria-current={step === 'email' ? 'step' : undefined}><span>1</span>Your email</li><li aria-current={step === 'password' ? 'step' : undefined}><span>2</span>New password</li></ol>
+    {step === 'email' ? <form className="auth-form" onSubmit={e => { e.preventDefault(); void requestCode(); }}><fieldset disabled={busy}><div className="auth-field"><label htmlFor="reset-email">Email address</label><input id="reset-email" type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required /></div><AuthError message={error} /><button className="auth-submit" type="submit">{busy ? 'Requesting codeâ€¦' : 'Request reset code'}<FiArrowRight aria-hidden="true" /></button></fieldset></form> : <>
+      <div className="auth-email-summary"><span className="auth-email">{email.trim()}</span><button type="button" disabled={busy} onClick={() => { setStep('email'); clearError(); setNotice(''); setCode(''); setPassword(''); setConfirmation(''); }}>Change email</button></div>
+      <form className="auth-form" onSubmit={e => { e.preventDefault(); void run(async () => { if (password !== confirmation) throw new Error('Your passwords donâ€™t match. Please try again.'); await authRequest('/api/authenticate/resetPassword/change_password', { email: email.trim(), password, otpCode: code }); setStep('done'); }); }}><fieldset disabled={busy}>
+        <div className="auth-field"><label htmlFor="reset-code">Verification code</label><input id="reset-code" className="auth-code" type="text" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={e => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0,5))} minLength={5} maxLength={5} pattern="[0-9]{5}" placeholder="00000" required /></div>
+        <PasswordField id="reset-password" label="New password" autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)} minLength={6} hint="Use at least 6 characters. Choose a password you havenâ€™t used before." required />
+        <PasswordField id="reset-confirm-password" label="Confirm new password" autoComplete="new-password" value={confirmation} onChange={e => setConfirmation(e.target.value)} minLength={6} required />
+        <AuthError message={error} /><button className="auth-submit" type="submit">{busy ? 'Updating passwordâ€¦' : 'Update password'}<FiArrowRight aria-hidden="true" /></button>
+      </fieldset></form><div className="auth-resend"><span>{notice}</span><button type="button" disabled={busy} onClick={() => void requestCode()}>Request a new code</button></div>
+    </>}
+    <p className="auth-switch"><Link href="/login"><FiArrowLeft aria-hidden="true" />Back to sign in</Link></p>
+  </>;
 }
-
-export default ResetPasswordContainer

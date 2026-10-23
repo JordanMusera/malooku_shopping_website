@@ -8,6 +8,12 @@ const orderSchema = new Schema({
     paymentEnvironment:String,
     orderDate:{type:Date,default:Date.now},
     status: { type: String, enum: ['pending', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
+    // Status and history are updated together in one atomic order write.
+    statusHistory: { type: [new Schema({
+        orderStatus: { type: String, enum: ['pending', 'shipped', 'delivered', 'cancelled'], required: true },
+        date: { type: String, required: true },
+        description: String,
+    }, { _id: false })], default: undefined },
     shippingAddress:{
         postalCode:{type:String,require:true},
         street:{type:String,required:true},

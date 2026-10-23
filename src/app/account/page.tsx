@@ -19,6 +19,7 @@ import ReviewContainer from '../components/ReviewedContainer'
 import PendingReview from '../components/PendingReview'
 import PostReviewContainer from '../components/PostReviewContainer'
 import ViewReviewContainer from '../components/ViewReviewContainer'
+import type { ReviewProduct } from '../components/AccountReviewUI'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '@/store/store'
 import { setClickedTab } from '@/store/tabSlice'
@@ -29,6 +30,8 @@ const AccountPage = () => {
 
     const [orderId, setOrderId] = useState('');
     const [productId, setProductId] = useState('');
+    const [reviewProduct, setReviewProduct] = useState<ReviewProduct>();
+    const handleReviewProduct = (id: string, product?: ReviewProduct) => { setProductId(id); setReviewProduct(product); };
     const [CARorderDetails, setCARorderDetails] = useState({});
     const [clickedRefund, setClickedRefund] = useState({});
 
@@ -71,6 +74,8 @@ const AccountPage = () => {
     }
 
 
+    const reviewTabs = ['pending_review_tab', 'reviewed_tab', 'review_tab', 'view_review_tab'];
+    const reviewCategory = ['reviewed_tab', 'view_review_tab'].includes(tab) ? 'reviewed_tab' : 'pending_review_tab';
     const orderTabs = ['ordersTab', 'cancelled_orders_tab', 'refunds_tab', 'viewOrderTab', 'trackorder', 'refund_form_tab', 'view_order_application'];
     const orderCategory = ['refunds_tab', 'refund_form_tab', 'view_order_application'].includes(tab) ? 'refunds_tab' : tab === 'cancelled_orders_tab' ? tab : 'ordersTab';
     const titles: Record<string, string> = {
@@ -91,13 +96,13 @@ const AccountPage = () => {
                     <section className="account-panel" aria-labelledby="account-section-title">
                         <div className="account-panel-heading"><h2 id="account-section-title">{titles[tab] || 'My account'}</h2></div>
                         <div className="account-panel-content">
-                            {['pending_review_tab', 'reviewed_tab'].includes(tab) && (
+                            {reviewTabs.includes(tab) && (
                                 <nav className="account-subtabs order-category-tabs review-category-tabs" aria-label="Review categories">
                                     {[
                                         { id: 'pending_review_tab', label: 'Pending' },
                                         { id: 'reviewed_tab', label: 'Reviewed' },
                                     ].map(category => (
-                                        <button key={category.id} aria-current={tab === category.id ? 'page' : undefined} onClick={() => handleTabClick(category.id)}>{category.label}</button>
+                                        <button key={category.id} aria-current={reviewCategory === category.id ? 'page' : undefined} onClick={() => handleTabClick(category.id)}>{category.label}</button>
                                     ))}
                                 </nav>
                             )}
@@ -123,10 +128,10 @@ const AccountPage = () => {
                     {tab === 'refund_form_tab' && <RefundFormContainer orderDetails={CARorderDetails} clickedTab={handleTabClick} />}
                     {tab === 'view_order_application' && <ViewRefundApplicationContainer clickedRefund={clickedRefund} clickedTab={handleTabClick} />}
                     {tab === 'notifications_tab' && <NotificationsContainer />}
-                    {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick} productId={setProductId} />}
-                    {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick} productId={setProductId} />}
-                    {tab === 'review_tab' && <PostReviewContainer productId={productId} clickedTab={handleTabClick} />}
-                    {tab === 'view_review_tab' && <ViewReviewContainer productId={productId} clickedTab={handleTabClick} />}
+                    {tab === 'pending_review_tab' && <PendingReview clickedTab={handleTabClick} productId={handleReviewProduct} />}
+                    {tab === 'reviewed_tab' && <ReviewContainer clickedTab={handleTabClick} productId={handleReviewProduct} />}
+                    {tab === 'review_tab' && <PostReviewContainer productId={productId} product={reviewProduct} clickedTab={handleTabClick} />}
+                    {tab === 'view_review_tab' && <ViewReviewContainer productId={productId} product={reviewProduct} clickedTab={handleTabClick} />}
                         </div>
                     </section>
                 </div>
