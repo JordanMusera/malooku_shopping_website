@@ -41,6 +41,7 @@ const SellerAddProductContainer = ({
   const [variantPrice, setvariantPrice] = useState("");
   const [VariantsList, setVariantsList] = useState<string[]>([]);
   const [productVariants, setProductVariants] = useState<ProductVariants>({});
+  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({
     productName: false,
     productCategory: false,
@@ -48,7 +49,6 @@ const SellerAddProductContainer = ({
     productQty: false,
     productDescription: false,
     images: false,
-    specifications: false,
   });
 
   useEffect(() => {
@@ -127,15 +127,15 @@ const SellerAddProductContainer = ({
 
   const handleFormSubmit = async (e: any) => {
     e.preventDefault();
+    if (saving) return;
 
     const newErrors = {
       productName: !productName.trim(),
       productCategory: !productCategory.trim(),
-      productPrice: productPrice <= 0,
-      productQty: productQty <= 0,
+      productPrice: !Number.isFinite(productPrice) || productPrice <= 0,
+      productQty: !Number.isInteger(productQty) || productQty < 0,
       productDescription: !productDescription.trim(),
       images: imageFileArray.length === 0 && existingImageArray.length === 0,
-      specifications: specifications.length === 0,
     };
 
     setErrors(newErrors);
@@ -164,6 +164,7 @@ const SellerAddProductContainer = ({
     formData.append("productSpecifications", JSON.stringify(specifications));
     formData.append("productVariants", JSON.stringify(productVariants));
 
+    setSaving(true);
     const loading = toast.loading("Writing data...");
     try {
       const method = clickedProduct ? "PUT" : "POST";
@@ -180,6 +181,8 @@ const SellerAddProductContainer = ({
     } catch {
       toast.dismiss(loading);
       message.error("Unable to reach the server. Check your connection and try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -359,6 +362,7 @@ const SellerAddProductContainer = ({
           Add Image
         </label>
       </div>
+      {errors.images && <p className="admin-form-error" role="alert">Choose at least one product image to continue.</p>}
 
       <h1 className="text-black font-semibold text-sm">
         Fill product details -
@@ -388,7 +392,7 @@ const SellerAddProductContainer = ({
               value={productCategory}
               onChange={(value) => setProductCategory(value)}
               className={`w-full h-10 rounded-xl bg-white shadow-md border shadow-pink-200 ${
-                errors.productName ? "border-red-500" : ""
+                errors.productCategory ? "border-red-500" : ""
               }`}
             >
               <option value="technology">Technology</option>
@@ -430,11 +434,11 @@ const SellerAddProductContainer = ({
         <div>
           <div className="flex flex-col gap-1">
             <h1 className="text-black font-semibold text-sm">Description</h1>
-            <input
+            <textarea
               value={productDescription}
-              type="text"
               placeholder="Product Description"
-              className={`p-2 border w-full h-max min-h-20 rounded-xl bg-white shadow-md shadow-pink-200 ${
+              rows={4}
+              className={`p-2 border w-full min-h-24 rounded-xl bg-white shadow-md shadow-pink-200 resize-y ${
                 errors.productDescription ? "border-red-500" : ""
               }`}
               onChange={(e) => setProductDescription(e.target.value)}
@@ -544,20 +548,9 @@ const SellerAddProductContainer = ({
           </button>
         </div>
 
-        <div className="flex gap-3 mt-2 text-black font-semibold text-md">
-          <button
-            className="w-full p-1 border border-pink-300 rounded-md hover:shadow-2xl hover:shadow-red-300"
-            type="button"
-            onClick={() => setAddProductVisibility(false)}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="w-full p-1 bg-pink-200 border border-pink-300 rounded-md hover:shadow-2xl hover:shadow-green-300"
-          >
-            Save
-          </button>
+        <div className="admin-product-form-actions">
+          <button className="admin-product-cancel" type="button" disabled={saving} onClick={() => setAddProductVisibility(false)}>Cancel</button>
+          <button className="admin-primary admin-product-save" type="submit" disabled={saving}>{saving ? "Saving..." : "Save product"}</button>
         </div>
       </div>
       <ToastContainer />
