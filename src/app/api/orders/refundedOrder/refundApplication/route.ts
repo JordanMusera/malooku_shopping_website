@@ -1,94 +1,65 @@
+import dbConnect from "@/app/config/database";
 import { verifyToken } from "@/app/api/authenticate/functions/auth";
-import { uploadMultipleToCloudinary } from "@/app/api/authenticate/functions/cloudinary";
+import { CloudinaryUploadError, deleteCloudinaryImages, readImageBuffers, uploadMultipleToCloudinary } from "@/app/api/authenticate/functions/cloudinary";
 import Order from "@/app/models/order";
 import RefundOrder from "@/app/models/refund_order";
 import User from "@/app/models/user";
+import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
+const reply = (body: object, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } });
+
 export async function POST(request: NextRequest) {
-    const userToken = request.cookies.get('authToken')?.value || '';
-    const userObj = await verifyToken(userToken);
-    const userId = userObj?.userId;
-
-    if (!userId) {
-        return NextResponse.json({ success: false, message: 'User authentication failed.' });
+  let uploaded: Awaited<ReturnType<typeof uploadMultipleToCloudinary>> = [];
+  try {
+    let userId: string;
+    try {
+      const userObj = await verifyToken(request.cookies.get('authToken')?.value || '');
+      if (!userObj?.userId) throw new Error('missing user');
+      userId = String(userObj.userId);
+    } catch {
+      return reply({ success: false, message: 'Sign in to request a refund.' }, 401);
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-        return NextResponse.json({ success: false, message: 'User not found.' });
-    }
-
+    await dbConnect();
     const data = await request.formData();
-    const orderId = data.get('orderId') as string;
-    const productId = data.get('productId') as string;
+    const orderId = String(data.get('orderId') || '').trim();
+    const productId = String(data.get('productId') || '').trim();
+    const selectedReason = String(data.get('selectedReason') || '').trim();
+    const providedReason = String(data.get('providedReason') || '').trim();
+    if (!mongoose.isValidObjectId(orderId) || !mongoose.isValidObjectId(productId)) return reply({ success: false, message: 'A valid order and product are required.' }, 400);
+    if (!selectedReason || selectedReason.length > 160 || providedReason.length > 1000) return reply({ success: false, message: 'Select a refund reason and keep additional details under 1,000 characters.' }, 400);
 
-    const order = await Order.findOne({ userId, _id: orderId });
-    if (!order) {
-        return NextResponse.json({ success: false, message: 'Order not found.' });
-    }
+    const [user, order] = await Promise.all([User.findById(userId).select('_id'), Order.findOne({ userId, _id: orderId })]);
+    if (!user) return reply({ success: false, message: 'Your account could not be found.' }, 401);
+    if (!order) return reply({ success: false, message: 'Order not found.' }, 404);
+    const orderProduct = order.products.find((item: { product: { _id: { toString: () => string } } }) => item.product?._id?.toString() === productId);
+    if (!orderProduct) return reply({ success: false, message: 'Product not found in this order.' }, 404);
 
-    const CAProduct = order.products.find((item: { product: { _id: { toString: () => string; }; }; }) => item.product._id.toString() === productId);
-    if (!CAProduct) {
-        return NextResponse.json({ success: false, message: 'Product not found in order.' });
-    }
-
-    const fileArray = data.getAll('images') as File[];
-    const bufferArray = await Promise.all(
-        fileArray.map(async (file) => {
-            const bytes = await file.arrayBuffer();
-            return Buffer.from(bytes);
-        })
-    );
-
-    const cdres = await uploadMultipleToCloudinary(bufferArray);
-    if (!cdres) {
-        return NextResponse.json({ success: false, message: 'Image upload failed.' });
-    }
-
-    const CA = new RefundOrder({
-        userId,
-        orderId,
-        productId,
-        order: CAProduct,
-        selectedReason: data.get('selectedReason'),
-        providedReason: data.get('providedReason'),
-        messages: [
-            { message: 'Refund requested by user' },
-            { message: 'Request is being processed' }
-        ],
-        images: cdres.map((res: any) => (
-            {
-                url: res.secure_url,
-                publicId: res.public_id,
-                assetId: res.asset_id
-            })),
-
+    const buffers = await readImageBuffers(data);
+    uploaded = await uploadMultipleToCloudinary(buffers, `malooku/refunds/${userId}`);
+    const application = new RefundOrder({
+      userId, orderId, productId, order: orderProduct, selectedReason, providedReason,
+      messages: [{ message: 'Refund requested by user' }, { message: 'Request is being processed' }],
+      images: uploaded.map((image) => ({ url: image.secure_url, publicId: image.public_id, assetId: image.asset_id })),
     });
+    await application.save();
 
-    await CA.save();
-
-    const order1 = await Order.findOne({ userId: userId, _id: orderId });
-    const refundedProductIndex = order1.products.findIndex((item: { product: { _id: { toString: () => string; }; }; }) => item.product._id.toString() === productId);
-
-    if (refundedProductIndex !== -1) {
-        if (order1.products.length === 1 && order1.products[refundedProductIndex].product._id.toString() === productId) {
-            await Order.findOneAndDelete({ userId: userId, _id: orderId });
-            return NextResponse.json({ success: true, message: 'Application submitted.', content: CA });
-        }
-
-        order1.products.splice(refundedProductIndex, 1);
-        let totalCost = 0;
-        for (const product of order1.products) {
-            totalCost += product.productQtyPrice||0;
-        }
-        order1.totalCost = totalCost;
-
-        await order1.save();
-        return NextResponse.json({ success: true, message: 'Application submitted.', content: CA });
+    const productIndex = order.products.findIndex((item: { product: { _id: { toString: () => string } } }) => item.product?._id?.toString() === productId);
+    if (productIndex !== -1) {
+      if (order.products.length === 1) await Order.findOneAndDelete({ userId, _id: orderId });
+      else {
+        order.products.splice(productIndex, 1);
+        order.totalCost = order.products.reduce((sum: number, item: { productQtyPrice?: number }) => sum + (item.productQtyPrice || 0), 0);
+        await order.save();
+      }
     }
-
-    console.log(CA);
-
-    
+    uploaded = [];
+    return reply({ success: true, message: 'Application submitted.', content: application }, 201);
+  } catch (error) {
+    await deleteCloudinaryImages(uploaded.map((image) => image.public_id));
+    const status = error instanceof CloudinaryUploadError ? error.status : 503;
+    const message = error instanceof CloudinaryUploadError ? error.message : 'Unable to submit the refund request right now.';
+    return reply({ success: false, message }, status);
+  }
 }

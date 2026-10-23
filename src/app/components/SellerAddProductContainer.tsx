@@ -26,6 +26,7 @@ const SellerAddProductContainer = ({
 }: any) => {
   const [imageArray, setImageArray] = useState<string[]>([]);
   const [imageFileArray, setImageFileArray] = useState<File[]>([]);
+  const [existingImageArray, setExistingImageArray] = useState<any[]>([]);
   const [productName, setProductName] = useState("");
   const [productCategory, setProductCategory] = useState("");
   const [productPrice, setProductPrice] = useState(0);
@@ -58,9 +59,12 @@ const SellerAddProductContainer = ({
       setProductQty(clickedProduct.qty || 0);
       setProductDescription(clickedProduct.description || "");
 
-      setImageArray(
-        clickedProduct.images?.map((img: any) => img.imageUrl) || []
-      );
+      const existingImages = clickedProduct.images?.length
+        ? clickedProduct.images
+        : clickedProduct.image ? [{ imageUrl: clickedProduct.image }] : [];
+      setExistingImageArray(existingImages);
+      setImageFileArray([]);
+      setImageArray(existingImages.map((img: any) => img.imageUrl));
       setSpecifications(clickedProduct.specifications || []);
 
       const variants = clickedProduct.variants || {};
@@ -68,34 +72,6 @@ const SellerAddProductContainer = ({
       setVariantsList(Object.keys(variants));
     }
   }, [clickedProduct]);
-
-  useEffect(() => {
-    const convertImageToFile = async () => {
-      if (imageArray.length > 0) {
-        const files = [];
-        for (const image of imageArray) {
-          try {
-            const response = await fetch(image);
-            const arrayBuffer = await response.arrayBuffer();
-
-            console.log("Array Buffer: ", arrayBuffer);
-
-            const file = new File([arrayBuffer], "image.jpg", {
-              type: "image/jpeg",
-            });
-            files.push(file);
-          } catch (error) {
-            console.error("Error fetching image:", error);
-          }
-        }
-        setImageFileArray(files);
-      }
-    };
-
-    if (imageArray.length > 0) {
-      convertImageToFile();
-    }
-  }, [imageArray]);
 
   const columns = [
     {
@@ -131,11 +107,9 @@ const SellerAddProductContainer = ({
   const handleImageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     const files: File[] = Array.from(e.target.files || []);
-    for (const file of files) {
-      setImageFileArray((prev) => [...prev, file]);
-      const newImage = URL.createObjectURL(file);
-      setImageArray((prevArray) => [...prevArray, newImage]);
-    }
+    setImageFileArray((prev) => [...prev, ...files]);
+    setImageArray((prev) => [...prev, ...files.map((file) => URL.createObjectURL(file))]);
+    e.target.value = "";
   };
 
   const addSpecification = (e: any) => {
@@ -160,7 +134,7 @@ const SellerAddProductContainer = ({
       productPrice: productPrice <= 0,
       productQty: productQty <= 0,
       productDescription: !productDescription.trim(),
-      images: imageFileArray.length === 0,
+      images: imageFileArray.length === 0 && existingImageArray.length === 0,
       specifications: specifications.length === 0,
     };
 
@@ -184,26 +158,28 @@ const SellerAddProductContainer = ({
     for (const image of imageFileArray) {
       formData.append("images", image);
     }
+    if (clickedProduct) {
+      formData.append("existingImageIds", JSON.stringify(existingImageArray.map((image) => image.publicId || image.imageUrl)));
+    }
     formData.append("productSpecifications", JSON.stringify(specifications));
     formData.append("productVariants", JSON.stringify(productVariants));
 
     const loading = toast.loading("Writing data...");
-    const method = clickedProduct ? "PUT" : "POST";
-    const res = await fetch("/api/products/controller", {
-      method: method,
-      body: formData,
-    });
-
-    toast.dismiss(loading);
-    if (res.ok) {
-      setAddProductVisibility(false);
-      const response = await res.json();
-      if (response.success) {
-        updatedProducts(response.content);
-        message.success(response.message);
-      } else {
-        message.error(response.message);
+    try {
+      const method = clickedProduct ? "PUT" : "POST";
+      const res = await fetch("/api/products/controller", { method, body: formData });
+      const response = await res.json().catch(() => null);
+      toast.dismiss(loading);
+      if (!res.ok || !response?.success) {
+        message.error(response?.message || "Unable to save this product. Please try again.");
+        return;
       }
+      setAddProductVisibility(false);
+      updatedProducts(response.content);
+      message.success(response.message);
+    } catch {
+      toast.dismiss(loading);
+      message.error("Unable to reach the server. Check your connection and try again.");
     }
   };
 
@@ -329,8 +305,15 @@ const SellerAddProductContainer = ({
   };
 
   const deleteImage = (index: number) => {
-    setImageArray((prev) => prev.filter((image, i) => i !== index));
-    setImageFileArray((prev) => prev.filter((image, i) => i !== index));
+    setImageArray((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
+    if (index < existingImageArray.length) {
+      setExistingImageArray((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
+      return;
+    }
+    const newImageIndex = index - existingImageArray.length;
+    const previewUrl = imageArray[index];
+    if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+    setImageFileArray((prev) => prev.filter((_, imageIndex) => imageIndex !== newImageIndex));
   };
 
   return (
@@ -362,6 +345,7 @@ const SellerAddProductContainer = ({
           type="file"
           id="file_upload"
           multiple
+          accept="image/avif,image/gif,image/heic,image/heif,image/jpeg,image/png,image/webp"
           placeholder="Add images"
           className={`bg-pink-200 rounded-xl font-semibold p-1 h-max w-max hidden`}
           onChange={handleImageInput}

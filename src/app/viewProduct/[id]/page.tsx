@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import ProductImageView from '../../components/ProductImageView';
 import Topbar from '../../components/Topbar';
 import ProductDetails from '../../components/ProductDetails';
+import CustomerReviewsContainer from '../../components/CustomerReviewsContainer';
 import dbConnect from '../../config/database';
 import Product from '../../models/product';
 import Wishlist from '../../models/wishlist';
@@ -41,6 +42,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <ProductImageView key={product._id} product={product} />
           <ProductDetails key={product._id} product={product} />
         </div>
+        <CustomerReviewsContainer productId={product._id} />
       </main>
       <Footer />
     </div>

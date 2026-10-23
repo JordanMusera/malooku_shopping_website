@@ -1,9 +1,8 @@
 'use client';
-import { FiHeart, FiMinus, FiPlus, FiShoppingBag } from "react-icons/fi";
+import { FiArrowRight, FiHeart, FiMinus, FiPlus, FiShoppingBag } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/ReactToastify.css";
-import CustomerReviewsContainer from "./CustomerReviewsContainer";
 import { message } from "antd";
 import { useDispatch } from "react-redux";
 import { setCart, waitForCartWrites } from "@/store/cartSlice";
@@ -125,10 +124,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }:any) => {
         <div><p className="text-xs mb-3 text-stone-500">Quantity</p><div className="quantity-control"><button aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => handleQtyFunction('decrement')}><FiMinus /></button><span>{qty}</span><button aria-label="Increase quantity" onClick={() => handleQtyFunction('increment')}><FiPlus /></button></div></div>
         <button className="nav-icon" aria-label={isWish ? 'Remove from wishlist' : 'Add to wishlist'} aria-pressed={isWish} onClick={() => isWish ? removeFromWishlistFunction() : addToWishlistFunction()}><FiHeart fill={isWish ? 'currentColor' : 'none'} /></button>
       </div>
-      <button className="shop-button detail-add" disabled={adding} onClick={() => addToCartFunction()}><FiShoppingBag /> {adding ? "Adding..." : "Add to bag"} <span aria-hidden="true">↗</span></button>
+      <button className="shop-button detail-add" disabled={adding} onClick={() => addToCartFunction()}><FiShoppingBag /> {adding ? "Adding..." : "Add to bag"} <FiArrowRight aria-hidden="true" /></button>
       <p className="detail-meta">A good find for your everyday. Make it yours.</p>
       {product.specifications?.length > 0 && <section className="detail-specs"><h2>The details</h2><dl>{product.specifications.map((spec: { specification: string; specificationDescription: string }, index: number) => <div key={index}><dt>{spec.specification}</dt><dd>{spec.specificationDescription}</dd></div>)}</dl></section>}
-      <CustomerReviewsContainer productId={product._id} />
       <ToastContainer position="bottom-right" />
     </section>
   );
